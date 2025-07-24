@@ -1,0 +1,27 @@
+{
+  "name": "sistema-saude-seguranca-trabalho",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema de Índice de Saúde e Segurança do Trabalho",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "pnpm run --parallel dev",
+    "build": "pnpm run --recursive build",
+    "start": "pnpm run --parallel start",
+    "test": "pnpm run --recursive test",
+    "lint": "pnpm run --recursive lint",
+    "format": "pnpm run --recursive format"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.1"
+}

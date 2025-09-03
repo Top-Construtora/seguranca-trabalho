@@ -9,6 +9,7 @@ import { QuestionsModule } from './modules/questions/questions.module';
 import { EvaluationsModule } from './modules/evaluations/evaluations.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { LogsModule } from './modules/logs/logs.module';
+import { FilesModule } from './modules/files/files.module';
 import { databaseConfig } from './config/database.config';
 
 @Module({
@@ -28,6 +29,7 @@ import { databaseConfig } from './config/database.config';
     EvaluationsModule,
     ReportsModule,
     LogsModule,
+    FilesModule,
   ],
 })
 export class AppModule {}

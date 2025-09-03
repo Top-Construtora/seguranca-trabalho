@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Dialog,
@@ -27,7 +27,10 @@ import {
   useDeleteEvaluation 
 } from '@/hooks/useEvaluations';
 import { Evaluation, EvaluationStatus } from '@/services/evaluations.service';
-import { QuestionType } from '@/services/questions.service';
+
+interface EvaluationsPageProps {
+  evaluationType: 'obra' | 'alojamento';
+}
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
@@ -40,12 +43,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-export function EvaluationsPage() {
+export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
   const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [completeId, setCompleteId] = useState<string | null>(null);
 
@@ -61,16 +63,18 @@ export function EvaluationsPage() {
       evaluation.user?.name.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' || evaluation.status === statusFilter;
-    const matchesType = typeFilter === 'all' || evaluation.type === typeFilter;
+    // Always filter by the evaluation type from the route
+    const matchesType = evaluation.type === evaluationType;
 
     return matchesSearch && matchesStatus && matchesType;
   });
 
   const handleCreate = async (data: any) => {
-    const result = await createEvaluation.mutateAsync(data);
+    const evaluationData = { ...data, type: evaluationType };
+    const result = await createEvaluation.mutateAsync(evaluationData);
     setIsFormOpen(false);
     // Redirecionar para continuar a avaliação
-    navigate(`/evaluations/${result.id}/edit`);
+    navigate(`/evaluations/${evaluationType}/${result.id}/edit`);
   };
 
   const handleView = (evaluation: Evaluation) => {
@@ -78,7 +82,7 @@ export function EvaluationsPage() {
   };
 
   const handleEdit = (evaluation: Evaluation) => {
-    navigate(`/evaluations/${evaluation.id}/edit`);
+    navigate(`/evaluations/${evaluation.type}/${evaluation.id}/edit`);
   };
 
   const handleComplete = async () => {
@@ -105,9 +109,14 @@ export function EvaluationsPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Avaliações</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {evaluationType === 'obra' ? 'Avaliações de Obra' : 'Avaliações de Alojamento'}
+            </h1>
             <p className="text-muted-foreground">
-              Gerencie as avaliações de segurança do trabalho
+              {evaluationType === 'obra' 
+                ? 'Gerencie as avaliações de segurança de obras'
+                : 'Gerencie as avaliações de segurança de alojamentos'
+              }
             </p>
           </div>
           <Button onClick={() => setIsFormOpen(true)}>
@@ -139,16 +148,6 @@ export function EvaluationsPage() {
               </SelectContent>
             </Select>
 
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos Tipos</SelectItem>
-                <SelectItem value={QuestionType.OBRA}>Obra</SelectItem>
-                <SelectItem value={QuestionType.ALOJAMENTO}>Alojamento</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
@@ -166,6 +165,7 @@ export function EvaluationsPage() {
             onComplete={(id) => setCompleteId(id)}
             onDelete={(id) => setDeleteId(id)}
             onGenerateReport={handleGenerateReport}
+            evaluationType={evaluationType}
           />
         )}
       </div>
@@ -173,15 +173,18 @@ export function EvaluationsPage() {
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Nova Avaliação</DialogTitle>
+            <DialogTitle>
+              Nova Avaliação {evaluationType === 'obra' ? 'de Obra' : 'de Alojamento'}
+            </DialogTitle>
             <DialogDescription>
-              Crie uma nova avaliação de segurança do trabalho
+              Crie uma nova avaliação de segurança {evaluationType === 'obra' ? 'de obra' : 'de alojamento'}
             </DialogDescription>
           </DialogHeader>
           <EvaluationForm
             onSubmit={handleCreate}
             onCancel={() => setIsFormOpen(false)}
             isLoading={createEvaluation.isPending}
+            evaluationType={evaluationType}
           />
         </DialogContent>
       </Dialog>

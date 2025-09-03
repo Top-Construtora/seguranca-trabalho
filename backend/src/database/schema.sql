@@ -1,139 +1,110 @@
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
 
--- Create ENUM types
-CREATE TYPE user_role AS ENUM ('admin', 'avaliador');
-CREATE TYPE question_type AS ENUM ('obra', 'alojamento');
-CREATE TYPE evaluation_status AS ENUM ('draft', 'completed');
-CREATE TYPE answer_value AS ENUM ('sim', 'nao', 'na');
-CREATE TYPE log_action AS ENUM ('create', 'update', 'delete', 'login', 'logout', 'export');
-
--- Users table
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role user_role DEFAULT 'avaliador',
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE public.answers (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  evaluation_id uuid NOT NULL,
+  question_id uuid NOT NULL,
+  answer USER-DEFINED NOT NULL,
+  observation text,
+  evidence_urls ARRAY DEFAULT '{}'::text[],
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT answers_pkey PRIMARY KEY (id),
+  CONSTRAINT answers_evaluation_id_fkey FOREIGN KEY (evaluation_id) REFERENCES public.evaluations(id),
+  CONSTRAINT answers_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.questions(id)
 );
-
--- Works table
-CREATE TABLE works (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL,
-    address TEXT NOT NULL,
-    responsible VARCHAR(255) NOT NULL,
-    responsible_email VARCHAR(255) NOT NULL,
-    responsible_phone VARCHAR(50) NOT NULL,
-    number VARCHAR(50) UNIQUE NOT NULL,
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE public.evaluations (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  work_id uuid NOT NULL,
+  accommodation_id uuid,
+  user_id uuid NOT NULL,
+  type USER-DEFINED NOT NULL,
+  date date NOT NULL,
+  employees_count integer NOT NULL,
+  notes text,
+  status USER-DEFINED DEFAULT 'draft'::evaluation_status,
+  total_penalty numeric,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT evaluations_pkey PRIMARY KEY (id),
+  CONSTRAINT evaluations_work_id_fkey FOREIGN KEY (work_id) REFERENCES public.works(id),
+  CONSTRAINT evaluations_accommodation_id_fkey FOREIGN KEY (accommodation_id) REFERENCES public.accommodations(id),
+  CONSTRAINT evaluations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
-
--- Questions table
-CREATE TABLE questions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    text TEXT NOT NULL,
-    weight INTEGER NOT NULL CHECK (weight >= 1 AND weight <= 4),
-    type question_type NOT NULL,
-    is_active BOOLEAN DEFAULT true,
-    "order" INTEGER NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE public.logs (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid,
+  action USER-DEFINED NOT NULL,
+  entity character varying NOT NULL,
+  entity_id character varying,
+  details jsonb,
+  ip_address character varying NOT NULL,
+  user_agent text NOT NULL,
+  timestamp timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT logs_pkey PRIMARY KEY (id),
+  CONSTRAINT logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
-
--- Evaluations table
-CREATE TABLE evaluations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    work_id UUID NOT NULL REFERENCES works(id),
-    user_id UUID NOT NULL REFERENCES users(id),
-    type question_type NOT NULL,
-    date DATE NOT NULL,
-    employees_count INTEGER NOT NULL,
-    notes TEXT,
-    status evaluation_status DEFAULT 'draft',
-    total_penalty DECIMAL(10, 2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE public.penalty_table (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  employees_min integer NOT NULL,
+  employees_max integer NOT NULL,
+  weight integer NOT NULL CHECK (weight >= 1 AND weight <= 4),
+  min_value numeric NOT NULL,
+  max_value numeric NOT NULL,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT penalty_table_pkey PRIMARY KEY (id)
 );
-
--- Answers table
-CREATE TABLE answers (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    evaluation_id UUID NOT NULL REFERENCES evaluations(id) ON DELETE CASCADE,
-    question_id UUID NOT NULL REFERENCES questions(id),
-    answer answer_value NOT NULL,
-    observation TEXT,
-    evidence_urls TEXT[] DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE public.questions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  text text NOT NULL,
+  weight integer NOT NULL CHECK (weight >= 1 AND weight <= 4),
+  type USER-DEFINED NOT NULL,
+  is_active boolean DEFAULT true,
+  order integer NOT NULL,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT questions_pkey PRIMARY KEY (id)
 );
-
--- Penalty table
-CREATE TABLE penalty_table (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    employees_min INTEGER NOT NULL,
-    employees_max INTEGER NOT NULL,
-    weight INTEGER NOT NULL CHECK (weight >= 1 AND weight <= 4),
-    min_value DECIMAL(10, 2) NOT NULL,
-    max_value DECIMAL(10, 2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(employees_min, employees_max, weight)
+CREATE TABLE public.users (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  name character varying NOT NULL,
+  email character varying NOT NULL UNIQUE,
+  password_hash character varying NOT NULL,
+  role USER-DEFINED DEFAULT 'avaliador'::user_role,
+  is_active boolean DEFAULT true,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT users_pkey PRIMARY KEY (id)
 );
-
--- Logs table
-CREATE TABLE logs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id),
-    action log_action NOT NULL,
-    entity VARCHAR(100) NOT NULL,
-    entity_id VARCHAR(255),
-    details JSONB,
-    ip_address VARCHAR(45) NOT NULL,
-    user_agent TEXT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE public.works (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  name character varying NOT NULL,
+  address text NOT NULL,
+  responsible character varying NOT NULL,
+  responsible_email character varying NOT NULL,
+  responsible_phone character varying NOT NULL,
+  number character varying NOT NULL UNIQUE,
+  is_active boolean DEFAULT true,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT works_pkey PRIMARY KEY (id)
 );
-
--- Create indexes
-CREATE INDEX idx_evaluations_work_id ON evaluations(work_id);
-CREATE INDEX idx_evaluations_user_id ON evaluations(user_id);
-CREATE INDEX idx_evaluations_date ON evaluations(date);
-CREATE INDEX idx_evaluations_status ON evaluations(status);
-CREATE INDEX idx_answers_evaluation_id ON answers(evaluation_id);
-CREATE INDEX idx_answers_question_id ON answers(question_id);
-CREATE INDEX idx_logs_user_id ON logs(user_id);
-CREATE INDEX idx_logs_timestamp ON logs(timestamp);
-CREATE INDEX idx_logs_action ON logs(action);
-
--- Create update trigger function
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
--- Create triggers for updated_at
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_works_updated_at BEFORE UPDATE ON works
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_questions_updated_at BEFORE UPDATE ON questions
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_evaluations_updated_at BEFORE UPDATE ON evaluations
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_answers_updated_at BEFORE UPDATE ON answers
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_penalty_table_updated_at BEFORE UPDATE ON penalty_table
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TABLE public.accommodations (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  name character varying NOT NULL,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT accommodations_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.accommodation_works (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  accommodation_id uuid NOT NULL,
+  work_id uuid NOT NULL,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT accommodation_works_pkey PRIMARY KEY (id),
+  CONSTRAINT accommodation_works_accommodation_id_fkey FOREIGN KEY (accommodation_id) REFERENCES public.accommodations(id) ON DELETE CASCADE,
+  CONSTRAINT accommodation_works_work_id_fkey FOREIGN KEY (work_id) REFERENCES public.works(id) ON DELETE CASCADE,
+  CONSTRAINT accommodation_works_unique UNIQUE (accommodation_id, work_id)
+);

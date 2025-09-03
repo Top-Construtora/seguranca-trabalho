@@ -5,8 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToMany,
 } from 'typeorm';
 import { Evaluation } from '../../evaluations/entities/evaluation.entity';
+import { Accommodation } from './accommodation.entity';
 
 @Entity('works')
 export class Work {
@@ -42,4 +44,7 @@ export class Work {
 
   @OneToMany(() => Evaluation, (evaluation) => evaluation.work)
   evaluations: Evaluation[];
+
+  @ManyToMany(() => Accommodation, (accommodation) => accommodation.works)
+  accommodations: Accommodation[];
 }

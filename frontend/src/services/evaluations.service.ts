@@ -31,6 +31,7 @@ export interface Answer {
 export interface Evaluation {
   id: string;
   work_id: string;
+  accommodation_id?: string;
   user_id: string;
   type: QuestionType;
   date: string;
@@ -44,6 +45,10 @@ export interface Evaluation {
     id: string;
     name: string;
     number: string;
+  };
+  accommodation?: {
+    id: string;
+    name: string;
   };
   user?: {
     id: string;

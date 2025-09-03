@@ -36,6 +36,7 @@ interface EvaluationsListProps {
   onComplete: (id: string) => void;
   onDelete: (id: string) => void;
   onGenerateReport?: (evaluation: Evaluation) => void;
+  evaluationType: 'obra' | 'alojamento';
 }
 
 export function EvaluationsList({ 
@@ -44,7 +45,8 @@ export function EvaluationsList({
   onEdit, 
   onComplete, 
   onDelete,
-  onGenerateReport 
+  onGenerateReport,
+  evaluationType
 }: EvaluationsListProps) {
   const getStatusBadge = (status: EvaluationStatus) => {
     switch (status) {
@@ -83,7 +85,7 @@ export function EvaluationsList({
           <TableRow>
             <TableHead>Data</TableHead>
             <TableHead>Obra</TableHead>
-            <TableHead>Tipo</TableHead>
+            {evaluationType === 'alojamento' && <TableHead>Alojamento</TableHead>}
             <TableHead>Avaliador</TableHead>
             <TableHead>Funcionários</TableHead>
             <TableHead>Status</TableHead>
@@ -94,7 +96,7 @@ export function EvaluationsList({
         <TableBody>
           {evaluations.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center text-muted-foreground">
+              <TableCell colSpan={evaluationType === 'alojamento' ? 8 : 7} className="text-center text-muted-foreground">
                 Nenhuma avaliação encontrada
               </TableCell>
             </TableRow>
@@ -110,7 +112,13 @@ export function EvaluationsList({
                     <div className="text-sm text-muted-foreground">{evaluation.work?.name}</div>
                   </div>
                 </TableCell>
-                <TableCell>{getTypeBadge(evaluation.type)}</TableCell>
+                {evaluationType === 'alojamento' && (
+                  <TableCell>
+                    <div className="font-medium">
+                      {evaluation.accommodation?.name || 'N/A'}
+                    </div>
+                  </TableCell>
+                )}
                 <TableCell>
                   <div className="text-sm">{evaluation.user?.name}</div>
                 </TableCell>

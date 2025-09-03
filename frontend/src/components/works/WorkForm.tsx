@@ -16,11 +16,11 @@ import { CreateWorkDto, Work } from '@/services/works.service';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-  number: z.string().min(1, 'Número é obrigatório'),
-  address: z.string().min(5, 'Endereço deve ter no mínimo 5 caracteres'),
-  responsible: z.string().min(3, 'Nome do responsável é obrigatório'),
+  number: z.string().min(1, 'Código é obrigatório'),
+  address: z.string().optional(),
+  responsible: z.string().min(3, 'Nome do engenheiro é obrigatório'),
   responsible_email: z.string().email('Email inválido'),
-  responsible_phone: z.string().min(10, 'Telefone inválido'),
+  responsible_phone: z.string().optional(),
 });
 
 interface WorkFormProps {
@@ -70,7 +70,7 @@ export function WorkForm({ work, onSubmit, onCancel, isLoading }: WorkFormProps)
             name="number"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Número da Obra</FormLabel>
+                <FormLabel>Código da Obra</FormLabel>
                 <FormControl>
                   <Input placeholder="Ex: OBR-001" {...field} />
                 </FormControl>
@@ -106,9 +106,9 @@ export function WorkForm({ work, onSubmit, onCancel, isLoading }: WorkFormProps)
             name="responsible"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nome do Responsável</FormLabel>
+                <FormLabel>Engenheiro Responsável</FormLabel>
                 <FormControl>
-                  <Input placeholder="Nome completo" {...field} />
+                  <Input placeholder="Nome completo do engenheiro" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -121,9 +121,9 @@ export function WorkForm({ work, onSubmit, onCancel, isLoading }: WorkFormProps)
               name="responsible_email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email do Responsável</FormLabel>
+                  <FormLabel>Email Corporativo</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="email@exemplo.com" {...field} />
+                    <Input type="email" placeholder="email@empresa.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -135,7 +135,7 @@ export function WorkForm({ work, onSubmit, onCancel, isLoading }: WorkFormProps)
               name="responsible_phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Telefone do Responsável</FormLabel>
+                  <FormLabel>Telefone</FormLabel>
                   <FormControl>
                     <Input placeholder="(11) 99999-9999" {...field} />
                   </FormControl>

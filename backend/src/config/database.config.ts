@@ -26,7 +26,7 @@ export const databaseConfig = (): TypeOrmModuleOptions => {
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
     synchronize: false, // Nunca use true em produção/Supabase
     logging: process.env.NODE_ENV === 'development',
-    ssl: {
+    ssl: process.env.DB_HOST === 'localhost' ? false : {
       rejectUnauthorized: false,
     },
   };

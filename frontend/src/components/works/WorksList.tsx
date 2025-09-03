@@ -59,7 +59,7 @@ export function WorksList({ works, onEdit, onToggleActive, onDelete, isLoading }
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Número</TableHead>
+              <TableHead>Código</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Endereço</TableHead>
               <TableHead>Responsável</TableHead>
@@ -77,32 +77,38 @@ export function WorksList({ works, onEdit, onToggleActive, onDelete, isLoading }
             ) : (
               works.map((work) => (
                 <TableRow key={work.id}>
-                  <TableCell className="font-medium">{work.number}</TableCell>
-                  <TableCell>{work.name}</TableCell>
+                  <TableCell className="font-semibold text-base">{work.number}</TableCell>
+                  <TableCell className="font-medium text-base">{work.name}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      <span className="text-sm">{work.address}</span>
+                    {work.address ? (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-gray-500" />
+                        <span className="text-base">{work.address}</span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-base">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-gray-500" />
+                        <span className="text-base font-medium">{work.responsible}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm text-muted-foreground">{work.responsible_email}</span>
+                      </div>
+                      {work.responsible_phone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm text-muted-foreground">{work.responsible_phone}</span>
+                        </div>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        <span className="text-sm">{work.responsible}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        <span className="text-xs text-muted-foreground">{work.responsible_email}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Phone className="h-3 w-3" />
-                        <span className="text-xs text-muted-foreground">{work.responsible_phone}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={work.is_active ? 'default' : 'secondary'}>
+                    <Badge variant={work.is_active ? 'default' : 'secondary'} className="text-sm px-3 py-1">
                       {work.is_active ? 'Ativa' : 'Inativa'}
                     </Badge>
                   </TableCell>

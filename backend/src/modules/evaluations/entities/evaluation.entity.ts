@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Work } from '../../works/entities/work.entity';
+import { Accommodation } from '../../works/entities/accommodation.entity';
 import { Answer } from './answer.entity';
 import { QuestionType } from './question.entity';
 
@@ -29,6 +30,13 @@ export class Evaluation {
 
   @Column()
   work_id: string;
+
+  @ManyToOne(() => Accommodation, (accommodation) => accommodation.evaluations)
+  @JoinColumn({ name: 'accommodation_id' })
+  accommodation: Accommodation;
+
+  @Column({ nullable: true })
+  accommodation_id: string;
 
   @ManyToOne(() => User, (user) => user.evaluations)
   @JoinColumn({ name: 'user_id' })

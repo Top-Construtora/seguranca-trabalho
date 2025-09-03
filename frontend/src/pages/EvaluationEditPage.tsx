@@ -28,7 +28,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function EvaluationEditPage() {
-  const { id } = useParams<{ id: string }>();
+  const { type, id } = useParams<{ type: string; id: string }>();
   const navigate = useNavigate();
   const [answers, setAnswers] = useState<CreateAnswerDto[]>([]);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
@@ -83,7 +83,7 @@ export function EvaluationEditPage() {
     // Finalizar avaliação
     await completeEvaluation.mutateAsync(id!);
     setShowCompleteDialog(false);
-    navigate('/evaluations');
+    navigate(`/evaluations/${type}`);
   };
 
   if (evaluationLoading || questionsLoading) {
@@ -103,7 +103,7 @@ export function EvaluationEditPage() {
       <DashboardLayout>
         <div className="text-center py-12">
           <p className="text-muted-foreground">Avaliação não encontrada</p>
-          <Button onClick={() => navigate('/evaluations')} className="mt-4">
+          <Button onClick={() => navigate(`/evaluations/${type}`)} className="mt-4">
             Voltar
           </Button>
         </div>
@@ -122,7 +122,7 @@ export function EvaluationEditPage() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate('/evaluations')}
+              onClick={() => navigate(`/evaluations/${type}`)}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>

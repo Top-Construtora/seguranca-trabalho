@@ -43,15 +43,23 @@ export function App() {
               }
             />
             <Route
-              path="/evaluations"
+              path="/evaluations/obra"
               element={
                 <ProtectedRoute>
-                  <EvaluationsPage />
+                  <EvaluationsPage evaluationType="obra" />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/evaluations/:id/edit"
+              path="/evaluations/alojamento"
+              element={
+                <ProtectedRoute>
+                  <EvaluationsPage evaluationType="alojamento" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/evaluations/:type/:id/edit"
               element={
                 <ProtectedRoute>
                   <EvaluationEditPage />

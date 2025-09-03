@@ -11,6 +11,7 @@ import { Answer, AnswerValue } from './entities/answer.entity';
 import { Question } from './entities/question.entity';
 import { PenaltyTable } from './entities/penalty-table.entity';
 import { Work } from '../works/entities/work.entity';
+import { Accommodation } from '../works/entities/accommodation.entity';
 import { CreateEvaluationDto } from './dto/create-evaluation.dto';
 import { UpdateEvaluationDto } from './dto/update-evaluation.dto';
 import { UpdateAnswersDto } from './dto/update-answers.dto';
@@ -29,34 +30,84 @@ export class EvaluationsService {
     private readonly penaltyTableRepository: Repository<PenaltyTable>,
     @InjectRepository(Work)
     private readonly workRepository: Repository<Work>,
+    @InjectRepository(Accommodation)
+    private readonly accommodationRepository: Repository<Accommodation>,
     private readonly dataSource: DataSource,
   ) {}
 
   async create(createEvaluationDto: CreateEvaluationDto, userId: string): Promise<Evaluation> {
-    // Verificar se a obra existe e está ativa
-    const work = await this.workRepository.findOne({
-      where: { id: createEvaluationDto.work_id, is_active: true },
-    });
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!work) {
-      throw new NotFoundException('Obra não encontrada ou inativa');
+    try {
+      // Verificar se a obra existe e está ativa
+      const work = await this.workRepository.findOne({
+        where: { id: createEvaluationDto.work_id, is_active: true },
+      });
+
+      if (!work) {
+        throw new NotFoundException('Obra não encontrada ou inativa');
+      }
+
+      let accommodationId = createEvaluationDto.accommodation_id;
+
+      // Se for uma avaliação de alojamento e tem nome do alojamento, criar o alojamento
+      if (createEvaluationDto.accommodation_name && createEvaluationDto.work_ids) {
+        // Criar alojamento
+        const accommodation = queryRunner.manager.create(Accommodation, {
+          name: createEvaluationDto.accommodation_name,
+        });
+        
+        const savedAccommodation = await queryRunner.manager.save(accommodation);
+        accommodationId = savedAccommodation.id;
+
+        // Criar relacionamentos com as obras
+        for (const workId of createEvaluationDto.work_ids) {
+          const workExists = await this.workRepository.findOne({
+            where: { id: workId, is_active: true },
+          });
+
+          if (!workExists) {
+            throw new NotFoundException(`Obra com ID ${workId} não encontrada ou inativa`);
+          }
+
+          await queryRunner.manager.query(
+            'INSERT INTO accommodation_works (accommodation_id, work_id) VALUES ($1, $2)',
+            [accommodationId, workId]
+          );
+        }
+      }
+
+      // Criar avaliação
+      const evaluation = queryRunner.manager.create(Evaluation, {
+        work_id: createEvaluationDto.work_id,
+        accommodation_id: accommodationId,
+        type: createEvaluationDto.type,
+        date: new Date(createEvaluationDto.date),
+        employees_count: createEvaluationDto.employees_count,
+        notes: createEvaluationDto.notes,
+        user_id: userId,
+        status: EvaluationStatus.DRAFT,
+      });
+
+      const savedEvaluation = await queryRunner.manager.save(evaluation);
+
+      await queryRunner.commitTransaction();
+      return savedEvaluation;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
-
-    // Criar avaliação
-    const evaluation = this.evaluationRepository.create({
-      ...createEvaluationDto,
-      user_id: userId,
-      date: new Date(createEvaluationDto.date),
-      status: EvaluationStatus.DRAFT,
-    });
-
-    return this.evaluationRepository.save(evaluation);
   }
 
   async findAll(userId: string, userRole: UserRole): Promise<Evaluation[]> {
     const query = this.evaluationRepository
       .createQueryBuilder('evaluation')
       .leftJoinAndSelect('evaluation.work', 'work')
+      .leftJoinAndSelect('evaluation.accommodation', 'accommodation')
       .leftJoinAndSelect('evaluation.user', 'user')
       .leftJoinAndSelect('evaluation.answers', 'answer')
       .leftJoinAndSelect('answer.question', 'question');
@@ -72,7 +123,7 @@ export class EvaluationsService {
   async findOne(id: string, userId: string, userRole: UserRole): Promise<Evaluation> {
     const evaluation = await this.evaluationRepository.findOne({
       where: { id },
-      relations: ['work', 'user', 'answers', 'answers.question'],
+      relations: ['work', 'accommodation', 'user', 'answers', 'answers.question'],
     });
 
     if (!evaluation) {

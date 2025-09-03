@@ -1,19 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 @Injectable()
 export class SupabaseService {
-  private supabase: SupabaseClient;
+  private supabase: SupabaseClient | null = null;
+  private readonly logger = new Logger(SupabaseService.name);
 
   constructor(private configService: ConfigService) {
-    this.supabase = createClient(
-      this.configService.get<string>('SUPABASE_URL'),
-      this.configService.get<string>('SUPABASE_SERVICE_KEY'),
-    );
+    const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
+    const supabaseKey = this.configService.get<string>('SUPABASE_SERVICE_KEY') || 
+                        this.configService.get<string>('SUPABASE_ANON_KEY');
+
+    if (supabaseUrl && supabaseKey) {
+      this.supabase = createClient(supabaseUrl, supabaseKey);
+      this.logger.log('Supabase client initialized');
+    } else {
+      this.logger.warn('Supabase environment variables not found. File storage features will be disabled.');
+      this.logger.warn(`SUPABASE_URL: ${supabaseUrl ? 'provided' : 'missing'}`);
+      this.logger.warn(`SUPABASE_SERVICE_KEY/SUPABASE_ANON_KEY: ${supabaseKey ? 'provided' : 'missing'}`);
+    }
   }
 
-  getClient(): SupabaseClient {
+  getClient(): SupabaseClient | null {
     return this.supabase;
   }
 
@@ -23,6 +32,10 @@ export class SupabaseService {
     file: Buffer,
     contentType: string,
   ) {
+    if (!this.supabase) {
+      throw new Error('Supabase client not initialized. Check SUPABASE_URL and SUPABASE_SERVICE_KEY environment variables.');
+    }
+
     const { data, error } = await this.supabase.storage
       .from(bucket)
       .upload(path, file, {
@@ -38,6 +51,10 @@ export class SupabaseService {
   }
 
   async deleteFile(bucket: string, path: string) {
+    if (!this.supabase) {
+      throw new Error('Supabase client not initialized. Check SUPABASE_URL and SUPABASE_SERVICE_KEY environment variables.');
+    }
+
     const { error } = await this.supabase.storage.from(bucket).remove([path]);
 
     if (error) {
@@ -46,11 +63,19 @@ export class SupabaseService {
   }
 
   getPublicUrl(bucket: string, path: string): string {
+    if (!this.supabase) {
+      throw new Error('Supabase client not initialized. Check SUPABASE_URL and SUPABASE_SERVICE_KEY environment variables.');
+    }
+
     const { data } = this.supabase.storage.from(bucket).getPublicUrl(path);
     return data.publicUrl;
   }
 
   async verifyUser(token: string) {
+    if (!this.supabase) {
+      throw new Error('Supabase client not initialized. Check SUPABASE_URL and SUPABASE_SERVICE_KEY environment variables.');
+    }
+
     const { data, error } = await this.supabase.auth.getUser(token);
     
     if (error) {

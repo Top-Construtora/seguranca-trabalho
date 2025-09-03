@@ -3,10 +3,10 @@ import { api } from './api';
 export interface Work {
   id: string;
   name: string;
-  address: string;
+  address?: string;
   responsible: string;
   responsible_email: string;
-  responsible_phone: string;
+  responsible_phone?: string;
   number: string;
   is_active: boolean;
   created_at: string;
@@ -15,10 +15,10 @@ export interface Work {
 
 export interface CreateWorkDto {
   name: string;
-  address: string;
+  address?: string;
   responsible: string;
   responsible_email: string;
-  responsible_phone: string;
+  responsible_phone?: string;
   number: string;
 }
 

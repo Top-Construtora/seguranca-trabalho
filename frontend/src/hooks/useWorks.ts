@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { worksService, Work, CreateWorkDto, UpdateWorkDto } from '@/services/works.service';
+import { worksService, CreateWorkDto, UpdateWorkDto } from '@/services/works.service';
 import { useToast } from '@/components/ui/use-toast';
 
 export function useWorks() {

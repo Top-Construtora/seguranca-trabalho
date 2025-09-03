@@ -45,10 +45,9 @@ interface WorksListProps {
   onEdit: (work: Work) => void;
   onToggleActive: (id: string) => void;
   onDelete: (id: string) => void;
-  isLoading?: boolean;
 }
 
-export function WorksList({ works, onEdit, onToggleActive, onDelete, isLoading }: WorksListProps) {
+export function WorksList({ works, onEdit, onToggleActive, onDelete }: WorksListProps) {
   const { user } = useAuth();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const isAdmin = user?.role === 'admin';

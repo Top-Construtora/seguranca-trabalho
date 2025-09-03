@@ -15,7 +15,7 @@ import { FileText, Download, Calendar, Building, Users, TrendingUp } from 'lucid
 
 export function ReportsPage() {
   const { toast } = useToast();
-  const { works } = useWorks();
+  const { data: works = [] } = useWorks();
   const [loading, setLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [evaluationsReport, setEvaluationsReport] = useState<EvaluationReport | null>(null);
@@ -29,9 +29,8 @@ export function ReportsPage() {
   });
 
   // Função para converter valores do Select para o formato do backend
-  const getDisplayValue = (value: string, type: 'work' | 'type') => {
-    if (!value) return 'all';
-    return value;
+  const getDisplayValue = (value: string): string => {
+    return value || 'all';
   };
 
   const handleFilterChange = (key: keyof ReportFilters, value: string) => {
@@ -176,7 +175,7 @@ export function ReportsPage() {
               
               <div className="space-y-2">
                 <Label htmlFor="work">Obra</Label>
-                <Select value={getDisplayValue(filters.workId, 'work')} onValueChange={(value) => handleFilterChange('workId', value === 'all' ? '' : value)}>
+                <Select value={getDisplayValue(filters.workId || '')} onValueChange={(value) => handleFilterChange('workId', value === 'all' ? '' : value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Todas as obras" />
                   </SelectTrigger>
@@ -193,7 +192,7 @@ export function ReportsPage() {
               
               <div className="space-y-2">
                 <Label htmlFor="type">Tipo</Label>
-                <Select value={getDisplayValue(filters.type, 'type')} onValueChange={(value) => handleFilterChange('type', value === 'all' ? '' : value)}>
+                <Select value={getDisplayValue(filters.type || '')} onValueChange={(value) => handleFilterChange('type', value === 'all' ? '' : value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Todos os tipos" />
                   </SelectTrigger>

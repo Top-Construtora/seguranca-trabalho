@@ -1,11 +1,10 @@
 import { ReactNode } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
   Building2,
-  ClipboardCheck,
   FileText,
   LogOut,
   Menu,
@@ -14,7 +13,6 @@ import {
   Home,
   ChevronLeft,
   ChevronRight,
-  Bell,
   User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -45,7 +43,6 @@ const navigation = [
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, signOut } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed');

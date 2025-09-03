@@ -6,8 +6,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Upload, File, X, Loader2 } from 'lucide-react';
 import { filesService } from '@/services/files.service';
 
@@ -118,7 +117,6 @@ export function QuestionForm({ questions, answers, onAnswersChange, readOnly = f
     <div className="space-y-6">
       {questions.map((question, index) => {
         const answer = localAnswers[question.id];
-        const isAnswered = answer?.answer !== undefined;
         const isNegative = answer?.answer === AnswerValue.NAO;
 
         return (

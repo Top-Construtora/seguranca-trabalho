@@ -27,7 +27,6 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { QuestionType } from '@/services/questions.service';
 
 interface EvaluationsListProps {
   evaluations: Evaluation[];
@@ -59,16 +58,6 @@ export function EvaluationsList({
     }
   };
 
-  const getTypeBadge = (type: QuestionType) => {
-    switch (type) {
-      case QuestionType.OBRA:
-        return <Badge variant="outline">Obra</Badge>;
-      case QuestionType.ALOJAMENTO:
-        return <Badge variant="outline">Alojamento</Badge>;
-      default:
-        return null;
-    }
-  };
 
   const formatCurrency = (value?: number) => {
     if (!value) return '-';

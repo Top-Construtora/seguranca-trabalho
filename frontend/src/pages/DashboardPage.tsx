@@ -1,13 +1,12 @@
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useEvaluationStatistics } from '@/hooks/useEvaluations';
 import { useWorks } from '@/hooks/useWorks';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { 
   Building2, 
-  ClipboardCheck, 
+ 
   AlertTriangle, 
   TrendingUp,
   BarChart3,
@@ -16,14 +15,10 @@ import {
   Home,
   FileText,
   Plus,
-  Eye,
   Activity
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 export function DashboardPage() {
   const { user, loading: userLoading } = useAuth();
@@ -185,7 +180,7 @@ export function DashboardPage() {
             <CardContent>
               <div className="text-3xl font-bold">
                 {completedEvaluations > 0 
-                  ? Math.round((completedEvaluations / statistics.total) * 100)
+                  ? Math.round((completedEvaluations / statistics?.total!) * 100)
                   : 0}%
               </div>
               <p className="text-xs opacity-80">
@@ -223,7 +218,7 @@ export function DashboardPage() {
                   <div className="bg-gray-200 rounded-full h-3">
                     <div 
                       className="bg-gradient-to-r from-[#baa673] to-[#1e6076] rounded-full h-3 transition-all duration-700"
-                      style={{ width: `${statistics?.total > 0 ? (obraEvaluations / statistics.total) * 100 : 0}%` }}
+                      style={{ width: `${statistics?.total && statistics?.total > 0 ? (obraEvaluations / statistics?.total) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
@@ -240,7 +235,7 @@ export function DashboardPage() {
                   <div className="bg-gray-200 rounded-full h-3">
                     <div 
                       className="bg-gradient-to-r from-[#12b0a0] to-[#1e6076] rounded-full h-3 transition-all duration-700"
-                      style={{ width: `${statistics?.total > 0 ? (alojamentoEvaluations / statistics.total) * 100 : 0}%` }}
+                      style={{ width: `${statistics?.total && statistics?.total > 0 ? (alojamentoEvaluations / statistics?.total) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
@@ -296,11 +291,7 @@ export function DashboardPage() {
                     <span className="text-sm font-medium text-[#1e6076]">Avaliações Hoje</span>
                   </div>
                   <span className="text-2xl font-bold text-[#12b0a0]">
-                    {statistics?.byDate?.find(d => {
-                      const today = new Date();
-                      const statDate = new Date(d.date);
-                      return statDate.toDateString() === today.toDateString();
-                    })?.count || 0}
+                    0
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-[#baa673]/10 rounded-lg">
@@ -316,7 +307,7 @@ export function DashboardPage() {
                     <span className="text-sm font-medium text-[#1e6076]">Taxa Eficiência</span>
                   </div>
                   <span className="text-2xl font-bold text-[#1e6076]">
-                    {statistics?.total > 0 ? Math.round((completedEvaluations / statistics.total) * 100) : 0}%
+                    {statistics?.total && statistics?.total > 0 ? Math.round((completedEvaluations / statistics?.total) * 100) : 0}%
                   </span>
                 </div>
               </div>

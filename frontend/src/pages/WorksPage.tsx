@@ -43,7 +43,7 @@ export function WorksPage() {
       work.name.toLowerCase().includes(search) ||
       work.number.toLowerCase().includes(search) ||
       work.responsible.toLowerCase().includes(search) ||
-      work.address.toLowerCase().includes(search)
+      work.address?.toLowerCase().includes(search)
     );
   });
 

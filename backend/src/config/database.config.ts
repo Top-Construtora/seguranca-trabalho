@@ -9,9 +9,12 @@ export const databaseConfig = (): TypeOrmModuleOptions => {
       entities: [__dirname + '/../**/*.entity{.ts,.js}'],
       synchronize: false, // Nunca use true em produção/Supabase
       logging: process.env.NODE_ENV === 'development',
-      ssl: {
+      ssl: process.env.NODE_ENV === 'production' ? {
         rejectUnauthorized: false,
-      },
+      } : false,
+      connectTimeoutMS: 60000,
+      acquireTimeoutMS: 60000,
+      timeout: 60000,
     };
   }
 

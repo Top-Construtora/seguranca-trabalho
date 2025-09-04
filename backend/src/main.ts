@@ -35,5 +35,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3333;
   await app.listen(port, '0.0.0.0');
   console.log(`Application is running on: http://0.0.0.0:${port}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`Database URL configured: ${!!process.env.DATABASE_URL}`);
 }
 bootstrap();

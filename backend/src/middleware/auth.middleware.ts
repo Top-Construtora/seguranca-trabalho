@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AppDataSource } from '../config/database.config';
-import { User } from '../entities/user.entity';
+import { User } from '../modules/users/entities/user.entity';
 
-export interface AuthenticatedRequest extends Request {
+interface AuthenticatedRequest extends Request {
   user?: User;
 }
 
-export const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
     
@@ -32,7 +32,7 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
   }
 };
 
-export const optionalAuthMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const optionalAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
     

@@ -27,6 +27,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import logoGIO from '@/assets/images/logoGIO.png';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -79,7 +80,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-[#1e2938]">
           <div className="flex h-16 items-center justify-between px-4">
             <img 
-              src="/src/assets/images/logoGIO.png" 
+              src={logoGIO} 
               alt="GIO Logo" 
               className="h-10 w-auto object-contain"
             />
@@ -126,7 +127,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {!sidebarCollapsed ? (
               <>
                 <img 
-                  src="/src/assets/images/logoGIO.png" 
+                  src={logoGIO} 
                   alt="GIO Logo" 
                   className="h-10 w-auto object-contain"
                 />
@@ -141,7 +142,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </>
             ) : (
               <img 
-                src="/src/assets/images/logoGIO.png" 
+                src={logoGIO} 
                 alt="GIO Logo" 
                 className="h-8 w-auto object-contain"
               />

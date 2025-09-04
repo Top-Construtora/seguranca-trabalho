@@ -54,7 +54,7 @@ export function WorksList({ works, onEdit, onToggleActive, onDelete }: WorksList
 
   return (
     <>
-      <div className="rounded-md border">
+      <div className="rounded-3xl">
         <Table>
           <TableHeader>
             <TableRow>

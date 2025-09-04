@@ -67,7 +67,7 @@ export function DashboardPage() {
     <DashboardLayout>
       <div className="space-y-8">
         {/* Header com saudação */}
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#1e6076] via-[#12b0a0] to-[#1e6076] p-8 text-white">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e6076] via-[#12b0a0] to-[#1e6076] p-8 text-white">
           <div className="absolute inset-0 bg-black/10" />
           <div className="relative z-10">
             <h1 className="text-4xl font-bold mb-3">
@@ -77,25 +77,25 @@ export function DashboardPage() {
               Acesse rapidamente as funcionalidades principais do sistema
             </p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <Link to="/evaluations/obra" className="block border border-white text-white hover:bg-white/10 font-semibold py-4 px-4 rounded-lg transition-colors">
+              <Link to="/evaluations/obra" className="block border border-white text-white hover:bg-white/10 font-semibold py-4 px-4 rounded-3xl transition-colors">
                 <div className="flex flex-col items-center gap-2">
                   <HardHat className="h-6 w-6" />
                   <span className="text-sm text-center">Nova Avaliação de Obra</span>
                 </div>
               </Link>
-              <Link to="/evaluations/alojamento" className="block border border-white text-white hover:bg-white/10 font-semibold py-4 px-4 rounded-lg transition-colors">
+              <Link to="/evaluations/alojamento" className="block border border-white text-white hover:bg-white/10 font-semibold py-4 px-4 rounded-3xl transition-colors">
                 <div className="flex flex-col items-center gap-2">
                   <Home className="h-6 w-6" />
                   <span className="text-sm text-center">Nova Avaliação de Alojamento</span>
                 </div>
               </Link>
-              <Link to="/works" className="block border border-white text-white hover:bg-white/10 font-semibold py-4 px-4 rounded-lg transition-colors">
+              <Link to="/works" className="block border border-white text-white hover:bg-white/10 font-semibold py-4 px-4 rounded-3xl transition-colors">
                 <div className="flex flex-col items-center gap-2">
                   <Plus className="h-6 w-6" />
                   <span className="text-sm text-center">Novo Cadastro de Obra</span>
                 </div>
               </Link>
-              <Link to="/reports" className="block border border-white text-white hover:bg-white/10 font-semibold py-4 px-4 rounded-lg transition-colors">
+              <Link to="/reports" className="block border border-white text-white hover:bg-white/10 font-semibold py-4 px-4 rounded-3xl transition-colors">
                 <div className="flex flex-col items-center gap-2">
                   <FileText className="h-6 w-6" />
                   <span className="text-sm text-center">Gerenciar Relatórios</span>
@@ -109,7 +109,7 @@ export function DashboardPage() {
 
         {/* Cards de estatísticas principais - Paleta personalizada */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-[#12b0a0] to-[#1e6076] text-white">
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-[#12b0a0] to-[#1e6076] text-white rounded-3xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium opacity-90">
                 Obras Ativas
@@ -131,7 +131,7 @@ export function DashboardPage() {
             <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
           </Card>
 
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-[#1e6076] to-[#12b0a0] text-white">
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-[#1e6076] to-[#12b0a0] text-white rounded-3xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium opacity-90">
                 Total de Avaliações
@@ -152,7 +152,7 @@ export function DashboardPage() {
             <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
           </Card>
 
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-[#baa673] to-[#1e6076] text-white">
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-[#baa673] to-[#1e6076] text-white rounded-3xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium opacity-90">
                 Multas Aplicadas
@@ -170,7 +170,7 @@ export function DashboardPage() {
             <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
           </Card>
 
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-[#1e6076] to-[#baa673] text-white">
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-[#1e6076] to-[#baa673] text-white rounded-3xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium opacity-90">
                 Taxa de Conformidade
@@ -193,8 +193,8 @@ export function DashboardPage() {
 
         {/* Cards de detalhamento - Paleta personalizada */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="shadow-md hover:shadow-lg transition-shadow border-0">
-            <CardHeader className="bg-gradient-to-r from-[#12b0a0]/10 to-[#1e6076]/10 rounded-t-lg">
+          <Card className="shadow-md hover:shadow-lg transition-shadow border-0 rounded-3xl">
+            <CardHeader className="bg-gradient-to-r from-[#12b0a0]/10 to-[#1e6076]/10 rounded-t-3xl">
               <CardTitle className="flex items-center gap-2 text-[#1e6076]">
                 <PieChart className="h-5 w-5 text-[#12b0a0]" />
                 Distribuição por Tipo
@@ -243,8 +243,8 @@ export function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-md hover:shadow-lg transition-shadow border-0">
-            <CardHeader className="bg-gradient-to-r from-[#1e6076]/10 to-[#baa673]/10 rounded-t-lg">
+          <Card className="shadow-md hover:shadow-lg transition-shadow border-0 rounded-3xl">
+            <CardHeader className="bg-gradient-to-r from-[#1e6076]/10 to-[#baa673]/10 rounded-t-3xl">
               <CardTitle className="flex items-center gap-2 text-[#1e6076]">
                 <BarChart3 className="h-5 w-5 text-[#12b0a0]" />
                 Status das Avaliações
@@ -255,14 +255,14 @@ export function DashboardPage() {
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-[#12b0a0]/10 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-[#12b0a0]/10 rounded-3xl">
                   <div className="flex items-center gap-3">
                     <div className="w-4 h-4 rounded-full bg-[#12b0a0]" />
                     <span className="text-sm font-medium text-[#1e6076]">Finalizadas</span>
                   </div>
                   <span className="text-2xl font-bold text-[#12b0a0]">{completedEvaluations}</span>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-[#baa673]/10 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-[#baa673]/10 rounded-3xl">
                   <div className="flex items-center gap-3">
                     <div className="w-4 h-4 rounded-full bg-[#baa673]" />
                     <span className="text-sm font-medium text-[#1e6076]">Em Rascunho</span>
@@ -273,8 +273,8 @@ export function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-md hover:shadow-lg transition-shadow border-0">
-            <CardHeader className="bg-gradient-to-r from-[#baa673]/10 to-[#12b0a0]/10 rounded-t-lg">
+          <Card className="shadow-md hover:shadow-lg transition-shadow border-0 rounded-3xl">
+            <CardHeader className="bg-gradient-to-r from-[#baa673]/10 to-[#12b0a0]/10 rounded-t-3xl">
               <CardTitle className="flex items-center gap-2 text-[#1e6076]">
                 <Activity className="h-5 w-5 text-[#12b0a0]" />
                 Métricas do Sistema
@@ -285,7 +285,7 @@ export function DashboardPage() {
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-[#12b0a0]/10 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-[#12b0a0]/10 rounded-3xl">
                   <div className="flex items-center gap-3">
                     <div className="w-4 h-4 rounded-full bg-[#12b0a0]" />
                     <span className="text-sm font-medium text-[#1e6076]">Avaliações Hoje</span>
@@ -294,14 +294,14 @@ export function DashboardPage() {
                     0
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-[#baa673]/10 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-[#baa673]/10 rounded-3xl">
                   <div className="flex items-center gap-3">
                     <div className="w-4 h-4 rounded-full bg-[#baa673]" />
                     <span className="text-sm font-medium text-[#1e6076]">Pendências</span>
                   </div>
                   <span className="text-2xl font-bold text-[#baa673]">{draftEvaluations}</span>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-[#1e6076]/10 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-[#1e6076]/10 rounded-3xl">
                   <div className="flex items-center gap-3">
                     <div className="w-4 h-4 rounded-full bg-[#1e6076]" />
                     <span className="text-sm font-medium text-[#1e6076]">Taxa Eficiência</span>

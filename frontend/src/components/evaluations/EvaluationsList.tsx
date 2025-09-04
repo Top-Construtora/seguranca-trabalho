@@ -68,7 +68,7 @@ export function EvaluationsList({
   };
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-3xl">
       <Table>
         <TableHeader>
           <TableRow>

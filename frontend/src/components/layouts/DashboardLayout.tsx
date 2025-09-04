@@ -68,7 +68,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [sidebarCollapsed]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#1e2938]">
       {/* Mobile sidebar */}
       <div className={cn(
         "fixed inset-0 z-50 lg:hidden",
@@ -182,14 +182,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   {!sidebarCollapsed && (
                     <span className="transition-opacity duration-200">{item.name}</span>
                   )}
-                  
-                  {/* Tooltip para sidebar colapsada */}
-                  {sidebarCollapsed && (
-                    <div className="absolute left-full ml-2 px-3 py-1 bg-gray-800 text-white text-sm rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
-                      {item.name}
-                      <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 border-4 border-transparent border-r-gray-800"></div>
-                    </div>
-                  )}
                 </Link>
               );
             })}
@@ -301,8 +293,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1">
-          <div className="p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 lg:rounded-tl-3xl bg-gray-50 overflow-hidden min-h-[calc(100vh-4rem)]">
+          <div className="p-4 sm:p-6 lg:p-8 h-full">
             {children}
           </div>
         </main>

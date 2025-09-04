@@ -18,3 +18,4 @@ coverage/
 README.md
 SETUP.md
 *.md
+.vercel

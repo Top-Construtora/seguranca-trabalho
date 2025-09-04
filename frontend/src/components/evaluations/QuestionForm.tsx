@@ -218,7 +218,7 @@ export function QuestionForm({ questions, answers, onAnswersChange, readOnly = f
 
           {/* Perguntas da seção */}
           <div className="space-y-6">
-            {group.questions.map((question, index) => {
+            {group.questions.map((question) => {
               // Calcular o número real da questão baseado na posição original
               const originalIndex = questions.indexOf(question);
               const questionNumber = originalIndex + 1;

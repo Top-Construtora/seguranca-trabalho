@@ -1,4 +1,5 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 export const databaseConfig = (): TypeOrmModuleOptions => {
   // Se tivermos uma DATABASE_URL, usar ela (padrão Supabase)
@@ -13,8 +14,6 @@ export const databaseConfig = (): TypeOrmModuleOptions => {
         rejectUnauthorized: false,
       } : false,
       connectTimeoutMS: 60000,
-      acquireTimeoutMS: 60000,
-      timeout: 60000,
     };
   }
 
@@ -34,3 +33,6 @@ export const databaseConfig = (): TypeOrmModuleOptions => {
     },
   };
 };
+
+// Export AppDataSource for direct repository access in services
+export const AppDataSource = new DataSource(databaseConfig() as any);

@@ -22,6 +22,9 @@ async function bootstrap() {
     }),
   );
 
+  // Set global prefix for all routes
+  app.setGlobalPrefix('api');
+
   const config = new DocumentBuilder()
     .setTitle('Sistema de Saúde e Segurança do Trabalho')
     .setDescription('API para gerenciamento de avaliações de saúde e segurança')

@@ -24,6 +24,13 @@ export interface CreateWorkDto {
 
 export interface UpdateWorkDto extends Partial<CreateWorkDto> {}
 
+export interface Accommodation {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 class WorksService {
   async getAll(): Promise<Work[]> {
     const response = await api.get('/works');
@@ -52,6 +59,11 @@ class WorksService {
 
   async delete(id: string): Promise<void> {
     await api.delete(`/works/${id}`);
+  }
+
+  async getAllAccommodations(): Promise<Accommodation[]> {
+    const response = await api.get('/works/accommodations');
+    return response.data;
   }
 }
 

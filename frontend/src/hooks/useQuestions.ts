@@ -5,6 +5,7 @@ export function useQuestions(type?: QuestionType, activeOnly: boolean = true) {
   return useQuery({
     queryKey: ['questions', type, activeOnly],
     queryFn: () => questionsService.getAll(type, activeOnly),
+    enabled: !!type, // Only fetch when type is available
   });
 }
 

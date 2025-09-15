@@ -73,29 +73,29 @@ export function WorksPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Obras</h1>
-            <p className="text-muted-foreground">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Obras</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Gerencie as obras cadastradas no sistema
             </p>
           </div>
           {isAdmin && (
-            <Button onClick={() => setIsFormOpen(true)}>
+            <Button onClick={() => setIsFormOpen(true)} className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
-              Nova Obra
+              <span className="sm:inline">Nova Obra</span>
             </Button>
           )}
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative flex-1 max-w-full sm:max-w-sm">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nome, número, responsável ou endereço..."
+              placeholder="Buscar obras..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8"
+              className="pl-8 text-sm sm:text-base"
             />
           </div>
         </div>
@@ -117,14 +117,14 @@ export function WorksPage() {
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={handleCloseForm}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               {editingWork ? 'Editar Obra' : 'Nova Obra'}
             </DialogTitle>
-            <DialogDescription>
-              {editingWork 
-                ? 'Atualize os dados da obra abaixo' 
+            <DialogDescription className="text-sm sm:text-base">
+              {editingWork
+                ? 'Atualize os dados da obra abaixo'
                 : 'Preencha os dados da nova obra'}
             </DialogDescription>
           </DialogHeader>

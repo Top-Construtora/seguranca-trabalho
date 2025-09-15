@@ -6,6 +6,7 @@ import { DashboardPage } from './pages/DashboardPage'
 import { WorksPage } from './pages/WorksPage'
 import { EvaluationsPage } from './pages/EvaluationsPage'
 import { EvaluationEditPage } from './pages/EvaluationEditPage'
+import { EvaluationViewPage } from './pages/EvaluationViewPage'
 import { ReportsPage } from './pages/ReportsPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Toaster } from './components/ui/toaster'
@@ -55,6 +56,14 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <EvaluationsPage evaluationType="alojamento" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/evaluations/:id"
+              element={
+                <ProtectedRoute>
+                  <EvaluationViewPage />
                 </ProtectedRoute>
               }
             />

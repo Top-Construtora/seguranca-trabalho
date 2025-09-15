@@ -2,6 +2,7 @@ import { Injectable, ConflictException, NotFoundException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Work } from './entities/work.entity';
+import { Accommodation } from './entities/accommodation.entity';
 import { CreateWorkDto } from './dto/create-work.dto';
 
 @Injectable()
@@ -9,6 +10,8 @@ export class WorksService {
   constructor(
     @InjectRepository(Work)
     private workRepository: Repository<Work>,
+    @InjectRepository(Accommodation)
+    private accommodationRepository: Repository<Accommodation>,
   ) {}
 
   async create(createWorkDto: CreateWorkDto): Promise<Work> {
@@ -63,5 +66,11 @@ export class WorksService {
     const work = await this.findOne(id);
     work.is_active = !work.is_active;
     return this.workRepository.save(work);
+  }
+
+  async findAllAccommodations(): Promise<Accommodation[]> {
+    return this.accommodationRepository.find({
+      order: { created_at: 'DESC' },
+    });
   }
 }

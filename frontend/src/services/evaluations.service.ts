@@ -39,6 +39,7 @@ export interface Evaluation {
   notes?: string;
   status: EvaluationStatus;
   total_penalty?: number;
+  safety_score?: number;
   created_at: string;
   updated_at: string;
   work?: {

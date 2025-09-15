@@ -10,22 +10,31 @@ import { Badge } from '../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { useToast } from '../hooks/use-toast';
 import { useWorks } from '../hooks/useWorks';
-import { reportsService, ReportFilters, EvaluationReport, SummaryReport } from '../services/reports.service';
-import { FileText, Download, Calendar, Building, Users, TrendingUp } from 'lucide-react';
+import { useAccommodations } from '../hooks/useAccommodations';
+import { useUsers } from '../hooks/useUsers';
+import { reportsService, ReportFilters, EvaluationReport, SummaryReport, ConformityReport, LastEvaluationsConformityReport } from '../services/reports.service';
+import { FileText, Download, Calendar, Building, Users, TrendingUp, BarChart3 } from 'lucide-react';
+import { BarChart } from '../components/charts/BarChart';
 
 export function ReportsPage() {
   const { toast } = useToast();
   const { data: works = [] } = useWorks();
+  const { data: accommodations = [] } = useAccommodations();
+  const { data: users = [] } = useUsers();
   const [loading, setLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [evaluationsReport, setEvaluationsReport] = useState<EvaluationReport | null>(null);
   const [summaryReport, setSummaryReport] = useState<SummaryReport | null>(null);
+  const [conformityReport, setConformityReport] = useState<ConformityReport | null>(null);
+  const [lastEvaluationsConformity, setLastEvaluationsConformity] = useState<LastEvaluationsConformityReport | null>(null);
   
   const [filters, setFilters] = useState<ReportFilters>({
     startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd'),
     workId: '',
     type: '',
+    accommodationId: '',
+    userId: '',
   });
 
   // Função para converter valores do Select para o formato do backend
@@ -49,16 +58,25 @@ export function ReportsPage() {
 
     setLoading(true);
     try {
-      const [evaluations, summary] = await Promise.all([
+      const [evaluations, summary, conformity, lastEvaluations] = await Promise.all([
         reportsService.getEvaluationsReport(filters),
         reportsService.getSummaryReport({
           startDate: filters.startDate,
           endDate: filters.endDate,
         }),
+        reportsService.getConformityReport(filters),
+        reportsService.getLastEvaluationsConformityReport({
+          workId: filters.workId,
+          type: filters.type,
+          accommodationId: filters.accommodationId,
+          userId: filters.userId,
+        }),
       ]);
       
       setEvaluationsReport(evaluations);
       setSummaryReport(summary);
+      setConformityReport(conformity);
+      setLastEvaluationsConformity(lastEvaluations);
     } catch (error) {
       toast({
         title: 'Erro',
@@ -152,7 +170,7 @@ export function ReportsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="startDate">Data Inicial</Label>
                 <Input
@@ -203,6 +221,40 @@ export function ReportsPage() {
                   </SelectContent>
                 </Select>
               </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="accommodation">Alojamento</Label>
+                <Select value={getDisplayValue(filters.accommodationId || '')} onValueChange={(value) => handleFilterChange('accommodationId', value === 'all' ? '' : value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos os alojamentos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os alojamentos</SelectItem>
+                    {accommodations?.map((accommodation) => (
+                      <SelectItem key={accommodation.id} value={accommodation.id}>
+                        {accommodation.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="evaluator">Avaliador</Label>
+                <Select value={getDisplayValue(filters.userId || '')} onValueChange={(value) => handleFilterChange('userId', value === 'all' ? '' : value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos os avaliadores" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os avaliadores</SelectItem>
+                    {users?.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
             <div className="flex gap-2 mt-4">
@@ -221,54 +273,56 @@ export function ReportsPage() {
           </CardContent>
         </Card>
 
-        {/* Resumo */}
-        {summaryReport && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Gráficos de Conformidade - 3 Últimas Avaliações */}
+        {lastEvaluationsConformity && lastEvaluationsConformity.evaluations_data.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total de Avaliações</p>
-                    <p className="text-2xl font-bold">{summaryReport.total_evaluations}</p>
-                  </div>
-                  <FileText className="h-8 w-8 text-blue-600" />
-                </div>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Conformidade - Quantidade (3 Últimas Avaliações)
+                </CardTitle>
+                <CardDescription>
+                  Comparação das últimas avaliações realizadas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BarChart
+                  data={lastEvaluationsConformity.evaluations_data.map((evaluation, index) => ({
+                    name: `${evaluation.work_name} (${format(new Date(evaluation.date), 'dd/MM')})`,
+                    conforme: evaluation.conforme,
+                    nao_conforme: evaluation.nao_conforme,
+                  }))}
+                  height={350}
+                  showValues={true}
+                  isPercentage={false}
+                  isGrouped={true}
+                />
               </CardContent>
             </Card>
             
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Avaliações de Obra</p>
-                    <p className="text-2xl font-bold">{summaryReport.evaluations_by_type.obra}</p>
-                  </div>
-                  <Building className="h-8 w-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Avaliações de Alojamento</p>
-                    <p className="text-2xl font-bold">{summaryReport.evaluations_by_type.alojamento}</p>
-                  </div>
-                  <Users className="h-8 w-8 text-purple-600" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Penalidade Média</p>
-                    <p className="text-2xl font-bold">{summaryReport.average_penalty.toFixed(2)}</p>
-                  </div>
-                  <TrendingUp className="h-8 w-8 text-red-600" />
-                </div>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Conformidade - Porcentagem (3 Últimas Avaliações)
+                </CardTitle>
+                <CardDescription>
+                  Distribuição percentual por avaliação
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BarChart
+                  data={lastEvaluationsConformity.evaluations_data.map((evaluation, index) => ({
+                    name: `${evaluation.work_name} (${format(new Date(evaluation.date), 'dd/MM')})`,
+                    conforme: Number(evaluation.conforme_percentage.toFixed(1)),
+                    nao_conforme: Number(evaluation.nao_conforme_percentage.toFixed(1)),
+                  }))}
+                  height={350}
+                  showValues={true}
+                  isPercentage={true}
+                  isGrouped={true}
+                />
               </CardContent>
             </Card>
           </div>
@@ -289,6 +343,7 @@ export function ReportsPage() {
                   <TableRow>
                     <TableHead>Data</TableHead>
                     <TableHead>Obra</TableHead>
+                    <TableHead>Alojamento</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Funcionários</TableHead>
                     <TableHead>Penalidade</TableHead>
@@ -303,6 +358,7 @@ export function ReportsPage() {
                         {format(new Date(evaluation.date), 'dd/MM/yyyy')}
                       </TableCell>
                       <TableCell>{evaluation.work?.name}</TableCell>
+                      <TableCell>{evaluation.accommodation?.name || '-'}</TableCell>
                       <TableCell>
                         <Badge variant={evaluation.type === 'obra' ? 'default' : 'secondary'}>
                           {evaluation.type}

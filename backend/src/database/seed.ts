@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { seedPenaltyTable } from './seeds/penalty-table.seed';
 import { seedAdminUser } from './seeds/admin-user.seed';
+import { seedAccommodations } from './seeds/accommodations.seed';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 

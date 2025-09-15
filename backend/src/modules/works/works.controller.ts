@@ -23,6 +23,11 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 export class WorksController {
   constructor(private readonly worksService: WorksService) {}
 
+  @Get('accommodations')
+  findAllAccommodations() {
+    return this.worksService.findAllAccommodations();
+  }
+
   @Post()
   @Roles(UserRole.ADMIN)
   create(@Body() createWorkDto: CreateWorkDto) {

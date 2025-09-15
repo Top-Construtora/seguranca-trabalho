@@ -107,21 +107,21 @@ export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               {evaluationType === 'obra' ? 'Avaliações de Obra' : 'Avaliações de Alojamento'}
             </h1>
-            <p className="text-muted-foreground">
-              {evaluationType === 'obra' 
+            <p className="text-sm sm:text-base text-muted-foreground">
+              {evaluationType === 'obra'
                 ? 'Gerencie as avaliações de segurança de obras'
                 : 'Gerencie as avaliações de segurança de alojamentos'
               }
             </p>
           </div>
-          <Button onClick={() => setIsFormOpen(true)}>
+          <Button onClick={() => setIsFormOpen(true)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
-            Nova Avaliação
+            <span>Nova Avaliação</span>
           </Button>
         </div>
 
@@ -129,16 +129,16 @@ export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
           <div className="relative flex-1">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por obra, número ou avaliador..."
+              placeholder="Buscar avaliações..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8"
+              className="pl-8 text-sm sm:text-base"
             />
           </div>
-          
+
           <div className="flex gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -147,7 +147,6 @@ export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
                 <SelectItem value={EvaluationStatus.COMPLETED}>Finalizada</SelectItem>
               </SelectContent>
             </Select>
-
           </div>
         </div>
 
@@ -171,12 +170,12 @@ export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               Nova Avaliação {evaluationType === 'obra' ? 'de Obra' : 'de Alojamento'}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm sm:text-base">
               Crie uma nova avaliação de segurança {evaluationType === 'obra' ? 'de obra' : 'de alojamento'}
             </DialogDescription>
           </DialogHeader>
@@ -190,17 +189,17 @@ export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
       </Dialog>
 
       <AlertDialog open={!!completeId} onOpenChange={() => setCompleteId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[95vw] max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>Finalizar avaliação</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja finalizar esta avaliação? 
+            <AlertDialogTitle className="text-base sm:text-lg">Finalizar avaliação</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm sm:text-base">
+              Tem certeza que deseja finalizar esta avaliação?
               Após finalizada, não será possível editar as respostas.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleComplete}>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <AlertDialogCancel className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleComplete} className="w-full sm:w-auto">
               Finalizar
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -208,19 +207,19 @@ export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
       </AlertDialog>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[95vw] max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir avaliação</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir esta avaliação? 
+            <AlertDialogTitle className="text-base sm:text-lg">Excluir avaliação</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm sm:text-base">
+              Tem certeza que deseja excluir esta avaliação?
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <AlertDialogCancel className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Excluir
             </AlertDialogAction>

@@ -5,6 +5,8 @@ export interface ReportFilters {
   endDate?: string;
   workId?: string;
   type?: string;
+  accommodationId?: string;
+  userId?: string;
 }
 
 export interface EvaluationReport {
@@ -17,6 +19,10 @@ export interface EvaluationReport {
     notes?: string;
     status: string;
     work: {
+      id: string;
+      name: string;
+    };
+    accommodation?: {
       id: string;
       name: string;
     };
@@ -49,6 +55,30 @@ export interface SummaryReport {
   total_penalty: number;
 }
 
+export interface ConformityReport {
+  conforme: number;
+  nao_conforme: number;
+  total_applicable: number;
+  conforme_percentage: number;
+  nao_conforme_percentage: number;
+}
+
+export interface EvaluationConformityData {
+  evaluation_id: string;
+  date: string;
+  work_name: string;
+  conforme: number;
+  nao_conforme: number;
+  total_applicable: number;
+  conforme_percentage: number;
+  nao_conforme_percentage: number;
+}
+
+export interface LastEvaluationsConformityReport {
+  evaluations_data: EvaluationConformityData[];
+  total: ConformityReport;
+}
+
 export const reportsService = {
   async getEvaluationsReport(filters: ReportFilters): Promise<EvaluationReport> {
     const params = new URLSearchParams();
@@ -57,6 +87,8 @@ export const reportsService = {
     if (filters.endDate) params.append('end_date', filters.endDate);
     if (filters.workId) params.append('work_id', filters.workId);
     if (filters.type) params.append('type', filters.type);
+    if (filters.accommodationId) params.append('accommodation_id', filters.accommodationId);
+    if (filters.userId) params.append('user_id', filters.userId);
 
     const response = await api.get(`/reports/evaluations?${params.toString()}`);
     return response.data;
@@ -72,6 +104,32 @@ export const reportsService = {
     return response.data;
   },
 
+  async getConformityReport(filters: ReportFilters): Promise<ConformityReport> {
+    const params = new URLSearchParams();
+    
+    if (filters.startDate) params.append('start_date', filters.startDate);
+    if (filters.endDate) params.append('end_date', filters.endDate);
+    if (filters.workId) params.append('work_id', filters.workId);
+    if (filters.type) params.append('type', filters.type);
+    if (filters.accommodationId) params.append('accommodation_id', filters.accommodationId);
+    if (filters.userId) params.append('user_id', filters.userId);
+
+    const response = await api.get(`/reports/conformity?${params.toString()}`);
+    return response.data;
+  },
+
+  async getLastEvaluationsConformityReport(filters: Omit<ReportFilters, 'startDate' | 'endDate'>): Promise<LastEvaluationsConformityReport> {
+    const params = new URLSearchParams();
+    
+    if (filters.workId) params.append('work_id', filters.workId);
+    if (filters.type) params.append('type', filters.type);
+    if (filters.accommodationId) params.append('accommodation_id', filters.accommodationId);
+    if (filters.userId) params.append('user_id', filters.userId);
+
+    const response = await api.get(`/reports/conformity/last-evaluations?${params.toString()}`);
+    return response.data;
+  },
+
   async downloadPDFReport(filters: ReportFilters): Promise<void> {
     const params = new URLSearchParams();
     
@@ -79,6 +137,8 @@ export const reportsService = {
     if (filters.endDate) params.append('end_date', filters.endDate);
     if (filters.workId) params.append('work_id', filters.workId);
     if (filters.type) params.append('type', filters.type);
+    if (filters.accommodationId) params.append('accommodation_id', filters.accommodationId);
+    if (filters.userId) params.append('user_id', filters.userId);
 
     const response = await api.get(`/reports/export/pdf?${params.toString()}`, {
       responseType: 'blob',
@@ -102,6 +162,8 @@ export const reportsService = {
     if (filters.endDate) params.append('end_date', filters.endDate);
     if (filters.workId) params.append('work_id', filters.workId);
     if (filters.type) params.append('type', filters.type);
+    if (filters.accommodationId) params.append('accommodation_id', filters.accommodationId);
+    if (filters.userId) params.append('user_id', filters.userId);
 
     const response = await api.get(`/reports/export/excel?${params.toString()}`, {
       responseType: 'blob',

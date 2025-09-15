@@ -3,6 +3,8 @@ export interface ReportFilters {
   endDate?: string;
   workId?: string;
   type?: string;
+  accommodationId?: string;
+  userId?: string;
 }
 
 export interface EvaluationReportResponse {
@@ -15,6 +17,10 @@ export interface EvaluationReportResponse {
     notes?: string;
     status: string;
     work: {
+      id: string;
+      name: string;
+    };
+    accommodation?: {
       id: string;
       name: string;
     };
@@ -45,4 +51,28 @@ export interface SummaryReportResponse {
   evaluations_by_work: Record<string, number>;
   average_penalty: number;
   total_penalty: number;
+}
+
+export interface ConformityReportResponse {
+  conforme: number;
+  nao_conforme: number;
+  total_applicable: number;
+  conforme_percentage: number;
+  nao_conforme_percentage: number;
+}
+
+export interface EvaluationConformityData {
+  evaluation_id: string;
+  date: string;
+  work_name: string;
+  conforme: number;
+  nao_conforme: number;
+  total_applicable: number;
+  conforme_percentage: number;
+  nao_conforme_percentage: number;
+}
+
+export interface LastEvaluationsConformityReportResponse {
+  evaluations_data: EvaluationConformityData[];
+  total: ConformityReportResponse;
 }

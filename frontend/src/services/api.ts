@@ -37,10 +37,16 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Só limpar dados se for realmente um erro de autenticação (401)
+    // e não for um erro temporário de rede
+    if (error.response?.status === 401 && error.config && !error.config.__isRetryRequest) {
       localStorage.removeItem('@SST:token');
       localStorage.removeItem('@SST:user');
-      window.location.href = '/login';
+
+      // Só redirecionar se não estivermos já na página de login
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   },

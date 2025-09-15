@@ -5,6 +5,7 @@ import {
   UseGuards,
   Res,
   BadRequestException,
+  Param,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -152,4 +153,22 @@ export class ReportsController {
 
     res.end(buffer);
   }
+
+  @Get('evaluation/:id/pdf')
+  @Roles(UserRole.ADMIN, UserRole.AVALIADOR)
+  async exportEvaluationPDF(
+    @Param('id') id: string,
+    @Res() res?: Response,
+  ) {
+    const buffer = await this.reportsService.generateEvaluationPDFReport(id);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="relatorio-avaliacao-${id}.pdf"`,
+      'Content-Length': buffer.length,
+    });
+
+    res.end(buffer);
+  }
+
 }

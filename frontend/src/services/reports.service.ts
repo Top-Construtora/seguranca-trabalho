@@ -157,7 +157,7 @@ export const reportsService = {
 
   async downloadExcelReport(filters: ReportFilters): Promise<void> {
     const params = new URLSearchParams();
-    
+
     if (filters.startDate) params.append('start_date', filters.startDate);
     if (filters.endDate) params.append('end_date', filters.endDate);
     if (filters.workId) params.append('work_id', filters.workId);
@@ -169,8 +169,8 @@ export const reportsService = {
       responseType: 'blob',
     });
 
-    const blob = new Blob([response.data], { 
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -181,4 +181,21 @@ export const reportsService = {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
   },
+
+  async downloadEvaluationPDF(evaluationId: string): Promise<void> {
+    const response = await api.get(`/reports/evaluation/${evaluationId}/pdf`, {
+      responseType: 'blob',
+    });
+
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `relatorio-avaliacao-${evaluationId}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
+
 };

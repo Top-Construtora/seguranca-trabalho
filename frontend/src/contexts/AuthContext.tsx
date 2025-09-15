@@ -15,6 +15,7 @@ interface AuthContextData {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => void;
+  refreshUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -27,16 +28,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const loadUser = async () => {
       const token = localStorage.getItem('@SST:token');
+      const savedUser = localStorage.getItem('@SST:user');
 
       if (token) {
         api.defaults.headers.authorization = `Bearer ${token}`;
-        
+
+        // Se temos um usuário salvo, use-o imediatamente como fallback
+        if (savedUser) {
+          try {
+            setUser(JSON.parse(savedUser));
+          } catch (error) {
+            console.error('Erro ao parsear usuário salvo:', error);
+          }
+        }
+
         try {
           const response = await api.get('/auth/me');
           setUser(response.data);
+          // Atualizar localStorage com dados mais recentes
+          localStorage.setItem('@SST:user', JSON.stringify(response.data));
         } catch {
-          localStorage.removeItem('@SST:token');
-          localStorage.removeItem('@SST:user');
+          // Se falhar ao buscar dados atualizados, manter usuário do localStorage se existir
+          if (!savedUser) {
+            localStorage.removeItem('@SST:token');
+            localStorage.removeItem('@SST:user');
+            setUser(null);
+          }
         }
       }
 
@@ -78,8 +95,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     navigate('/login');
   };
 
+  const refreshUser = () => {
+    const savedUser = localStorage.getItem('@SST:user');
+    if (savedUser && !user) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Erro ao recuperar usuário do localStorage:', error);
+      }
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

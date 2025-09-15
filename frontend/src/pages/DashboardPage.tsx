@@ -1,3 +1,4 @@
+import React from 'react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEvaluationStatistics } from '@/hooks/useEvaluations';
@@ -21,9 +22,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 
 export function DashboardPage() {
-  const { user, loading: userLoading } = useAuth();
+  const { user, loading: userLoading, refreshUser } = useAuth();
   const { data: statistics, isLoading: statsLoading } = useEvaluationStatistics();
   const { data: works = [], isLoading: worksLoading } = useWorks();
+
+  // Verificar se precisamos recuperar o usuário
+  React.useEffect(() => {
+    if (!user && !userLoading) {
+      refreshUser();
+    }
+  }, [user, userLoading, refreshUser]);
 
   const activeWorks = works.filter(work => work.is_active).length;
   const totalWorks = works.length;
@@ -40,6 +48,23 @@ export function DashboardPage() {
     if (hour < 12) return 'Bom dia';
     if (hour < 18) return 'Boa tarde';
     return 'Boa noite';
+  };
+
+  const getUserName = () => {
+    if (user?.name) return user.name;
+
+    // Fallback: tentar recuperar do localStorage
+    try {
+      const savedUser = localStorage.getItem('@SST:user');
+      if (savedUser) {
+        const parsedUser = JSON.parse(savedUser);
+        return parsedUser.name || 'Usuário';
+      }
+    } catch (error) {
+      console.error('Erro ao recuperar nome do usuário:', error);
+    }
+
+    return 'Usuário';
   };
 
   if (statsLoading || worksLoading || userLoading) {
@@ -71,7 +96,7 @@ export function DashboardPage() {
           <div className="absolute inset-0 bg-black/10" />
           <div className="relative z-10">
             <h1 className="text-4xl font-bold mb-3">
-              {getGreeting()}, {user?.name || 'Usuário'}!
+              {getGreeting()}, {getUserName()}!
             </h1>
             <p className="text-white/80 text-lg mb-6">
               Acesse rapidamente as funcionalidades principais do sistema

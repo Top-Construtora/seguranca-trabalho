@@ -5,10 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { Evaluation } from './evaluation.entity';
 import { Question } from './question.entity';
+import { ActionPlan } from './action-plan.entity';
 
 export enum AnswerValue {
   SIM = 'sim',
@@ -54,4 +56,7 @@ export class Answer {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => ActionPlan, (actionPlan) => actionPlan.answer, { cascade: true })
+  actionPlans: ActionPlan[];
 }

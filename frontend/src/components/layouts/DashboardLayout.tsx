@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
+  ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -38,6 +39,7 @@ const navigation = [
   { name: 'Obras', href: '/works', icon: Building2 },
   { name: 'Avaliação de Obra', href: '/evaluations/obra', icon: HardHat },
   { name: 'Avaliação de Alojamento', href: '/evaluations/alojamento', icon: Home },
+  { name: 'Planos de Ação', href: '/action-plans', icon: ClipboardList },
   { name: 'Relatórios', href: '/reports', icon: FileText },
 ];
 

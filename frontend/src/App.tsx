@@ -8,6 +8,7 @@ import { EvaluationsPage } from './pages/EvaluationsPage'
 import { EvaluationEditPage } from './pages/EvaluationEditPage'
 import { EvaluationViewPage } from './pages/EvaluationViewPage'
 import { EvaluationReportPage } from './pages/EvaluationReportPage'
+import { ActionPlansPage } from './pages/ActionPlansPage'
 import { ReportsPage } from './pages/ReportsPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Toaster } from './components/ui/toaster'
@@ -73,6 +74,14 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <EvaluationEditPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/action-plans"
+              element={
+                <ProtectedRoute>
+                  <ActionPlansPage />
                 </ProtectedRoute>
               }
             />

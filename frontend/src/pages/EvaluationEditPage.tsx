@@ -83,7 +83,8 @@ export function EvaluationEditPage() {
     // Finalizar avaliação
     await completeEvaluation.mutateAsync(id!);
     setShowCompleteDialog(false);
-    navigate(`/evaluations/${type}`);
+    // Redirecionar para a página de relatório da avaliação
+    navigate(`/reports/evaluation/${id}`);
   };
 
   if (evaluationLoading || questionsLoading) {

@@ -77,10 +77,6 @@ export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
     navigate(`/evaluations/${evaluationType}/${result.id}/edit`);
   };
 
-  const handleView = (evaluation: Evaluation) => {
-    navigate(`/evaluations/${evaluation.id}`);
-  };
-
   const handleEdit = (evaluation: Evaluation) => {
     navigate(`/evaluations/${evaluation.type}/${evaluation.id}/edit`);
   };
@@ -89,6 +85,8 @@ export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
     if (completeId) {
       await completeEvaluation.mutateAsync(completeId);
       setCompleteId(null);
+      // Redirecionar para a página de relatório da avaliação finalizada
+      navigate(`/reports/evaluation/${completeId}`);
     }
   };
 
@@ -159,7 +157,6 @@ export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
         ) : (
           <EvaluationsList
             evaluations={filteredEvaluations}
-            onView={handleView}
             onEdit={handleEdit}
             onComplete={(id) => setCompleteId(id)}
             onDelete={(id) => setDeleteId(id)}

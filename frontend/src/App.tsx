@@ -6,10 +6,10 @@ import { DashboardPage } from './pages/DashboardPage'
 import { WorksPage } from './pages/WorksPage'
 import { EvaluationsPage } from './pages/EvaluationsPage'
 import { EvaluationEditPage } from './pages/EvaluationEditPage'
-import { EvaluationViewPage } from './pages/EvaluationViewPage'
 import { EvaluationReportPage } from './pages/EvaluationReportPage'
+import { EvaluationRedirect } from './components/EvaluationRedirect'
 import { ActionPlansPage } from './pages/ActionPlansPage'
-import { ReportsPage } from './pages/ReportsPage'
+import { ReportsPageImproved as ReportsPage } from './pages/ReportsPageImproved'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Toaster } from './components/ui/toaster'
 
@@ -65,7 +65,7 @@ export function App() {
               path="/evaluations/:id"
               element={
                 <ProtectedRoute>
-                  <EvaluationViewPage />
+                  <EvaluationRedirect />
                 </ProtectedRoute>
               }
             />

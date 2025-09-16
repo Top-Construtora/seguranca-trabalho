@@ -194,20 +194,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="border-t border-gray-600 p-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">
-                    {user?.name}
-                  </p>
-                  <p className="text-xs text-gray-300 truncate">
-                    {user?.email}
-                  </p>
-                  <p className="text-xs text-gray-400 capitalize">
-                    {user?.role === 'admin' ? 'Administrador' : 'Avaliador'}
-                  </p>
                 </div>
               </div>
               <Button
                 variant="outline"
-                className="w-full justify-start border-gray-600 text-gray-300 hover:bg-white/10 hover:text-white hover:border-gray-500"
+                className="w-full justify-start border-red-500 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-400"
                 onClick={handleLogout}
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -221,7 +212,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <Button
                 variant="outline"
                 size="icon"
-                className="w-full border-gray-600 text-gray-300 hover:bg-white/10 hover:text-white hover:border-gray-500"
+                className="w-full border-red-500 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-400"
                 onClick={handleLogout}
                 title="Sair"
               >
@@ -271,7 +262,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     <User className="h-4 w-4 text-white" />
                   </div>
                   <div className="hidden sm:block text-left">
-                    <p className="text-sm font-medium text-white">{user?.name}</p>
                     <p className="text-xs text-gray-400 capitalize">
                       {user?.role === 'admin' ? 'Administrador' : 'Avaliador'}
                     </p>

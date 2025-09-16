@@ -22,7 +22,6 @@ import {
   Pencil,
   CheckCircle,
   Trash2,
-  Eye,
   FileText
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -30,7 +29,6 @@ import { ptBR } from 'date-fns/locale';
 
 interface EvaluationsListProps {
   evaluations: Evaluation[];
-  onView: (evaluation: Evaluation) => void;
   onEdit: (evaluation: Evaluation) => void;
   onComplete: (id: string) => void;
   onDelete: (id: string) => void;
@@ -40,7 +38,6 @@ interface EvaluationsListProps {
 
 export function EvaluationsList({
   evaluations,
-  onView,
   onEdit,
   onComplete,
   onDelete,
@@ -97,10 +94,6 @@ export function EvaluationsList({
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Ações</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => onView(evaluation)}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        Visualizar
-                      </DropdownMenuItem>
                       {evaluation.status === EvaluationStatus.DRAFT && (
                         <>
                           <DropdownMenuItem onClick={() => onEdit(evaluation)}>
@@ -221,10 +214,6 @@ export function EvaluationsList({
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => onView(evaluation)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          Visualizar
-                        </DropdownMenuItem>
                         {evaluation.status === EvaluationStatus.DRAFT && (
                           <>
                             <DropdownMenuItem onClick={() => onEdit(evaluation)}>

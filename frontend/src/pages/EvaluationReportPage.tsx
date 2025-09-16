@@ -13,6 +13,7 @@ import { ptBR } from 'date-fns/locale';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { reportsService } from '@/services/reports.service';
+import { formatCurrency } from '@/lib/currency';
 
 export function EvaluationReportPage() {
   const { id } = useParams<{ id: string }>();
@@ -225,10 +226,7 @@ export function EvaluationReportPage() {
                     <div className="flex justify-between items-center p-3 bg-red-50 border border-red-200 rounded">
                       <span className="text-sm font-medium text-red-900">Multa Total:</span>
                       <span className="font-bold text-red-600">
-                        R$ {evaluation.total_penalty?.toLocaleString('pt-BR', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        }).replace('.', ',')}
+                        {formatCurrency(evaluation.total_penalty)}
                       </span>
                     </div>
                   </div>

@@ -13,7 +13,7 @@ import { useWorks } from '../hooks/useWorks';
 import { useAccommodations } from '../hooks/useAccommodations';
 import { useUsers } from '../hooks/useUsers';
 import { reportsService, ReportFilters, EvaluationReport, SummaryReport, ConformityReport, LastEvaluationsConformityReport } from '../services/reports.service';
-import { FileText, Download, Calendar, Building, Users, TrendingUp, BarChart3 } from 'lucide-react';
+import { Download, Calendar, BarChart3 } from 'lucide-react';
 import { BarChart } from '../components/charts/BarChart';
 
 export function ReportsPage() {
@@ -24,8 +24,8 @@ export function ReportsPage() {
   const [loading, setLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [evaluationsReport, setEvaluationsReport] = useState<EvaluationReport | null>(null);
-  const [summaryReport, setSummaryReport] = useState<SummaryReport | null>(null);
-  const [conformityReport, setConformityReport] = useState<ConformityReport | null>(null);
+  const [, setSummaryReport] = useState<SummaryReport | null>(null);
+  const [, setConformityReport] = useState<ConformityReport | null>(null);
   const [lastEvaluationsConformity, setLastEvaluationsConformity] = useState<LastEvaluationsConformityReport | null>(null);
   
   const [filters, setFilters] = useState<ReportFilters>({
@@ -288,7 +288,7 @@ export function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <BarChart
-                  data={lastEvaluationsConformity.evaluations_data.map((evaluation, index) => ({
+                  data={lastEvaluationsConformity.evaluations_data.map((evaluation) => ({
                     name: `${evaluation.work_name} (${format(new Date(evaluation.date), 'dd/MM')})`,
                     conforme: evaluation.conforme,
                     nao_conforme: evaluation.nao_conforme,
@@ -313,7 +313,7 @@ export function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <BarChart
-                  data={lastEvaluationsConformity.evaluations_data.map((evaluation, index) => ({
+                  data={lastEvaluationsConformity.evaluations_data.map((evaluation) => ({
                     name: `${evaluation.work_name} (${format(new Date(evaluation.date), 'dd/MM')})`,
                     conforme: Number(evaluation.conforme_percentage.toFixed(1)),
                     nao_conforme: Number(evaluation.nao_conforme_percentage.toFixed(1)),

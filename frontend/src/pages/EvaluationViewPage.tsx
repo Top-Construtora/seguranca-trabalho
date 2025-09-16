@@ -57,7 +57,11 @@ export function EvaluationViewPage() {
   const progress = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0;
   const conformeCount = answeredQuestions.filter(a => a.answer === 'sim').length;
   const naoConformeCount = answeredQuestions.filter(a => a.answer === 'nao').length;
-  const nonConformAnswers = answeredQuestions.filter(a => a.answer === 'nao');
+  const nonConformAnswers = answeredQuestions.filter(a => a.answer === 'nao').map(a => ({
+    ...a,
+    answer: 'nao' as const,
+    evidence_urls: a.evidence_urls || []
+  }));
 
 
   const getStatusIcon = () => {

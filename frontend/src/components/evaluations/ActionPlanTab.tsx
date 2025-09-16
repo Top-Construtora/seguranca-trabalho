@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,7 +20,6 @@ import {
   Edit3,
   Trash2,
   Calendar,
-  User,
   FileText,
   CheckCircle,
   Clock,
@@ -135,7 +134,7 @@ export function ActionPlanTab({ evaluationId, nonConformAnswers }: ActionPlanTab
 
   const updateStatus = async (planId: string, status: string) => {
     try {
-      await updateMutation.mutateAsync({ id: planId, data: { status } });
+      await updateMutation.mutateAsync({ id: planId, data: { status: status as 'completed' | 'pending' | 'in_progress' } });
       toast.success('Status atualizado com sucesso');
     } catch (error) {
       toast.error('Erro ao atualizar status');

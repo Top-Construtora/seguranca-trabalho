@@ -1,21 +1,21 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { useActionPlansByAnswer, useCreateActionPlan, useUpdateActionPlan, ActionPlan } from '@/hooks/useActionPlans';
+import { useActionPlansByEvaluation, useCreateActionPlan, useDeleteActionPlan } from '@/hooks/useActionPlans';
 import { useWorks } from '@/hooks/useWorks';
 import { useAccommodations } from '@/hooks/useAccommodations';
 import { useEvaluations, useEvaluation } from '@/hooks/useEvaluations';
-import { filesService } from '@/services/files.service';
-import { ClipboardList, CheckCircle, Building2, Home, MapPin, Save, AlertCircle, Upload, File, X } from 'lucide-react';
+import { actionPlanFilesService } from '@/services/actionPlanFiles.service';
+import { ClipboardList, CheckCircle, Building2, Home, MapPin, Save, AlertCircle, Upload, File, X, Trash2, Eye, FileText, Image } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { ImageModal } from '@/components/ui/image-modal';
 
 export function ActionPlansPage() {
   const [selectedWorkId, setSelectedWorkId] = useState<string>('');
@@ -25,18 +25,21 @@ export function ActionPlansPage() {
   const [attachmentFiles, setAttachmentFiles] = useState<Record<string, string[]>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   // Fetch data
   const { data: works, isLoading: isLoadingWorks } = useWorks();
   const { data: accommodations, isLoading: isLoadingAccommodations } = useAccommodations();
   const { data: evaluations, isLoading: isLoadingEvaluations } = useEvaluations();
   const { data: selectedEvaluationData, isLoading: isLoadingSelectedEvaluation } = useEvaluation(selectedEvaluationId);
+  const { data: actionPlans = [], refetch: refetchActionPlans } = useActionPlansByEvaluation(selectedEvaluationId);
   const createActionPlan = useCreateActionPlan();
-  const updateActionPlan = useUpdateActionPlan();
+  const deleteActionPlan = useDeleteActionPlan();
 
   // Filter works/accommodations
   const activeWorks = works?.filter(work => work.is_active) || [];
-  const activeAccommodations = accommodations?.filter(acc => acc.is_active) || [];
+  const activeAccommodations = accommodations?.filter((acc: any) => acc.is_active) || [];
 
   // Get items based on selected type
   const availableItems = workType === 'obra' ? activeWorks : activeAccommodations;
@@ -46,9 +49,6 @@ export function ActionPlansPage() {
     evaluation.work_id === selectedWorkId
   ) || [];
 
-  // Get selected work details
-  const selectedWork = selectedWorkId ?
-    [...activeWorks, ...activeAccommodations].find(work => work.id === selectedWorkId) : null;
 
   // Get non-conforming answers from selected evaluation
   const nonConformAnswers = selectedEvaluationData?.answers?.filter(answer => answer.answer === 'nao') || [];
@@ -73,15 +73,16 @@ export function ActionPlansPage() {
   // Load existing action plans when evaluation changes
   useEffect(() => {
     if (nonConformAnswers.length > 0) {
-      const textsObj: Record<string, string> = {};
-
-      // Initialize with empty strings for all answers
-      nonConformAnswers.forEach(answer => {
-        textsObj[answer.id] = '';
+      // Only initialize if we don't have any existing texts (avoid overwriting user input)
+      setActionPlanTexts(prev => {
+        const newTexts = { ...prev };
+        nonConformAnswers.forEach(answer => {
+          if (!(answer.id in newTexts)) {
+            newTexts[answer.id] = '';
+          }
+        });
+        return newTexts;
       });
-
-      setActionPlanTexts(textsObj);
-      setAttachmentFiles({});
     }
   }, [nonConformAnswers]);
 
@@ -100,7 +101,7 @@ export function ActionPlansPage() {
     setUploadingFiles(prev => ({ ...prev, [answerId]: true }));
 
     try {
-      const uploadedFiles = await filesService.uploadFiles(files);
+      const uploadedFiles = await actionPlanFilesService.uploadFiles(files);
       const fileUrls = uploadedFiles.map(file => file.publicUrl);
 
       setAttachmentFiles(prev => ({
@@ -125,6 +126,50 @@ export function ActionPlansPage() {
     }));
   };
 
+  // Helper functions for file handling
+  const isImageFile = (url: string) => {
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+    const urlLower = url.toLowerCase();
+    return imageExtensions.some(ext => urlLower.includes(ext));
+  };
+
+  const getFileIcon = (url: string) => {
+    if (isImageFile(url)) return Image;
+    if (url.toLowerCase().includes('.pdf')) return FileText;
+    return File;
+  };
+
+  const getFileName = (url: string) => {
+    return url.split('/').pop() || 'arquivo';
+  };
+
+  const handleViewImage = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    setIsImageModalOpen(true);
+  };
+
+  const handleViewFile = (fileUrl: string) => {
+    if (isImageFile(fileUrl)) {
+      handleViewImage(fileUrl);
+    } else {
+      window.open(fileUrl, '_blank');
+    }
+  };
+
+  // Delete action plan
+  const handleDeleteActionPlan = async (planId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este plano de ação?')) {
+      try {
+        await deleteActionPlan.mutateAsync(planId);
+        toast.success('Plano de ação excluído com sucesso!');
+        refetchActionPlans();
+      } catch (error) {
+        console.error('Error deleting action plan:', error);
+        toast.error('Erro ao excluir plano de ação');
+      }
+    }
+  };
+
   // Save action plan
   const handleSaveActionPlan = async (answerId: string, description: string) => {
     if (!description.trim()) {
@@ -138,7 +183,6 @@ export function ActionPlansPage() {
       await createActionPlan.mutateAsync({
         answer_id: answerId,
         action_description: description,
-        status: 'pending',
         attachment_urls: attachmentFiles[answerId] || []
       });
       toast.success('Plano de ação salvo com sucesso!');
@@ -146,6 +190,9 @@ export function ActionPlansPage() {
       // Clear the form for this specific answer
       setActionPlanTexts(prev => ({ ...prev, [answerId]: '' }));
       setAttachmentFiles(prev => ({ ...prev, [answerId]: [] }));
+
+      // Refetch action plans to show the newly created one
+      refetchActionPlans();
     } catch (error) {
       console.error('Error saving action plan:', error);
       toast.error('Erro ao salvar plano de ação');
@@ -225,7 +272,7 @@ export function ActionPlansPage() {
                             <span className="font-medium">{item.name}</span>
                             <span className="text-xs text-gray-500 flex items-center gap-1">
                               <MapPin className="h-3 w-3" />
-                              {item.address}
+                              {(item as any).address || ''}
                             </span>
                           </div>
                         </SelectItem>
@@ -257,7 +304,7 @@ export function ActionPlansPage() {
                               {evaluation.status === 'completed' ? 'Concluída' : 'Em andamento'}
                             </Badge>
                             <span>
-                              {evaluation.evaluation_type} - {format(new Date(evaluation.created_at), 'dd/MM/yyyy')}
+                              {format(new Date(evaluation.created_at), 'dd/MM/yyyy')}
                             </span>
                           </div>
                         </SelectItem>
@@ -325,6 +372,7 @@ export function ActionPlansPage() {
                                       value={actionPlanTexts[answer.id] || ''}
                                       onChange={(e) => handleTextChange(answer.id, e.target.value)}
                                       className="mt-1 min-h-[120px]"
+                                      disabled={false}
                                     />
                                   </div>
 
@@ -365,33 +413,41 @@ export function ActionPlansPage() {
                                           <p className="text-sm font-medium text-gray-700">
                                             Arquivos anexados:
                                           </p>
-                                          <div className="space-y-1">
-                                            {attachmentFiles[answer.id].map((fileUrl, fileIndex) => (
-                                              <div key={fileIndex} className="flex items-center gap-2 p-2 bg-gray-50 rounded border">
-                                                <File className="h-4 w-4 text-blue-600" />
-                                                <span className="text-sm flex-1 truncate">
-                                                  {fileUrl.split('/').pop() || `Arquivo ${fileIndex + 1}`}
-                                                </span>
-                                                <Button
-                                                  type="button"
-                                                  variant="ghost"
-                                                  size="sm"
-                                                  onClick={() => window.open(fileUrl, '_blank')}
-                                                  className="text-blue-600 hover:text-blue-700 p-1 h-auto"
-                                                >
-                                                  Visualizar
-                                                </Button>
-                                                <Button
-                                                  type="button"
-                                                  variant="ghost"
-                                                  size="sm"
-                                                  onClick={() => handleRemoveAttachment(answer.id, fileUrl)}
-                                                  className="text-red-600 hover:text-red-700 p-1 h-auto"
-                                                >
-                                                  <X className="h-3 w-3" />
-                                                </Button>
-                                              </div>
-                                            ))}
+                                          <div className="flex flex-wrap gap-2">
+                                            {attachmentFiles[answer.id].map((fileUrl, fileIndex) => {
+                                              const IconComponent = getFileIcon(fileUrl);
+                                              const fileName = getFileName(fileUrl);
+                                              const isImage = isImageFile(fileUrl);
+
+                                              return (
+                                                <div key={fileIndex} className="flex items-center gap-2 p-2 bg-gray-50 rounded border">
+                                                  <IconComponent className="h-4 w-4 text-blue-600" />
+                                                  <span className="text-sm truncate max-w-[150px]">
+                                                    {fileName}
+                                                  </span>
+                                                  <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleViewFile(fileUrl)}
+                                                    className="text-blue-600 hover:text-blue-700 p-1 h-auto"
+                                                    title={isImage ? 'Visualizar imagem' : 'Abrir arquivo'}
+                                                  >
+                                                    <Eye className="h-3 w-3" />
+                                                  </Button>
+                                                  <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleRemoveAttachment(answer.id, fileUrl)}
+                                                    className="text-red-600 hover:text-red-700 p-1 h-auto"
+                                                    title="Remover arquivo"
+                                                  >
+                                                    <X className="h-3 w-3" />
+                                                  </Button>
+                                                </div>
+                                              );
+                                            })}
                                           </div>
                                         </div>
                                       )}
@@ -408,7 +464,68 @@ export function ActionPlansPage() {
                                       {isLoading ? 'Salvando...' : 'Salvar Plano'}
                                     </Button>
                                   </div>
+
                                 </div>
+
+                                {/* Display saved action plans for this answer */}
+                                {actionPlans && actionPlans.filter(plan => plan.answer_id === answer.id).length > 0 && (
+                                  <div className="mt-6 space-y-3">
+                                    <Label className="text-sm font-medium text-green-700">Planos de Ação Salvos:</Label>
+                                    {actionPlans
+                                      .filter(plan => plan.answer_id === answer.id)
+                                      .map((plan) => (
+                                        <div key={plan.id} className="p-4 bg-green-50 border border-green-200 rounded-lg relative">
+                                          <div className="space-y-2">
+                                            <div className="flex items-start justify-between gap-2">
+                                              <p className="text-sm font-medium text-gray-900 flex-1">{plan.action_description}</p>
+                                              <Button
+                                                onClick={() => handleDeleteActionPlan(plan.id)}
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
+                                                title="Excluir plano de ação"
+                                              >
+                                                <Trash2 className="h-4 w-4" />
+                                              </Button>
+                                            </div>
+                                            {plan.target_date && (
+                                              <p className="text-xs text-gray-600">
+                                                Prazo: {format(new Date(plan.target_date), 'dd/MM/yyyy', { locale: ptBR })}
+                                              </p>
+                                            )}
+                                            {plan.attachment_urls && plan.attachment_urls.length > 0 && (
+                                              <div className="space-y-2">
+                                                <p className="text-xs text-gray-600 font-medium">Arquivos anexados:</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                  {plan.attachment_urls.map((url, idx) => {
+                                                    const IconComponent = getFileIcon(url);
+                                                    const fileName = getFileName(url);
+                                                    const isImage = isImageFile(url);
+
+                                                    return (
+                                                      <button
+                                                        key={idx}
+                                                        onClick={() => handleViewFile(url)}
+                                                        className="flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors text-xs"
+                                                        title={isImage ? 'Clique para visualizar' : 'Clique para baixar'}
+                                                      >
+                                                        <IconComponent className="h-3 w-3 text-gray-500" />
+                                                        <span className="max-w-[100px] truncate">{fileName}</span>
+                                                        <Eye className="h-3 w-3 text-gray-400" />
+                                                      </button>
+                                                    );
+                                                  })}
+                                                </div>
+                                              </div>
+                                            )}
+                                            <p className="text-xs text-gray-500">
+                                              Criado em: {format(new Date(plan.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      ))}
+                                  </div>
+                                )}
                               </CardContent>
                             </Card>
                           ))}
@@ -478,6 +595,19 @@ export function ActionPlansPage() {
           </Card>
         )}
       </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <ImageModal
+          isOpen={isImageModalOpen}
+          onClose={() => {
+            setIsImageModalOpen(false);
+            setSelectedImage(null);
+          }}
+          imageUrl={selectedImage}
+          title="Visualizar Anexo"
+        />
+      )}
     </DashboardLayout>
   );
 }

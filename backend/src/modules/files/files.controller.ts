@@ -52,6 +52,38 @@ export class FilesController {
     };
   }
 
+  @Post('upload/action-plan')
+  @UseInterceptors(FilesInterceptor('files', 5))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    },
+  })
+  async uploadActionPlanFiles(@UploadedFiles() files: Array<Express.Multer.File>) {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('Nenhum arquivo foi enviado');
+    }
+
+    const uploadedFiles = await Promise.all(
+      files.map(file => this.filesService.uploadActionPlanFile(file))
+    );
+
+    return {
+      message: 'Arquivos enviados com sucesso',
+      files: uploadedFiles,
+    };
+  }
+
   @Delete(':filename')
   async deleteFile(@Param('filename') filename: string) {
     await this.filesService.deleteFile(filename);

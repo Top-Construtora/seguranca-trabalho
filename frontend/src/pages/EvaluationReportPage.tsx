@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileDown, Printer, FileText, Calendar, Users, MapPin, CheckCircle, XCircle, AlertTriangle, Award, TrendingUp, Clock } from 'lucide-react';
+import { ArrowLeft, FileDown, Printer } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -12,7 +12,6 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import { cn } from '@/lib/utils';
 import { reportsService } from '@/services/reports.service';
 
 export function EvaluationReportPage() {
@@ -86,7 +85,6 @@ export function EvaluationReportPage() {
   const naCount = answeredQuestions.filter(a => a.answer === 'na').length;
   const totalAnswered = answeredQuestions.length;
   const progress = questions.length > 0 ? (totalAnswered / questions.length) * 100 : 0;
-  const conformePercentage = questions.length > 0 ? (conformeCount / questions.length) * 100 : 0;
 
   return (
     <DashboardLayout>

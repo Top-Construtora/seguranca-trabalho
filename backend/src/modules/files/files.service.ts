@@ -8,11 +8,11 @@ export class FilesService {
 
   constructor(private readonly supabaseService: SupabaseService) {}
 
-  async uploadFile(file: Express.Multer.File) {
+  async uploadFile(file: Express.Multer.File, folder: string = 'evaluations') {
     // Validate file type
     const allowedTypes = [
       'image/jpeg',
-      'image/png', 
+      'image/png',
       'image/gif',
       'image/webp',
       'application/pdf',
@@ -33,7 +33,7 @@ export class FilesService {
     // Generate unique filename
     const fileExtension = file.originalname.split('.').pop();
     const filename = `${uuidv4()}.${fileExtension}`;
-    const filepath = `evaluations/${filename}`;
+    const filepath = `${folder}/${filename}`;
 
     try {
       // Upload to Supabase Storage
@@ -58,6 +58,10 @@ export class FilesService {
     } catch (error) {
       throw new BadRequestException(`Erro ao fazer upload: ${error.message}`);
     }
+  }
+
+  async uploadActionPlanFile(file: Express.Multer.File) {
+    return this.uploadFile(file, 'action-plans');
   }
 
   async deleteFile(filename: string) {

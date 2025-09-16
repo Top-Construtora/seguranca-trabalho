@@ -39,15 +39,41 @@ export function ActionPlansPage() {
 
   // Filter works/accommodations
   const activeWorks = works?.filter(work => work.is_active) || [];
-  const activeAccommodations = accommodations?.filter((acc: any) => acc.is_active) || [];
+
+  // For accommodations, create a flat list with work association
+  const flatAccommodations = accommodations?.flatMap((acc: any) => {
+    // Each accommodation can be associated with multiple works
+    if (!acc.works || acc.works.length === 0) return [];
+
+    // Create an entry for each work-accommodation combination
+    return acc.works.filter((work: any) => work.is_active).map((work: any) => ({
+      ...acc,
+      work_id: work.id,
+      work_name: work.name,
+      address: work.address,
+      is_active: work.is_active,
+      // Create a unique ID for this combination
+      unique_id: `${acc.id}_${work.id}`
+    }));
+  }) || [];
 
   // Get items based on selected type
-  const availableItems = workType === 'obra' ? activeWorks : activeAccommodations;
+  const availableItems = workType === 'obra' ? activeWorks : flatAccommodations;
 
-  // Filter evaluations by selected work
-  const workEvaluations = evaluations?.filter(evaluation =>
-    evaluation.work_id === selectedWorkId
-  ) || [];
+  // Filter evaluations by selected work or accommodation
+  const workEvaluations = evaluations?.filter(evaluation => {
+    if (workType === 'obra') {
+      return evaluation.work_id === selectedWorkId;
+    } else {
+      // For accommodations, extract the work_id from the unique_id
+      if (!selectedWorkId || !selectedWorkId.includes('_')) return false;
+
+      const [accommodationId, workId] = selectedWorkId.split('_');
+
+      // Check if evaluation is for this work and is of type alojamento
+      return evaluation.work_id === workId && evaluation.type === 'alojamento';
+    }
+  }) || [];
 
 
   // Get non-conforming answers from selected evaluation
@@ -266,17 +292,31 @@ export function ActionPlansPage() {
                     {(isLoadingWorks || isLoadingAccommodations) ? (
                       <SelectItem value="loading" disabled>Carregando...</SelectItem>
                     ) : availableItems.length > 0 ? (
-                      availableItems.map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{item.name}</span>
-                            <span className="text-xs text-gray-500 flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              {(item as any).address || ''}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))
+                      availableItems.map((item) => {
+                        // If it's an accommodation, use the combined display name
+                        let displayName = item.name;
+                        let displayAddress = (item as any).address || '';
+                        let keyValue = item.id;
+
+                        if (workType === 'alojamento') {
+                          const accommodation = item as any;
+                          displayName = `${accommodation.work_name} - ${accommodation.name}`;
+                          displayAddress = accommodation.address || '';
+                          keyValue = accommodation.unique_id;
+                        }
+
+                        return (
+                          <SelectItem key={keyValue} value={keyValue}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{displayName}</span>
+                              <span className="text-xs text-gray-500 flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {displayAddress}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })
                     ) : (
                       <SelectItem value="no-items" disabled>
                         Nenhum{workType === 'obra' ? 'a obra' : ' alojamento'} ativo encontrado

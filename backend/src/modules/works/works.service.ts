@@ -70,6 +70,7 @@ export class WorksService {
 
   async findAllAccommodations(): Promise<Accommodation[]> {
     return this.accommodationRepository.find({
+      relations: ['works'],
       order: { created_at: 'DESC' },
     });
   }

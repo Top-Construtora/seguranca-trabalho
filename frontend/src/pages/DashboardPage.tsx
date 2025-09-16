@@ -5,10 +5,10 @@ import { useEvaluationStatistics } from '@/hooks/useEvaluations';
 import { useWorks } from '@/hooks/useWorks';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
-import { 
-  Building2, 
- 
-  AlertTriangle, 
+import {
+  Building2,
+
+  AlertTriangle,
   TrendingUp,
   BarChart3,
   PieChart,
@@ -147,7 +147,7 @@ export function DashboardPage() {
                 de {totalWorks} obras cadastradas
               </p>
               <div className="mt-3 bg-white/20 rounded-full h-2">
-                <div 
+                <div
                   className="bg-white rounded-full h-2 transition-all duration-500"
                   style={{ width: `${(activeWorks / totalWorks) * 100}%` }}
                 />
@@ -204,7 +204,7 @@ export function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {completedEvaluations > 0 
+                {completedEvaluations > 0
                   ? Math.round((completedEvaluations / statistics?.total!) * 100)
                   : 0}%
               </div>
@@ -241,7 +241,7 @@ export function DashboardPage() {
                     </span>
                   </div>
                   <div className="bg-gray-200 rounded-full h-3">
-                    <div 
+                    <div
                       className="bg-gradient-to-r from-[#baa673] to-[#1e6076] rounded-full h-3 transition-all duration-700"
                       style={{ width: `${statistics?.total && statistics?.total > 0 ? (obraEvaluations / statistics?.total) * 100 : 0}%` }}
                     />
@@ -258,7 +258,7 @@ export function DashboardPage() {
                     </span>
                   </div>
                   <div className="bg-gray-200 rounded-full h-3">
-                    <div 
+                    <div
                       className="bg-gradient-to-r from-[#12b0a0] to-[#1e6076] rounded-full h-3 transition-all duration-700"
                       style={{ width: `${statistics?.total && statistics?.total > 0 ? (alojamentoEvaluations / statistics?.total) * 100 : 0}%` }}
                     />

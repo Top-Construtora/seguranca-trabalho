@@ -27,6 +27,7 @@ export interface UpdateWorkDto extends Partial<CreateWorkDto> {}
 export interface Accommodation {
   id: string;
   name: string;
+  works?: Work[];
   created_at: string;
   updated_at: string;
 }

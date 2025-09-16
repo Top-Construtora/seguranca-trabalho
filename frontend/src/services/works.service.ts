@@ -49,7 +49,7 @@ class WorksService {
   }
 
   async update(id: string, data: UpdateWorkDto): Promise<Work> {
-    const response = await api.patch(`/works/${id}`, data);
+    const response = await api.put(`/works/${id}`, data);
     return response.data;
   }
 

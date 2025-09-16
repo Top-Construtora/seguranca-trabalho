@@ -261,9 +261,9 @@ export function EvaluationForm({ onSubmit, onCancel, isLoading, evaluationType =
                                           <span className="font-medium">{work.number}</span>
                                           <span className="text-muted-foreground">-</span>
                                           <span>{work.name}</span>
-                                          {work.location && (
+                                          {work.address && (
                                             <Badge variant="outline" className="ml-2 text-xs">
-                                              {work.location}
+                                              {work.address}
                                             </Badge>
                                           )}
                                         </div>

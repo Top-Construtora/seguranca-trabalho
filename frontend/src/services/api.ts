@@ -6,7 +6,7 @@ const getApiUrl = () => {
   if (window.location.hostname === 'seguranca-trabalho.vercel.app') {
     return 'https://seguranca-trabalho.onrender.com/api';
   }
-  
+
   // Use environment variable or localhost
   return (import.meta.env.VITE_API_URL || 'http://localhost:3333') + '/api';
 };

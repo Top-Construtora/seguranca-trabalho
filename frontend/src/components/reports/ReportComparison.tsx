@@ -17,8 +17,6 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  BarChart,
-  Bar,
 } from 'recharts';
 import { ArrowUp, ArrowDown, Minus, RefreshCw } from 'lucide-react';
 

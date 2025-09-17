@@ -24,7 +24,7 @@ import { CreateEvaluationDto } from '@/services/evaluations.service';
 import { QuestionType } from '@/services/questions.service';
 import { useWorks } from '@/hooks/useWorks';
 import { format } from 'date-fns';
-import { Plus, X, Home, Building2, Calendar, Users, FileText, AlertCircle, CheckCircle2, Info } from 'lucide-react';
+import { Plus, X, Home, Building2, Calendar, Users, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';

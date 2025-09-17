@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, subDays, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useToast } from '../hooks/use-toast';
@@ -15,7 +14,6 @@ import { ReportFilters as ReportFiltersComponent } from '../components/reports/R
 import { ReportSearch } from '../components/reports/ReportSearch';
 import { ReportMetrics } from '../components/reports/ReportMetrics';
 import { ReportComparison } from '../components/reports/ReportComparison';
-import { StatsCard } from '../components/reports/StatsCard';
 import {
   ConformityTrendChart,
   EvaluationsByTypeChart,
@@ -26,8 +24,6 @@ import {
 
 import {
   Download,
-  FileSpreadsheet,
-  FileText,
   RefreshCw,
   LayoutDashboard,
   TrendingUp,
@@ -54,7 +50,6 @@ export function ReportsPageUltimate() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [reportType, setReportType] = useState('obra');
   const [searchQuery, setSearchQuery] = useState('');
-  const [refreshKey, setRefreshKey] = useState(0);
 
   // Estados dos dados
   const [evaluationsReport, setEvaluationsReport] = useState<any>(null);
@@ -83,7 +78,7 @@ export function ReportsPageUltimate() {
     groupBy: 'none',
   });
 
-  const handleFilterChange = (key: keyof ReportFilters, value: string) => {
+  const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
@@ -292,7 +287,6 @@ export function ReportsPageUltimate() {
   };
 
   const handleRefresh = () => {
-    setRefreshKey(prev => prev + 1);
     loadReports();
   };
 

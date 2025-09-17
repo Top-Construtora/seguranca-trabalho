@@ -10,7 +10,6 @@ import {
   XCircle,
   Clock,
   Target,
-  Users,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 

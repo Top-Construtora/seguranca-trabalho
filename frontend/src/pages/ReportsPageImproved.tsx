@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format, subDays, startOfMonth, endOfMonth, eachMonthOfInterval, parseISO } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachMonthOfInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -50,7 +50,7 @@ export function ReportsPageImproved() {
     userId: '',
   });
 
-  const handleFilterChange = (key: keyof ReportFilters, value: string) => {
+  const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
@@ -161,9 +161,9 @@ export function ReportsPageImproved() {
     if (!evaluationsReport || !summaryReport) return null;
 
     const totalEvaluations = evaluationsReport.total;
-    const avgScore = summaryReport.average_score || 0;
-    const totalConform = conformityReport?.total_conforme || 0;
-    const totalNonConform = conformityReport?.total_nao_conforme || 0;
+    const avgScore = summaryReport.average_penalty ? 100 - summaryReport.average_penalty : 100;
+    const totalConform = conformityReport?.conforme || 0;
+    const totalNonConform = conformityReport?.nao_conforme || 0;
     const conformityRate = totalConform + totalNonConform > 0
       ? (totalConform / (totalConform + totalNonConform)) * 100
       : 0;
@@ -179,8 +179,9 @@ export function ReportsPageImproved() {
     };
   }, [evaluationsReport, summaryReport, conformityReport]);
 
-  const monthlyData = useMemo(() => {
-    if (!evaluationsReport) return [];
+  // Monthly data calculation (for potential future use)
+  useMemo(() => {
+    if (!evaluationsReport || !filters.startDate || !filters.endDate) return [];
 
     const months = eachMonthOfInterval({
       start: parseISO(filters.startDate),
@@ -205,7 +206,8 @@ export function ReportsPageImproved() {
     });
   }, [evaluationsReport, filters]);
 
-  const scoreDistribution = useMemo(() => {
+  // Score distribution calculation (for potential future use)
+  useMemo(() => {
     if (!evaluationsReport) return [];
 
     const ranges = [
@@ -225,7 +227,8 @@ export function ReportsPageImproved() {
     return ranges.map(r => ({ range: r.label, count: r.count }));
   }, [evaluationsReport]);
 
-  const topWorks = useMemo(() => {
+  // Top works calculation (for potential future use)
+  useMemo(() => {
     if (!evaluationsReport) return [];
 
     const workScores: Record<string, { name: string; total: number; count: number }> = {};

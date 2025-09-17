@@ -68,7 +68,7 @@ export function ActionPlansPage() {
       // For accommodations, extract the work_id from the unique_id
       if (!selectedWorkId || !selectedWorkId.includes('_')) return false;
 
-      const [accommodationId, workId] = selectedWorkId.split('_');
+      const [, workId] = selectedWorkId.split('_');
 
       // Check if evaluation is for this work and is of type alojamento
       return evaluation.work_id === workId && evaluation.type === 'alojamento';

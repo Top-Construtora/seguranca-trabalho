@@ -28,6 +28,7 @@ interface FilterProps {
   accommodations: any[];
   users: any[];
   loading?: boolean;
+  reportType?: string;
 }
 
 export function ReportFilters({
@@ -39,6 +40,7 @@ export function ReportFilters({
   accommodations,
   users,
   loading,
+  reportType,
 }: FilterProps) {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -109,69 +111,74 @@ export function ReportFilters({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="work" className="h-5 flex items-center">Obra</Label>
-                <Select
-                  value={getDisplayValue(filters.workId || '')}
-                  onValueChange={(value) =>
-                    onFilterChange('workId', value === 'all' ? '' : value)
-                  }
-                >
-                  <SelectTrigger className="w-full h-10">
-                    <SelectValue placeholder="Todas as obras" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as obras</SelectItem>
-                    {works?.map((work) => (
-                      <SelectItem key={work.id} value={work.id}>
-                        {work.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {(!reportType || reportType === 'obra') && works.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="work" className="h-5 flex items-center">Obra</Label>
+                  <Select
+                    value={getDisplayValue(filters.workId || '')}
+                    onValueChange={(value) =>
+                      onFilterChange('workId', value === 'all' ? '' : value)
+                    }
+                  >
+                    <SelectTrigger className="w-full h-10">
+                      <SelectValue placeholder="Todas as obras" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as obras</SelectItem>
+                      {works?.map((work) => (
+                        <SelectItem key={work.id} value={work.id}>
+                          {work.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
-              <div className="space-y-2">
-                <Label htmlFor="type" className="h-5 flex items-center">Tipo</Label>
-                <Select
-                  value={getDisplayValue(filters.type || '')}
-                  onValueChange={(value) =>
-                    onFilterChange('type', value === 'all' ? '' : value)
-                  }
-                >
-                  <SelectTrigger className="w-full h-10">
-                    <SelectValue placeholder="Todos os tipos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os tipos</SelectItem>
-                    <SelectItem value="obra">Obra</SelectItem>
-                    <SelectItem value="alojamento">Alojamento</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {!reportType && (
+                <div className="space-y-2">
+                  <Label htmlFor="type" className="h-5 flex items-center">Tipo</Label>
+                  <Select
+                    value={getDisplayValue(filters.type || '')}
+                    onValueChange={(value) =>
+                      onFilterChange('type', value === 'all' ? '' : value)
+                    }
+                  >
+                    <SelectTrigger className="w-full h-10">
+                      <SelectValue placeholder="Todos os tipos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os tipos</SelectItem>
+                      <SelectItem value="obra">Obra</SelectItem>
+                      <SelectItem value="alojamento">Alojamento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
-              <div className="space-y-2">
-                <Label htmlFor="accommodation" className="h-5 flex items-center">Alojamento</Label>
-                <Select
-                  value={getDisplayValue(filters.accommodationId || '')}
-                  onValueChange={(value) =>
-                    onFilterChange('accommodationId', value === 'all' ? '' : value)
-                  }
-                  disabled={filters.type === 'obra'}
-                >
-                  <SelectTrigger className="w-full h-10">
-                    <SelectValue placeholder="Todos os alojamentos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os alojamentos</SelectItem>
-                    {accommodations?.map((accommodation) => (
-                      <SelectItem key={accommodation.id} value={accommodation.id}>
-                        {accommodation.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {(!reportType || reportType === 'alojamento') && accommodations.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="accommodation" className="h-5 flex items-center">Alojamento</Label>
+                  <Select
+                    value={getDisplayValue(filters.accommodationId || '')}
+                    onValueChange={(value) =>
+                      onFilterChange('accommodationId', value === 'all' ? '' : value)
+                    }
+                  >
+                    <SelectTrigger className="w-full h-10">
+                      <SelectValue placeholder="Todos os alojamentos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os alojamentos</SelectItem>
+                      {accommodations?.map((accommodation) => (
+                        <SelectItem key={accommodation.id} value={accommodation.id}>
+                          {accommodation.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="evaluator" className="h-5 flex items-center">Avaliador</Label>

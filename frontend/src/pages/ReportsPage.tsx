@@ -8,12 +8,13 @@ import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Badge } from '../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useToast } from '../hooks/use-toast';
 import { useWorks } from '../hooks/useWorks';
 import { useAccommodations } from '../hooks/useAccommodations';
 import { useUsers } from '../hooks/useUsers';
 import { reportsService, ReportFilters, EvaluationReport, SummaryReport, ConformityReport, LastEvaluationsConformityReport } from '../services/reports.service';
-import { Download, Calendar, BarChart3 } from 'lucide-react';
+import { Download, Calendar, BarChart3, HardHat, Home } from 'lucide-react';
 import { BarChart } from '../components/charts/BarChart';
 
 export function ReportsPage() {
@@ -28,11 +29,12 @@ export function ReportsPage() {
   const [, setConformityReport] = useState<ConformityReport | null>(null);
   const [lastEvaluationsConformity, setLastEvaluationsConformity] = useState<LastEvaluationsConformityReport | null>(null);
   
+  const [activeTab, setActiveTab] = useState('obra');
   const [filters, setFilters] = useState<ReportFilters>({
     startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd'),
     workId: '',
-    type: '',
+    type: 'obra',
     accommodationId: '',
     userId: '',
   });
@@ -44,6 +46,16 @@ export function ReportsPage() {
 
   const handleFilterChange = (key: keyof ReportFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setFilters(prev => ({
+      ...prev,
+      type: value,
+      workId: value === 'obra' ? prev.workId : '',
+      accommodationId: value === 'alojamento' ? prev.accommodationId : '',
+    }));
   };
 
   const loadReports = async () => {
@@ -158,123 +170,125 @@ export function ReportsPage() {
           </p>
         </div>
 
-        {/* Filtros */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Filtros
-            </CardTitle>
-            <CardDescription>
-              Configure os filtros para gerar o relatório desejado
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="startDate">Data Inicial</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={filters.startDate}
-                  onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="endDate">Data Final</Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={filters.endDate}
-                  onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="work">Obra</Label>
-                <Select value={getDisplayValue(filters.workId || '')} onValueChange={(value) => handleFilterChange('workId', value === 'all' ? '' : value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todas as obras" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as obras</SelectItem>
-                    {works?.map((work) => (
-                      <SelectItem key={work.id} value={work.id}>
-                        {work.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="type">Tipo</Label>
-                <Select value={getDisplayValue(filters.type || '')} onValueChange={(value) => handleFilterChange('type', value === 'all' ? '' : value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos os tipos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os tipos</SelectItem>
-                    <SelectItem value="obra">Obra</SelectItem>
-                    <SelectItem value="alojamento">Alojamento</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="accommodation">Alojamento</Label>
-                <Select value={getDisplayValue(filters.accommodationId || '')} onValueChange={(value) => handleFilterChange('accommodationId', value === 'all' ? '' : value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos os alojamentos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os alojamentos</SelectItem>
-                    {accommodations?.map((accommodation) => (
-                      <SelectItem key={accommodation.id} value={accommodation.id}>
-                        {accommodation.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="evaluator">Avaliador</Label>
-                <Select value={getDisplayValue(filters.userId || '')} onValueChange={(value) => handleFilterChange('userId', value === 'all' ? '' : value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos os avaliadores" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os avaliadores</SelectItem>
-                    {users?.map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="flex gap-2 mt-4">
-              <Button onClick={loadReports} disabled={loading}>
-                {loading ? 'Carregando...' : 'Gerar Relatório'}
-              </Button>
-              <Button variant="outline" onClick={handleExportPDF} disabled={exportLoading}>
-                <Download className="h-4 w-4 mr-2" />
-                PDF
-              </Button>
-              <Button variant="outline" onClick={handleExportExcel} disabled={exportLoading}>
-                <Download className="h-4 w-4 mr-2" />
-                Excel
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Tabs para separar Obras e Alojamentos */}
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="obra" className="flex items-center gap-2">
+              <HardHat className="h-4 w-4" />
+              Obras
+            </TabsTrigger>
+            <TabsTrigger value="alojamento" className="flex items-center gap-2">
+              <Home className="h-4 w-4" />
+              Alojamentos
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Gráficos de Conformidade - 3 Últimas Avaliações */}
-        {lastEvaluationsConformity && lastEvaluationsConformity.evaluations_data.length > 0 && (
+          <TabsContent value={activeTab} className="space-y-6">
+            {/* Filtros */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Filtros - {activeTab === 'obra' ? 'Obras' : 'Alojamentos'}
+                </CardTitle>
+                <CardDescription>
+                  Configure os filtros para gerar o relatório de {activeTab === 'obra' ? 'obras' : 'alojamentos'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="startDate">Data Inicial</Label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={filters.startDate}
+                      onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="endDate">Data Final</Label>
+                    <Input
+                      id="endDate"
+                      type="date"
+                      value={filters.endDate}
+                      onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                    />
+                  </div>
+
+                  {activeTab === 'obra' ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="work">Obra</Label>
+                      <Select value={getDisplayValue(filters.workId || '')} onValueChange={(value) => handleFilterChange('workId', value === 'all' ? '' : value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Todas as obras" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todas as obras</SelectItem>
+                          {works?.map((work) => (
+                            <SelectItem key={work.id} value={work.id}>
+                              {work.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label htmlFor="accommodation">Alojamento</Label>
+                      <Select value={getDisplayValue(filters.accommodationId || '')} onValueChange={(value) => handleFilterChange('accommodationId', value === 'all' ? '' : value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Todos os alojamentos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os alojamentos</SelectItem>
+                          {accommodations?.map((accommodation) => (
+                            <SelectItem key={accommodation.id} value={accommodation.id}>
+                              {accommodation.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="evaluator">Avaliador</Label>
+                    <Select value={getDisplayValue(filters.userId || '')} onValueChange={(value) => handleFilterChange('userId', value === 'all' ? '' : value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todos os avaliadores" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os avaliadores</SelectItem>
+                        {users?.map((user) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+            
+                <div className="flex gap-2 mt-4">
+                  <Button onClick={loadReports} disabled={loading}>
+                    {loading ? 'Carregando...' : 'Gerar Relatório'}
+                  </Button>
+                  <Button variant="outline" onClick={handleExportPDF} disabled={exportLoading}>
+                    <Download className="h-4 w-4 mr-2" />
+                    PDF
+                  </Button>
+                  <Button variant="outline" onClick={handleExportExcel} disabled={exportLoading}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Excel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Gráficos de Conformidade - 3 Últimas Avaliações */}
+            {lastEvaluationsConformity && lastEvaluationsConformity.evaluations_data.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -326,10 +340,10 @@ export function ReportsPage() {
               </CardContent>
             </Card>
           </div>
-        )}
+            )}
 
-        {/* Tabela de Avaliações */}
-        {evaluationsReport && (
+            {/* Tabela de Avaliações */}
+            {evaluationsReport && (
           <Card>
             <CardHeader>
               <CardTitle>Avaliações Detalhadas</CardTitle>
@@ -343,7 +357,7 @@ export function ReportsPage() {
                   <TableRow>
                     <TableHead>Data</TableHead>
                     <TableHead>Obra</TableHead>
-                    <TableHead>Alojamento</TableHead>
+                    {activeTab === 'alojamento' && <TableHead>Alojamento</TableHead>}
                     <TableHead>Tipo</TableHead>
                     <TableHead>Funcionários</TableHead>
                     <TableHead>Penalidade</TableHead>
@@ -358,7 +372,7 @@ export function ReportsPage() {
                         {format(new Date(evaluation.date), 'dd/MM/yyyy')}
                       </TableCell>
                       <TableCell>{evaluation.work?.name}</TableCell>
-                      <TableCell>{evaluation.accommodation?.name || '-'}</TableCell>
+                      {activeTab === 'alojamento' && <TableCell>{evaluation.accommodation?.name || '-'}</TableCell>}
                       <TableCell>
                         <Badge variant={evaluation.type === 'obra' ? 'default' : 'secondary'}>
                           {evaluation.type}
@@ -378,7 +392,9 @@ export function ReportsPage() {
               </Table>
             </CardContent>
           </Card>
-        )}
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

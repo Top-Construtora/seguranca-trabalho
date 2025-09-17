@@ -34,6 +34,8 @@ import {
   BarChart3,
   FileSearch,
   Settings,
+  HardHat,
+  Home,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -50,6 +52,7 @@ export function ReportsPageUltimate() {
   const [loading, setLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [reportType, setReportType] = useState('obra');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -63,7 +66,7 @@ export function ReportsPageUltimate() {
     startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd'),
     workId: '',
-    type: '',
+    type: 'obra',
     accommodationId: '',
     userId: '',
   });
@@ -84,12 +87,22 @@ export function ReportsPageUltimate() {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
+  const handleReportTypeChange = (value: string) => {
+    setReportType(value);
+    setFilters(prev => ({
+      ...prev,
+      type: value,
+      workId: value === 'obra' ? prev.workId : '',
+      accommodationId: value === 'alojamento' ? prev.accommodationId : '',
+    }));
+  };
+
   const handleResetFilters = () => {
     setFilters({
       startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
       endDate: format(new Date(), 'yyyy-MM-dd'),
       workId: '',
-      type: '',
+      type: reportType,
       accommodationId: '',
       userId: '',
     });
@@ -403,47 +416,88 @@ export function ReportsPageUltimate() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Central de Relatórios Avançada</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Análise completa com insights, comparações e exportações avançadas
-            </p>
-          </div>
+        {/* Header with Tabs */}
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+                Central de Relatórios Avançada
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                Análise completa com insights, comparações e exportações avançadas
+              </p>
+            </div>
 
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={loading}
-            >
-              <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-              Atualizar
-            </Button>
-
-            <div className="relative">
+            <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {}}
-                className="pr-8"
+                onClick={handleRefresh}
+                disabled={loading}
               >
-                <Download className="h-4 w-4 mr-1" />
-                Exportar
+                <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                Atualizar
               </Button>
-              <select
-                className="absolute inset-0 opacity-0 cursor-pointer"
-                onChange={(e) => handleExport(e.target.value as any)}
-                disabled={exportLoading || !evaluationsReport}
-              >
-                <option value="">Selecione</option>
-                <option value="pdf">PDF</option>
-                <option value="excel">Excel</option>
-                <option value="csv">CSV</option>
-                <option value="json">JSON</option>
-              </select>
+
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {}}
+                  className="pr-8"
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Exportar
+                </Button>
+                <select
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={(e) => handleExport(e.target.value as any)}
+                  disabled={exportLoading || !evaluationsReport}
+                >
+                  <option value="">Selecione</option>
+                  <option value="pdf">PDF</option>
+                  <option value="excel">Excel</option>
+                  <option value="csv">CSV</option>
+                  <option value="json">JSON</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Report Type Selection Tabs */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-6 rounded-xl border border-blue-200 dark:border-blue-800">
+            <div className="flex flex-col space-y-4">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">Selecione o Tipo de Relatório</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Escolha entre visualizar relatórios de obras ou alojamentos</p>
+              </div>
+
+              <Tabs value={reportType} onValueChange={handleReportTypeChange} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 h-14 bg-white dark:bg-gray-900">
+                  <TabsTrigger
+                    value="obra"
+                    className="flex items-center justify-center gap-2 text-base font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all"
+                  >
+                    <HardHat className="h-5 w-5" />
+                    <span>Obras</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="alojamento"
+                    className="flex items-center justify-center gap-2 text-base font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all"
+                  >
+                    <Home className="h-5 w-5" />
+                    <span>Alojamentos</span>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+
+              <div className="flex items-center gap-2 mt-2">
+                <div className={`h-2 w-2 rounded-full ${reportType === 'obra' ? 'bg-blue-600' : 'bg-gray-300'}`} />
+                <div className={`h-2 w-2 rounded-full ${reportType === 'alojamento' ? 'bg-blue-600' : 'bg-gray-300'}`} />
+                <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                  Visualizando: <strong>{reportType === 'obra' ? 'Relatórios de Obras' : 'Relatórios de Alojamentos'}</strong>
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -463,10 +517,11 @@ export function ReportsPageUltimate() {
           onFilterChange={handleFilterChange}
           onApplyFilters={loadReports}
           onResetFilters={handleResetFilters}
-          works={works}
-          accommodations={accommodations}
+          works={reportType === 'obra' ? works : []}
+          accommodations={reportType === 'alojamento' ? accommodations : []}
           users={users}
           loading={loading}
+          reportType={reportType}
         />
 
         {/* Loading State */}
@@ -583,7 +638,7 @@ export function ReportsPageUltimate() {
                       <thead className="border-b">
                         <tr>
                           <th className="text-left py-3 px-2">Data</th>
-                          <th className="text-left py-3 px-2">Obra</th>
+                          <th className="text-left py-3 px-2">{reportType === 'obra' ? 'Obra' : 'Alojamento'}</th>
                           <th className="text-left py-3 px-2">Tipo</th>
                           <th className="text-left py-3 px-2">Pontuação</th>
                           <th className="text-left py-3 px-2">Conformidade</th>
@@ -597,7 +652,7 @@ export function ReportsPageUltimate() {
                             <td className="py-3 px-2">
                               {format(parseISO(evaluation.date), 'dd/MM/yyyy')}
                             </td>
-                            <td className="py-3 px-2">{evaluation.work?.name}</td>
+                            <td className="py-3 px-2">{reportType === 'obra' ? evaluation.work?.name : (evaluation.accommodation?.name || '-')}</td>
                             <td className="py-3 px-2">{evaluation.type}</td>
                             <td className="py-3 px-2">{evaluation.final_score?.toFixed(1)}%</td>
                             <td className="py-3 px-2">{evaluation.conformity_rate?.toFixed(1)}%</td>

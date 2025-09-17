@@ -203,15 +203,7 @@ export function ReportFilters({
               </div>
             </div>
 
-            <div className="flex items-center gap-4 pt-2">
-              <Button
-                onClick={onApplyFilters}
-                disabled={loading || (!filters.startDate || !filters.endDate)}
-                className="min-w-[150px]"
-              >
-                {loading ? 'Carregando...' : 'Aplicar Filtros'}
-              </Button>
-
+            <div className="flex items-center gap-2 pt-2">
               <div className="flex gap-2">
                 <Button
                   variant="outline"

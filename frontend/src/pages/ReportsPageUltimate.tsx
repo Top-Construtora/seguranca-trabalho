@@ -8,6 +8,7 @@ import { useWorks } from '../hooks/useWorks';
 import { useAccommodations } from '../hooks/useAccommodations';
 import { useUsers } from '../hooks/useUsers';
 import { reportsService, ReportFilters } from '../services/reports.service';
+import { cn } from '../lib/utils';
 
 // Componentes de relatório
 import { ReportFilters as ReportFiltersComponent } from '../components/reports/ReportFilters';
@@ -20,6 +21,7 @@ import {
   ScoreDistributionChart,
   TopWorksChart,
   MonthlyComparisonChart,
+  LastWorksConformityChart,
 } from '../components/reports/ReportCharts';
 
 import {
@@ -32,6 +34,11 @@ import {
   Settings,
   HardHat,
   Home,
+  Building2,
+  FileText,
+  Shield,
+  ChevronRight,
+  Activity,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -94,8 +101,8 @@ export function ReportsPageUltimate() {
 
   const handleResetFilters = () => {
     setFilters({
-      startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
-      endDate: format(new Date(), 'yyyy-MM-dd'),
+      startDate: '',
+      endDate: '',
       workId: '',
       type: reportType,
       accommodationId: '',
@@ -290,6 +297,133 @@ export function ReportsPageUltimate() {
     loadReports();
   };
 
+  // Dados das últimas 5 obras/avaliações
+  const lastWorksConformityData = useMemo(() => {
+    if (!evaluationsReport?.evaluations) return { data: [], title: "", description: "" };
+
+
+    let dataToProcess = [];
+    let chartTitle = "";
+    let chartDescription = "";
+
+    // Se uma obra específica foi selecionada
+    if (filters.workId) {
+      // Filtrar apenas avaliações da obra selecionada
+      const workEvaluations = evaluationsReport.evaluations
+        .filter((e: any) => e.work && e.work.id === filters.workId && e.type === 'obra')
+        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 5); // Pegar as últimas 5 avaliações
+
+      const workName = workEvaluations[0]?.work?.name || "Obra";
+      chartTitle = `Últimas 5 Avaliações - ${workName}`;
+      chartDescription = "Evolução da conformidade nas últimas avaliações desta obra";
+
+      dataToProcess = workEvaluations.map((evaluation: any) => {
+        // Calcular conformes e não conformes (excluindo "não se aplica")
+        let conforme = 0;
+        let naoConforme = 0;
+
+        // Verificar se answers existe e processar
+        if (evaluation.answers && Array.isArray(evaluation.answers)) {
+          evaluation.answers.forEach((answer: any) => {
+            // O backend retorna 'value' que contém 'sim', 'nao' ou 'na'
+            const answerValue = answer.value || answer.answer;
+            if (answerValue === 'sim' || answerValue === 'SIM') {
+              conforme++;
+            } else if (answerValue === 'nao' || answerValue === 'NAO' || answerValue === 'não') {
+              naoConforme++;
+            }
+            // "na" (não se aplica) é ignorado
+          });
+        }
+
+        // Se não houver answers, tentar usar dados agregados
+        if (conforme === 0 && naoConforme === 0) {
+          conforme = evaluation.conforme || evaluation.conformes || evaluation.conformeCount || 0;
+          naoConforme = evaluation.naoConforme || evaluation.nao_conforme || evaluation.naoConformes || evaluation.naoConformeCount || 0;
+        }
+
+
+        return {
+          name: format(parseISO(evaluation.date), 'dd/MM/yy'),
+          conforme,
+          naoConforme,
+          total: conforme + naoConforme,
+          percentualConformidade: conforme + naoConforme > 0
+            ? ((conforme / (conforme + naoConforme)) * 100).toFixed(1)
+            : 0,
+          avaliador: evaluation.user?.name || 'Avaliador'
+        };
+      });
+    } else {
+      // Se nenhuma obra específica, mostrar as últimas 5 obras diferentes avaliadas
+      const workEvaluationsMap = new Map();
+
+      // Filtrar apenas avaliações de obras (não alojamentos)
+      const workEvaluations = evaluationsReport.evaluations
+        .filter((e: any) => e.work && e.type === 'obra')
+        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      // Agrupar por obra, mantendo apenas a avaliação mais recente de cada
+      workEvaluations.forEach((evaluation: any) => {
+        const workId = evaluation.work.id;
+        if (!workEvaluationsMap.has(workId)) {
+          workEvaluationsMap.set(workId, evaluation);
+        }
+      });
+
+      // Pegar as 5 obras mais recentemente avaliadas
+      dataToProcess = Array.from(workEvaluationsMap.values())
+        .slice(0, 5)
+        .map((evaluation: any) => {
+          // Calcular conformes e não conformes (excluindo "não se aplica")
+          let conforme = 0;
+          let naoConforme = 0;
+
+          // Verificar se answers existe e processar
+          if (evaluation.answers && Array.isArray(evaluation.answers)) {
+            evaluation.answers.forEach((answer: any) => {
+              // O backend retorna 'value' que contém 'sim', 'nao' ou 'na'
+              const answerValue = answer.value || answer.answer;
+              if (answerValue === 'sim' || answerValue === 'SIM') {
+                conforme++;
+              } else if (answerValue === 'nao' || answerValue === 'NAO' || answerValue === 'não') {
+                naoConforme++;
+              }
+              // "na" (não se aplica) é ignorado
+            });
+          }
+
+          // Se não houver answers, tentar usar dados agregados
+          if (conforme === 0 && naoConforme === 0) {
+            conforme = evaluation.conforme || evaluation.conformes || evaluation.conformeCount || 0;
+            naoConforme = evaluation.naoConforme || evaluation.nao_conforme || evaluation.naoConformes || evaluation.naoConformeCount || 0;
+          }
+
+
+          return {
+            name: evaluation.work.name.length > 25
+              ? evaluation.work.name.substring(0, 25) + '...'
+              : evaluation.work.name,
+            conforme,
+            naoConforme,
+            total: conforme + naoConforme,
+            percentualConformidade: conforme + naoConforme > 0
+              ? ((conforme / (conforme + naoConforme)) * 100).toFixed(1)
+              : 0
+          };
+        });
+
+      chartTitle = "Conformidade das Últimas 5 Obras Avaliadas";
+    }
+
+    return {
+      data: dataToProcess,
+      title: chartTitle,
+      description: chartDescription
+    };
+  }, [evaluationsReport, filters.workId]);
+
   // Dados processados
   const metricsData = useMemo(() => {
     if (!evaluationsReport || !summaryReport || !conformityReport) return null;
@@ -403,9 +537,16 @@ export function ReportsPageUltimate() {
     return filtered;
   }, [evaluationsReport, searchQuery, advancedFilters]);
 
+  // Aplicar filtros automaticamente quando mudarem
   useEffect(() => {
-    loadReports();
-  }, []);
+    // Só carrega se tiver datas selecionadas
+    if (filters.startDate && filters.endDate) {
+      const timer = setTimeout(() => {
+        loadReports();
+      }, 500); // Debounce de 500ms para evitar muitas requisições
+      return () => clearTimeout(timer);
+    }
+  }, [filters]);
 
   return (
     <DashboardLayout>
@@ -458,52 +599,14 @@ export function ReportsPageUltimate() {
             </div>
           </div>
 
-          {/* Report Type Selection Tabs */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-6 rounded-xl border border-blue-200 dark:border-blue-800">
-            <div className="flex flex-col space-y-4">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">Selecione o Tipo de Relatório</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Escolha entre visualizar relatórios de obras ou alojamentos</p>
-              </div>
-
-              <Tabs value={reportType} onValueChange={handleReportTypeChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 h-14 bg-white dark:bg-gray-900">
-                  <TabsTrigger
-                    value="obra"
-                    className="flex items-center justify-center gap-2 text-base font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all"
-                  >
-                    <HardHat className="h-5 w-5" />
-                    <span>Obras</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="alojamento"
-                    className="flex items-center justify-center gap-2 text-base font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all"
-                  >
-                    <Home className="h-5 w-5" />
-                    <span>Alojamentos</span>
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              <div className="flex items-center gap-2 mt-2">
-                <div className={`h-2 w-2 rounded-full ${reportType === 'obra' ? 'bg-blue-600' : 'bg-gray-300'}`} />
-                <div className={`h-2 w-2 rounded-full ${reportType === 'alojamento' ? 'bg-blue-600' : 'bg-gray-300'}`} />
-                <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-                  Visualizando: <strong>{reportType === 'obra' ? 'Relatórios de Obras' : 'Relatórios de Alojamentos'}</strong>
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* Tabs de Seleção */}
+          <Tabs value={reportType} onValueChange={handleReportTypeChange}>
+            <TabsList className="grid w-full grid-cols-2 max-w-xs">
+              <TabsTrigger value="obra">Obras</TabsTrigger>
+              <TabsTrigger value="alojamento">Alojamentos</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
-
-        {/* Search and Filters */}
-        <ReportSearch
-          onSearch={handleSearch}
-          onFiltersChange={handleAdvancedFiltersChange}
-          onExportFilters={handleExportFilters}
-          onImportFilters={handleImportFilters}
-          totalResults={filteredEvaluations.length}
-        />
 
         {/* Main Filters */}
         <ReportFiltersComponent
@@ -532,176 +635,62 @@ export function ReportsPageUltimate() {
 
         {/* Main Content */}
         {!loading && metricsData && (
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="dashboard" className="flex items-center gap-1">
-                <LayoutDashboard className="h-4 w-4" />
-                <span className="hidden sm:inline">Dashboard</span>
-              </TabsTrigger>
-              <TabsTrigger value="metrics" className="flex items-center gap-1">
-                <TrendingUp className="h-4 w-4" />
-                <span className="hidden sm:inline">Métricas</span>
-              </TabsTrigger>
-              <TabsTrigger value="comparison" className="flex items-center gap-1">
-                <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Comparação</span>
-              </TabsTrigger>
-              <TabsTrigger value="details" className="flex items-center gap-1">
-                <FileSearch className="h-4 w-4" />
-                <span className="hidden sm:inline">Detalhes</span>
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-1">
-                <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Config</span>
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="dashboard" className="space-y-6 mt-6">
-              <ReportMetrics data={metricsData} />
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ConformityTrendChart
-                  data={lastEvaluationsConformity?.evaluations_data.map((e: any) => ({
-                    name: format(parseISO(e.date), 'dd/MM'),
-                    conforme: e.conforme,
-                    naoConforme: e.nao_conforme,
-                    total: e.conforme + e.nao_conforme,
-                  })) || []}
-                  title="Tendência de Conformidade"
-                  description="Evolução recente da conformidade"
-                />
-
-                <EvaluationsByTypeChart
-                  data={evaluationsReport?.evaluations || []}
-                  title="Distribuição por Tipo"
-                  description="Proporção entre tipos de avaliação"
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="metrics" className="space-y-6 mt-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ScoreDistributionChart
-                  data={[
-                    { range: '0-60', count: filteredEvaluations.filter((e: any) => e.final_score < 60).length },
-                    { range: '60-70', count: filteredEvaluations.filter((e: any) => e.final_score >= 60 && e.final_score < 70).length },
-                    { range: '70-80', count: filteredEvaluations.filter((e: any) => e.final_score >= 70 && e.final_score < 80).length },
-                    { range: '80-90', count: filteredEvaluations.filter((e: any) => e.final_score >= 80 && e.final_score < 90).length },
-                    { range: '90-100', count: filteredEvaluations.filter((e: any) => e.final_score >= 90).length },
-                  ]}
-                  title="Distribuição de Pontuação"
-                  description="Faixas de pontuação das avaliações"
-                />
-
-                <TopWorksChart
-                  data={works.slice(0, 5).map(w => ({
-                    name: w.name,
-                    score: Math.random() * 30 + 70,
-                  }))}
-                  title="Top 5 Obras"
-                  description="Melhores pontuações médias"
-                />
-              </div>
-
-              <MonthlyComparisonChart
-                data={comparisonData.trend}
-                title="Evolução Mensal Detalhada"
-                description="Análise comparativa mensal"
+          <div className="space-y-6">
+            {/* Gráfico de Conformidade das Últimas 5 Obras */}
+            {reportType === 'obra' && lastWorksConformityData.data?.length > 0 && (
+              <LastWorksConformityChart
+                data={lastWorksConformityData.data}
+                title={lastWorksConformityData.title}
+                description={lastWorksConformityData.description}
               />
-            </TabsContent>
+            )}
 
-            <TabsContent value="comparison" className="mt-6">
-              <ReportComparison
-                data={comparisonData}
-                onPeriodChange={handlePeriodChange}
-                onRefresh={handleRefresh}
-              />
-            </TabsContent>
 
-            <TabsContent value="details" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Avaliações Detalhadas</CardTitle>
-                  <CardDescription>
-                    {filteredEvaluations.length} avaliações encontradas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="border-b">
-                        <tr>
-                          <th className="text-left py-3 px-2">Data</th>
-                          <th className="text-left py-3 px-2">{reportType === 'obra' ? 'Obra' : 'Alojamento'}</th>
-                          <th className="text-left py-3 px-2">Tipo</th>
-                          <th className="text-left py-3 px-2">Pontuação</th>
-                          <th className="text-left py-3 px-2">Conformidade</th>
-                          <th className="text-left py-3 px-2">Avaliador</th>
-                          <th className="text-left py-3 px-2">Ações</th>
+            <Card>
+              <CardHeader>
+                <CardTitle>Avaliações Detalhadas</CardTitle>
+                <CardDescription>
+                  {filteredEvaluations.length} avaliações encontradas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="border-b">
+                      <tr>
+                        <th className="text-left py-3 px-2">Data</th>
+                        <th className="text-left py-3 px-2">{reportType === 'obra' ? 'Obra' : 'Alojamento'}</th>
+                        <th className="text-left py-3 px-2">Conformidade</th>
+                        <th className="text-left py-3 px-2">Avaliador</th>
+                        <th className="text-left py-3 px-2">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredEvaluations.slice(0, 10).map((evaluation: any) => (
+                        <tr key={evaluation.id} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-2">
+                            {format(parseISO(evaluation.date), 'dd/MM/yyyy')}
+                          </td>
+                          <td className="py-3 px-2">{reportType === 'obra' ? evaluation.work?.name : (evaluation.accommodation?.name || '-')}</td>
+                          <td className="py-3 px-2">{evaluation.conformity_rate?.toFixed(1)}%</td>
+                          <td className="py-3 px-2">{evaluation.user?.name}</td>
+                          <td className="py-3 px-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/reports/evaluation/${evaluation.id}`)}
+                            >
+                              Ver Relatório
+                            </Button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {filteredEvaluations.slice(0, 10).map((evaluation: any) => (
-                          <tr key={evaluation.id} className="border-b hover:bg-gray-50">
-                            <td className="py-3 px-2">
-                              {format(parseISO(evaluation.date), 'dd/MM/yyyy')}
-                            </td>
-                            <td className="py-3 px-2">{reportType === 'obra' ? evaluation.work?.name : (evaluation.accommodation?.name || '-')}</td>
-                            <td className="py-3 px-2">{evaluation.type}</td>
-                            <td className="py-3 px-2">{evaluation.final_score?.toFixed(1)}%</td>
-                            <td className="py-3 px-2">{evaluation.conformity_rate?.toFixed(1)}%</td>
-                            <td className="py-3 px-2">{evaluation.user?.name}</td>
-                            <td className="py-3 px-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => navigate(`/reports/evaluation/${evaluation.id}`)}
-                              >
-                                Ver Relatório
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="settings" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Configurações de Relatórios</CardTitle>
-                  <CardDescription>
-                    Personalize como os relatórios são gerados e exibidos
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <h3 className="font-medium">Preferências de Exportação</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Configure os formatos padrão de exportação e opções avançadas
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="font-medium">Notificações</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Configure alertas para métricas críticas
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="font-medium">Metas e Benchmarks</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Defina metas personalizadas para cada categoria
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </DashboardLayout>

@@ -10,7 +10,7 @@ import { EvaluationEditPage } from './pages/EvaluationEditPage'
 import { EvaluationReportPage } from './pages/EvaluationReportPage'
 import { EvaluationRedirect } from './components/EvaluationRedirect'
 import { ActionPlansPage } from './pages/ActionPlansPage'
-import { ReportsPageImproved as ReportsPage } from './pages/ReportsPageImproved'
+import { ReportsPageUltimate as ReportsPage } from './pages/ReportsPageUltimate'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Toaster } from './components/ui/toaster'
 

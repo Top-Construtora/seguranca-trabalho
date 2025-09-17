@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -17,6 +17,8 @@ import {
   AreaChart,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { Button } from '../ui/button';
+import { Percent, Hash } from 'lucide-react';
 
 const COLORS = ['#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899'];
 
@@ -24,6 +26,106 @@ interface ChartProps {
   data: any[];
   title: string;
   description?: string;
+}
+
+export function LastWorksConformityChart({ data, title, description }: ChartProps) {
+  const [viewMode, setViewMode] = useState<'quantity' | 'percentage'>('quantity');
+
+  // Processar dados para porcentagem se necessário
+  const processedData = useMemo(() => {
+    if (viewMode === 'percentage') {
+      return data.map((item: any) => {
+        const total = item.conforme + item.naoConforme;
+        if (total === 0) return { ...item, conforme: 0, naoConforme: 0 };
+
+        return {
+          ...item,
+          conforme: parseFloat(((item.conforme / total) * 100).toFixed(1)),
+          naoConforme: parseFloat(((item.naoConforme / total) * 100).toFixed(1)),
+        };
+      });
+    }
+    return data;
+  }, [data, viewMode]);
+
+  return (
+    <Card className="hover:shadow-lg transition-shadow relative">
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <CardTitle>{title}</CardTitle>
+            {description && <CardDescription>{description}</CardDescription>}
+          </div>
+          <div className="flex gap-1">
+            <Button
+              variant={viewMode === 'quantity' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('quantity')}
+              className="h-8 px-2"
+              title="Quantidade"
+            >
+              <Hash className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'percentage' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('percentage')}
+              className="h-8 px-2"
+              title="Porcentagem"
+            >
+              <Percent className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={450}>
+          <BarChart
+            data={processedData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="name"
+              angle={-45}
+              textAnchor="end"
+              height={100}
+              tick={{ fontSize: 12 }}
+            />
+            <YAxis
+              label={{
+                value: viewMode === 'percentage' ? 'Porcentagem (%)' : 'Quantidade',
+                angle: -90,
+                position: 'insideLeft'
+              }}
+              domain={viewMode === 'percentage' ? [0, 100] : undefined}
+              tickFormatter={viewMode === 'percentage' ? (value) => `${value}%` : undefined}
+            />
+            <Tooltip
+              formatter={(value: any) => [
+                viewMode === 'percentage' ? `${value}%` : value,
+                ''
+              ]}
+              contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+            />
+            <Legend />
+            <Bar
+              dataKey="conforme"
+              name="Conforme"
+              fill="#10b981"
+              radius={[8, 8, 0, 0]}
+            />
+            <Bar
+              dataKey="naoConforme"
+              name="Não Conforme"
+              fill="#ef4444"
+              radius={[8, 8, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
 }
 
 export function ConformityTrendChart({ data, title, description }: ChartProps) {

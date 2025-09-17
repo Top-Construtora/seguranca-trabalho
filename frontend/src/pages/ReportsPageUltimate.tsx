@@ -16,29 +16,14 @@ import { ReportSearch } from '../components/reports/ReportSearch';
 import { ReportMetrics } from '../components/reports/ReportMetrics';
 import { ReportComparison } from '../components/reports/ReportComparison';
 import {
-  ConformityTrendChart,
-  EvaluationsByTypeChart,
-  ScoreDistributionChart,
-  TopWorksChart,
-  MonthlyComparisonChart,
   LastWorksConformityChart,
 } from '../components/reports/ReportCharts';
 
 import {
   Download,
   RefreshCw,
-  LayoutDashboard,
-  TrendingUp,
-  BarChart3,
-  FileSearch,
-  Settings,
-  HardHat,
-  Home,
   Building2,
-  FileText,
-  Shield,
-  ChevronRight,
-  Activity,
+  Home,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -54,7 +39,6 @@ export function ReportsPageUltimate() {
 
   const [loading, setLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('dashboard');
   const [reportType, setReportType] = useState('obra');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -62,7 +46,6 @@ export function ReportsPageUltimate() {
   const [evaluationsReport, setEvaluationsReport] = useState<any>(null);
   const [summaryReport, setSummaryReport] = useState<any>(null);
   const [conformityReport, setConformityReport] = useState<any>(null);
-  const [lastEvaluationsConformity, setLastEvaluationsConformity] = useState<any>(null);
 
   const [filters, setFilters] = useState<ReportFilters>({
     startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
@@ -97,6 +80,12 @@ export function ReportsPageUltimate() {
       workId: value === 'obra' ? prev.workId : '',
       accommodationId: value === 'alojamento' ? prev.accommodationId : '',
     }));
+    // Forçar recarga dos dados quando mudar o tipo
+    setTimeout(() => {
+      if (filters.startDate && filters.endDate) {
+        loadReports();
+      }
+    }, 100);
   };
 
   const handleResetFilters = () => {
@@ -121,26 +110,27 @@ export function ReportsPageUltimate() {
     }
 
     setLoading(true);
+    console.log('=== ENVIANDO PARA BACKEND ===');
+    console.log('Filters being sent:', filters);
+    console.log('Type:', filters.type);
+
     try {
-      const [evaluations, summary, conformity, lastEvaluations] = await Promise.all([
+      const [evaluations, summary, conformity] = await Promise.all([
         reportsService.getEvaluationsReport(filters),
         reportsService.getSummaryReport({
           startDate: filters.startDate,
           endDate: filters.endDate,
         }),
         reportsService.getConformityReport(filters),
-        reportsService.getLastEvaluationsConformityReport({
-          workId: filters.workId,
-          type: filters.type,
-          accommodationId: filters.accommodationId,
-          userId: filters.userId,
-        }),
       ]);
+
+      console.log('=== RESPOSTA DO BACKEND ===');
+      console.log('Evaluations received:', evaluations);
+      console.log('Total evaluations:', evaluations?.evaluations?.length || 0);
 
       setEvaluationsReport(evaluations);
       setSummaryReport(summary);
       setConformityReport(conformity);
-      setLastEvaluationsConformity(lastEvaluations);
 
       toast({
         title: 'Sucesso',
@@ -228,71 +218,6 @@ export function ReportsPageUltimate() {
     URL.revokeObjectURL(url);
   };
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    // Implementar lógica de busca
-  };
-
-  const handleAdvancedFiltersChange = (newFilters: any) => {
-    setAdvancedFilters(newFilters);
-    // Aplicar filtros avançados
-  };
-
-  const handleExportFilters = () => {
-    const filtersData = JSON.stringify({ filters, advancedFilters }, null, 2);
-    downloadFile(filtersData, 'filtros.json', 'application/json');
-  };
-
-  const handleImportFilters = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = JSON.parse(e.target?.result as string);
-        if (data.filters) setFilters(data.filters);
-        if (data.advancedFilters) setAdvancedFilters(data.advancedFilters);
-        toast({
-          title: 'Sucesso',
-          description: 'Filtros importados com sucesso',
-        });
-      } catch (error) {
-        toast({
-          title: 'Erro',
-          description: 'Erro ao importar filtros',
-          variant: 'destructive',
-        });
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const handlePeriodChange = (period: string) => {
-    const today = new Date();
-    let startDate = new Date();
-
-    switch (period) {
-      case 'week':
-        startDate = subDays(today, 7);
-        break;
-      case 'month':
-        startDate = subDays(today, 30);
-        break;
-      case 'quarter':
-        startDate = subDays(today, 90);
-        break;
-      case 'year':
-        startDate = subDays(today, 365);
-        break;
-    }
-
-    setFilters({
-      ...filters,
-      startDate: format(startDate, 'yyyy-MM-dd'),
-      endDate: format(today, 'yyyy-MM-dd'),
-    });
-
-    loadReports();
-  };
-
   const handleRefresh = () => {
     loadReports();
   };
@@ -301,24 +226,58 @@ export function ReportsPageUltimate() {
   const lastWorksConformityData = useMemo(() => {
     if (!evaluationsReport?.evaluations) return { data: [], title: "", description: "" };
 
+    // Debug temporário
+    console.log('=== DEBUG ALOJAMENTOS ===');
+    console.log('reportType:', reportType);
+    console.log('Total evaluations:', evaluationsReport.evaluations.length);
+
+    // Verificar quantas avaliações de alojamento existem
+    const alojamentoEvals = evaluationsReport.evaluations.filter((e: any) =>
+      e.accommodation || e.accommodationId || e.accommodation_id ||
+      e.type === 'alojamento' || e.type === 'Alojamento' ||
+      (!e.work && !e.workId && !e.work_id)
+    );
+    console.log('Avaliações de alojamento encontradas:', alojamentoEvals.length);
+    if (alojamentoEvals.length > 0) {
+      console.log('Primeira avaliação de alojamento:', alojamentoEvals[0]);
+      console.log('Campos da avaliação:', Object.keys(alojamentoEvals[0]));
+    }
+
+    // Verificar todas as avaliações para entender a estrutura
+    if (evaluationsReport.evaluations.length > 0) {
+      console.log('Estrutura de uma avaliação qualquer:', Object.keys(evaluationsReport.evaluations[0]));
+      console.log('Exemplo de avaliação:', evaluationsReport.evaluations[0]);
+    }
 
     let dataToProcess = [];
     let chartTitle = "";
     let chartDescription = "";
 
-    // Se uma obra específica foi selecionada
-    if (filters.workId) {
-      // Filtrar apenas avaliações da obra selecionada
-      const workEvaluations = evaluationsReport.evaluations
-        .filter((e: any) => e.work && e.work.id === filters.workId && e.type === 'obra')
-        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 5); // Pegar as últimas 5 avaliações
+    // Se uma obra ou alojamento específico foi selecionado
+    if (filters.workId || filters.accommodationId) {
+      let locationEvaluations = [];
+      let locationName = "";
 
-      const workName = workEvaluations[0]?.work?.name || "Obra";
-      chartTitle = `Últimas 5 Avaliações - ${workName}`;
-      chartDescription = "Evolução da conformidade nas últimas avaliações desta obra";
+      if (filters.workId) {
+        // Filtrar apenas avaliações da obra selecionada
+        locationEvaluations = evaluationsReport.evaluations
+          .filter((e: any) => e.work && e.work.id === filters.workId && e.type === 'obra')
+          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 5); // Pegar as últimas 5 avaliações
+        locationName = locationEvaluations[0]?.work?.name || "Obra";
+      } else if (filters.accommodationId) {
+        // Filtrar apenas avaliações do alojamento selecionado
+        locationEvaluations = evaluationsReport.evaluations
+          .filter((e: any) => e.accommodation && e.accommodation.id === filters.accommodationId && (e.type === 'alojamento' || !e.type))
+          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 5); // Pegar as últimas 5 avaliações
+        locationName = locationEvaluations[0]?.accommodation?.name || "Alojamento";
+      }
 
-      dataToProcess = workEvaluations.map((evaluation: any) => {
+      chartTitle = `Últimas 5 Avaliações - ${locationName}`;
+      chartDescription = `Evolução da conformidade nas últimas avaliações ${filters.workId ? 'desta obra' : 'deste alojamento'}`;
+
+      dataToProcess = locationEvaluations.map((evaluation: any) => {
         // Calcular conformes e não conformes (excluindo "não se aplica")
         let conforme = 0;
         let naoConforme = 0;
@@ -356,24 +315,39 @@ export function ReportsPageUltimate() {
         };
       });
     } else {
-      // Se nenhuma obra específica, mostrar as últimas 5 obras diferentes avaliadas
-      const workEvaluationsMap = new Map();
+      // Se nenhum local específico, mostrar as últimas 5 locais diferentes avaliados
+      const locationsMap = new Map();
 
-      // Filtrar apenas avaliações de obras (não alojamentos)
-      const workEvaluations = evaluationsReport.evaluations
-        .filter((e: any) => e.work && e.type === 'obra')
+      // Filtrar avaliações baseado no tipo selecionado
+      const locationEvaluations = evaluationsReport.evaluations
+        .filter((e: any) => {
+          if (reportType === 'obra') {
+            return e.work && (e.type === 'obra' || !e.type);
+          } else if (reportType === 'alojamento') {
+            const hasAccommodation = e.accommodation || e.accommodationId || e.accommodation_id;
+            const isAlojamentoType = e.type === 'alojamento' || e.type === 'Alojamento' || !e.work;
+            console.log('Checking eval:', e.id, 'hasAccommodation:', hasAccommodation, 'isAlojamentoType:', isAlojamentoType, 'type:', e.type);
+            return hasAccommodation && isAlojamentoType;
+          }
+          return false;
+        })
         .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-      // Agrupar por obra, mantendo apenas a avaliação mais recente de cada
-      workEvaluations.forEach((evaluation: any) => {
-        const workId = evaluation.work.id;
-        if (!workEvaluationsMap.has(workId)) {
-          workEvaluationsMap.set(workId, evaluation);
+      console.log('Filtered locationEvaluations for', reportType, ':', locationEvaluations.length);
+
+      // Agrupar por local, mantendo apenas a avaliação mais recente de cada
+      locationEvaluations.forEach((evaluation: any) => {
+        const locationId = reportType === 'obra'
+          ? evaluation.work?.id
+          : evaluation.accommodation?.id;
+
+        if (locationId && !locationsMap.has(locationId)) {
+          locationsMap.set(locationId, evaluation);
         }
       });
 
-      // Pegar as 5 obras mais recentemente avaliadas
-      dataToProcess = Array.from(workEvaluationsMap.values())
+      // Pegar os 5 locais mais recentemente avaliados
+      dataToProcess = Array.from(locationsMap.values())
         .slice(0, 5)
         .map((evaluation: any) => {
           // Calcular conformes e não conformes (excluindo "não se aplica")
@@ -401,10 +375,14 @@ export function ReportsPageUltimate() {
           }
 
 
+          const locationName = reportType === 'obra'
+            ? evaluation.work?.name
+            : evaluation.accommodation?.name;
+
           return {
-            name: evaluation.work.name.length > 25
-              ? evaluation.work.name.substring(0, 25) + '...'
-              : evaluation.work.name,
+            name: locationName && locationName.length > 25
+              ? locationName.substring(0, 25) + '...'
+              : locationName || 'Sem nome',
             conforme,
             naoConforme,
             total: conforme + naoConforme,
@@ -414,7 +392,18 @@ export function ReportsPageUltimate() {
           };
         });
 
-      chartTitle = "Conformidade das Últimas 5 Obras Avaliadas";
+      chartTitle = reportType === 'obra'
+        ? "Conformidade das Últimas 5 Obras Avaliadas"
+        : "Conformidade dos Últimos 5 Alojamentos Avaliados";
+
+      chartDescription = "Quantidade de itens conformes e não conformes (excluindo 'não se aplica')";
+    }
+
+    console.log('=== RESULTADO FINAL ===');
+    console.log('dataToProcess length:', dataToProcess.length);
+    console.log('chartTitle:', chartTitle);
+    if (dataToProcess.length > 0) {
+      console.log('Primeiro item processado:', dataToProcess[0]);
     }
 
     return {
@@ -422,7 +411,7 @@ export function ReportsPageUltimate() {
       title: chartTitle,
       description: chartDescription
     };
-  }, [evaluationsReport, filters.workId]);
+  }, [evaluationsReport, filters.workId, filters.accommodationId, reportType]);
 
   // Dados processados
   const metricsData = useMemo(() => {
@@ -453,44 +442,6 @@ export function ReportsPageUltimate() {
     };
   }, [evaluationsReport, summaryReport, conformityReport]);
 
-  const comparisonData = useMemo(() => {
-    // Simular dados de comparação - em produção, buscar do backend
-    return {
-      current: {
-        period: 'Nov 2024',
-        score: metricsData?.averageScore || 0,
-        conformity: metricsData?.conformityRate || 0,
-        evaluations: metricsData?.totalEvaluations || 0,
-        categories: [
-          { name: 'Segurança', value: 85 },
-          { name: 'Higiene', value: 78 },
-          { name: 'Organização', value: 82 },
-          { name: 'EPIs', value: 90 },
-          { name: 'Procedimentos', value: 75 },
-        ],
-      },
-      previous: {
-        period: 'Out 2024',
-        score: 72,
-        conformity: 68,
-        evaluations: 42,
-        categories: [
-          { name: 'Segurança', value: 80 },
-          { name: 'Higiene', value: 70 },
-          { name: 'Organização', value: 75 },
-          { name: 'EPIs', value: 85 },
-          { name: 'Procedimentos', value: 70 },
-        ],
-      },
-      trend: [
-        { month: 'Jul', current: 70, previous: 65, benchmark: 80 },
-        { month: 'Ago', current: 72, previous: 68, benchmark: 80 },
-        { month: 'Set', current: 75, previous: 70, benchmark: 80 },
-        { month: 'Out', current: 78, previous: 72, benchmark: 80 },
-        { month: 'Nov', current: 82, previous: 75, benchmark: 80 },
-      ],
-    };
-  }, [metricsData]);
 
   const filteredEvaluations = useMemo(() => {
     if (!evaluationsReport) return [];
@@ -541,12 +492,14 @@ export function ReportsPageUltimate() {
   useEffect(() => {
     // Só carrega se tiver datas selecionadas
     if (filters.startDate && filters.endDate) {
+      console.log('useEffect - Filters changed, reloading reports');
+      console.log('Current filters:', filters);
       const timer = setTimeout(() => {
         loadReports();
       }, 500); // Debounce de 500ms para evitar muitas requisições
       return () => clearTimeout(timer);
     }
-  }, [filters]);
+  }, [filters, filters.type]); // Adicionar filters.type explicitamente
 
   return (
     <DashboardLayout>
@@ -636,8 +589,8 @@ export function ReportsPageUltimate() {
         {/* Main Content */}
         {!loading && metricsData && (
           <div className="space-y-6">
-            {/* Gráfico de Conformidade das Últimas 5 Obras */}
-            {reportType === 'obra' && lastWorksConformityData.data?.length > 0 && (
+            {/* Gráfico de Conformidade das Últimas 5 Avaliações */}
+            {lastWorksConformityData.data?.length > 0 && (
               <LastWorksConformityChart
                 data={lastWorksConformityData.data}
                 title={lastWorksConformityData.title}

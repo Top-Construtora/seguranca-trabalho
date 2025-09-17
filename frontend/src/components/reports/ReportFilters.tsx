@@ -22,7 +22,7 @@ import {
 interface FilterProps {
   filters: any;
   onFilterChange: (key: string, value: string) => void;
-  onApplyFilters: () => void;
+  onApplyFilters?: () => void;
   onResetFilters: () => void;
   works: any[];
   accommodations: any[];
@@ -34,12 +34,10 @@ interface FilterProps {
 export function ReportFilters({
   filters,
   onFilterChange,
-  onApplyFilters,
   onResetFilters,
   works,
   accommodations,
   users,
-  loading,
   reportType,
 }: FilterProps) {
   const [isOpen, setIsOpen] = useState(true);

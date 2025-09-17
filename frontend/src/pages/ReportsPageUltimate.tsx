@@ -2,19 +2,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, subDays, parseISO } from 'date-fns';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useToast } from '../hooks/use-toast';
 import { useWorks } from '../hooks/useWorks';
 import { useAccommodations } from '../hooks/useAccommodations';
 import { useUsers } from '../hooks/useUsers';
 import { reportsService, ReportFilters } from '../services/reports.service';
-import { cn } from '../lib/utils';
 
 // Componentes de relatório
 import { ReportFilters as ReportFiltersComponent } from '../components/reports/ReportFilters';
-import { ReportSearch } from '../components/reports/ReportSearch';
-import { ReportMetrics } from '../components/reports/ReportMetrics';
-import { ReportComparison } from '../components/reports/ReportComparison';
 import {
   LastWorksConformityChart,
 } from '../components/reports/ReportCharts';
@@ -22,8 +18,6 @@ import {
 import {
   Download,
   RefreshCw,
-  Building2,
-  Home,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -40,7 +34,6 @@ export function ReportsPageUltimate() {
   const [loading, setLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [reportType, setReportType] = useState('obra');
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Estados dos dados
   const [evaluationsReport, setEvaluationsReport] = useState<any>(null);
@@ -56,17 +49,6 @@ export function ReportsPageUltimate() {
     userId: '',
   });
 
-  const [advancedFilters, setAdvancedFilters] = useState<any>({
-    query: '',
-    scoreMin: 0,
-    scoreMax: 100,
-    conformityMin: 0,
-    conformityMax: 100,
-    onlyCompleted: false,
-    onlyCritical: false,
-    sortBy: 'date',
-    groupBy: 'none',
-  });
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -448,45 +430,13 @@ export function ReportsPageUltimate() {
 
     let filtered = [...evaluationsReport.evaluations];
 
-    // Aplicar busca
-    if (searchQuery) {
-      filtered = filtered.filter((e: any) =>
-        e.work?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        e.user?.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Aplicar filtros avançados
-    filtered = filtered.filter((e: any) => {
-      const score = e.final_score || 0;
-      const conformity = e.conformity_rate || 0;
-
-      if (score < advancedFilters.scoreMin || score > advancedFilters.scoreMax) return false;
-      if (conformity < advancedFilters.conformityMin || conformity > advancedFilters.conformityMax) return false;
-      if (advancedFilters.onlyCompleted && e.status !== 'completed') return false;
-      if (advancedFilters.onlyCritical && score >= 60) return false;
-
-      return true;
-    });
-
-    // Aplicar ordenação
+    // Aplicar ordenação por data (mais recente primeiro)
     filtered.sort((a: any, b: any) => {
-      switch (advancedFilters.sortBy) {
-        case 'score':
-          return (b.final_score || 0) - (a.final_score || 0);
-        case 'conformity':
-          return (b.conformity_rate || 0) - (a.conformity_rate || 0);
-        case 'work':
-          return (a.work?.name || '').localeCompare(b.work?.name || '');
-        case 'evaluator':
-          return (a.user?.name || '').localeCompare(b.user?.name || '');
-        default:
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-      }
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
 
     return filtered;
-  }, [evaluationsReport, searchQuery, advancedFilters]);
+  }, [evaluationsReport]);
 
   // Aplicar filtros automaticamente quando mudarem
   useEffect(() => {

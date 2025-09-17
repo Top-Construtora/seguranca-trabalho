@@ -107,10 +107,10 @@ export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
               {evaluationType === 'obra' ? 'Avaliações de Obra' : 'Avaliações de Alojamento'}
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground dark:text-gray-400">
               {evaluationType === 'obra'
                 ? 'Gerencie as avaliações de segurança de obras'
                 : 'Gerencie as avaliações de segurança de alojamentos'
@@ -167,12 +167,12 @@ export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">
+            <DialogTitle className="text-lg sm:text-xl text-gray-900 dark:text-gray-100">
               Nova Avaliação {evaluationType === 'obra' ? 'de Obra' : 'de Alojamento'}
             </DialogTitle>
-            <DialogDescription className="text-sm sm:text-base">
+            <DialogDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
               Crie uma nova avaliação de segurança {evaluationType === 'obra' ? 'de obra' : 'de alojamento'}
             </DialogDescription>
           </DialogHeader>
@@ -186,10 +186,10 @@ export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
       </Dialog>
 
       <AlertDialog open={!!completeId} onOpenChange={() => setCompleteId(null)}>
-        <AlertDialogContent className="w-[95vw] max-w-md">
+        <AlertDialogContent className="w-[95vw] max-w-md bg-white dark:bg-gray-900">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base sm:text-lg">Finalizar avaliação</AlertDialogTitle>
-            <AlertDialogDescription className="text-sm sm:text-base">
+            <AlertDialogTitle className="text-base sm:text-lg text-gray-900 dark:text-gray-100">Finalizar avaliação</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
               Tem certeza que deseja finalizar esta avaliação?
               Após finalizada, não será possível editar as respostas.
             </AlertDialogDescription>
@@ -204,10 +204,10 @@ export function EvaluationsPage({ evaluationType }: EvaluationsPageProps) {
       </AlertDialog>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent className="w-[95vw] max-w-md">
+        <AlertDialogContent className="w-[95vw] max-w-md bg-white dark:bg-gray-900">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base sm:text-lg">Excluir avaliação</AlertDialogTitle>
-            <AlertDialogDescription className="text-sm sm:text-base">
+            <AlertDialogTitle className="text-base sm:text-lg text-gray-900 dark:text-gray-100">Excluir avaliação</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
               Tem certeza que deseja excluir esta avaliação?
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>

@@ -406,8 +406,8 @@ export function ReportsPageUltimate() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Central de Relatórios Avançada</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Central de Relatórios Avançada</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Análise completa com insights, comparações e exportações avançadas
             </p>
           </div>

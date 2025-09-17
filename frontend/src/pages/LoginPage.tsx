@@ -107,7 +107,7 @@ export function LoginPage() {
 
         {/* Right Side - Login Form */}
         <div className="flex items-center justify-center">
-          <Card className="w-full max-w-md shadow-2xl bg-white/95 backdrop-blur-sm border-0">
+          <Card className="w-full max-w-md shadow-2xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-0">
             <CardHeader className="space-y-4 text-center pb-8">
               <div className="lg:hidden">
                 <img 
@@ -120,10 +120,10 @@ export function LoginPage() {
                 <Shield className="h-8 w-8 text-white" />
               </div>
               <div>
-                <CardTitle className="text-2xl font-bold text-gray-900">
+                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   Bem-vindo de volta
                 </CardTitle>
-                <CardDescription className="text-gray-600 mt-2">
+                <CardDescription className="text-gray-600 dark:text-gray-400 mt-2">
                   Faça login para acessar o sistema de segurança
                 </CardDescription>
               </div>
@@ -133,7 +133,7 @@ export function LoginPage() {
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Email
                     </Label>
                     <Input
@@ -152,7 +152,7 @@ export function LoginPage() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Senha
                     </Label>
                     <div className="relative mt-1">
@@ -203,8 +203,8 @@ export function LoginPage() {
               </form>
               
               {/* Footer */}
-              <div className="text-center pt-4 border-t border-gray-100">
-                <p className="text-xs text-gray-500">
+              <div className="text-center pt-4 border-t border-gray-100 dark:border-gray-700">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Sistema protegido por autenticação segura
                 </p>
               </div>

@@ -75,8 +75,8 @@ export function WorksPage() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Obras</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Obras</h1>
+            <p className="text-sm sm:text-base text-muted-foreground dark:text-gray-400">
               Gerencie as obras cadastradas no sistema
             </p>
           </div>
@@ -117,12 +117,12 @@ export function WorksPage() {
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={handleCloseForm}>
-        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">
+            <DialogTitle className="text-lg sm:text-xl text-gray-900 dark:text-gray-100">
               {editingWork ? 'Editar Obra' : 'Nova Obra'}
             </DialogTitle>
-            <DialogDescription className="text-sm sm:text-base">
+            <DialogDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
               {editingWork
                 ? 'Atualize os dados da obra abaixo'
                 : 'Preencha os dados da nova obra'}

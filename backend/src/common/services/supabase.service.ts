@@ -96,7 +96,7 @@ export class SupabaseService {
       this.logger.error(`Supabase delete error: ${error.message}`);
 
       // Don't throw error for "not found" - file might be in local storage
-      if (error.message?.includes('not found') || error.statusCode === 404) {
+      if (error.message?.includes('not found') || (error as any).statusCode === 404) {
         this.logger.warn(`File not found in Supabase: ${path}`);
         return; // Silent return, let the service try other locations
       }

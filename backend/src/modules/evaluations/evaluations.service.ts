@@ -307,4 +307,13 @@ export class EvaluationsService {
       totalPenalties: totalPenalties?.total || 0,
     };
   }
+
+  async getPenaltyTable() {
+    return await this.penaltyTableRepository.find({
+      order: {
+        weight: 'ASC',
+        employees_min: 'ASC',
+      },
+    });
+  }
 }

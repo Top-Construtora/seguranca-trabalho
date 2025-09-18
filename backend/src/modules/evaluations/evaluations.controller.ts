@@ -51,6 +51,13 @@ export class EvaluationsController {
     return this.evaluationsService.getStatistics(req.user.id, req.user.role);
   }
 
+  @Get('penalty-table')
+  @ApiOperation({ summary: 'Obter tabela de penalidades' })
+  @ApiResponse({ status: 200, description: 'Tabela de penalidades' })
+  getPenaltyTable() {
+    return this.evaluationsService.getPenaltyTable();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Buscar avaliação por ID' })
   @ApiResponse({ status: 200, description: 'Avaliação encontrada', type: Evaluation })

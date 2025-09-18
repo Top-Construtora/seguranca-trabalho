@@ -24,6 +24,59 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Skeleton } from '../components/ui/skeleton';
 import { Progress } from '../components/ui/progress';
 
+// Fun\u00e7\u00e3o para processar dados de penalidade para o gr\u00e1fico
+function processDataForPenaltyChart(penalties: any[], evaluations: any[]) {
+  // Pegar as \u00faltimas avalia\u00e7\u00f5es (m\u00e1ximo 5) que est\u00e3o sendo mostradas no gr\u00e1fico de conformidade
+  const lastEvaluations = evaluations
+    .filter(e => e.status === 'completed')
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 5);
+
+  return lastEvaluations.map(evaluation => {
+    const employeeCount = evaluation.employees_count || 100; // Padr\u00e3o para 100 se n\u00e3o tiver
+
+    // Contar quantas n\u00e3o conformidades existem por peso
+    const nonConformitiesByWeight: Record<number, number> = {};
+
+    if (evaluation.answers && Array.isArray(evaluation.answers)) {
+      evaluation.answers.forEach((answer: any) => {
+        const answerValue = answer.value || answer.answer;
+        if (answerValue === 'nao' || answerValue === 'NAO' || answerValue === 'n\u00e3o') {
+          const weight = answer.question?.weight || 1;
+          nonConformitiesByWeight[weight] = (nonConformitiesByWeight[weight] || 0) + 1;
+        }
+      });
+    }
+
+    // Calcular valores m\u00ednimo e m\u00e1ximo de multa
+    let minValue = 0;
+    let maxValue = 0;
+
+    Object.entries(nonConformitiesByWeight).forEach(([weightStr, count]) => {
+      const weight = parseInt(weightStr);
+      const penaltyRow = penalties.find(
+        p => p.weight === weight &&
+             p.employees_min <= employeeCount &&
+             p.employees_max >= employeeCount
+      );
+
+      if (penaltyRow) {
+        minValue += penaltyRow.min_value * count;
+        maxValue += penaltyRow.max_value * count;
+      }
+    });
+
+    const workName = evaluation.work?.name || evaluation.accommodation?.name || 'Avalia\u00e7\u00e3o';
+    const date = format(parseISO(evaluation.date), 'dd/MM/yy');
+
+    return {
+      name: `${workName} (${date})`,
+      minValue: minValue,
+      maxValue: maxValue,
+    };
+  }).filter(item => item.minValue > 0 || item.maxValue > 0); // Filtrar apenas os que t\u00eam multas
+}
+
 export function ReportsPageUltimate() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -39,6 +92,7 @@ export function ReportsPageUltimate() {
   const [evaluationsReport, setEvaluationsReport] = useState<any>(null);
   const [summaryReport, setSummaryReport] = useState<any>(null);
   const [conformityReport, setConformityReport] = useState<any>(null);
+  const [penaltyData, setPenaltyData] = useState<any[]>([]);
 
   const [filters, setFilters] = useState<ReportFilters>({
     startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
@@ -97,22 +151,30 @@ export function ReportsPageUltimate() {
     console.log('Type:', filters.type);
 
     try {
-      const [evaluations, summary, conformity] = await Promise.all([
+      const [evaluations, summary, conformity, penalties] = await Promise.all([
         reportsService.getEvaluationsReport(filters),
         reportsService.getSummaryReport({
           startDate: filters.startDate,
           endDate: filters.endDate,
         }),
         reportsService.getConformityReport(filters),
+        reportsService.getPenaltyTable(),
       ]);
 
       console.log('=== RESPOSTA DO BACKEND ===');
       console.log('Evaluations received:', evaluations);
       console.log('Total evaluations:', evaluations?.evaluations?.length || 0);
+      console.log('Penalties:', penalties);
 
       setEvaluationsReport(evaluations);
       setSummaryReport(summary);
       setConformityReport(conformity);
+
+      // Processar dados de penalidades para o gráfico
+      if (penalties && penalties.length > 0) {
+        const processedPenaltyData = processDataForPenaltyChart(penalties, evaluations.evaluations);
+        setPenaltyData(processedPenaltyData);
+      }
 
       toast({
         title: 'Sucesso',
@@ -545,6 +607,7 @@ export function ReportsPageUltimate() {
                 data={lastWorksConformityData.data}
                 title={lastWorksConformityData.title}
                 description={lastWorksConformityData.description}
+                penaltyData={penaltyData}
               />
             )}
 

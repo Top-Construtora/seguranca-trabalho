@@ -120,13 +120,18 @@ export const reportsService = {
 
   async getLastEvaluationsConformityReport(filters: Omit<ReportFilters, 'startDate' | 'endDate'>): Promise<LastEvaluationsConformityReport> {
     const params = new URLSearchParams();
-    
+
     if (filters.workId) params.append('work_id', filters.workId);
     if (filters.type) params.append('type', filters.type);
     if (filters.accommodationId) params.append('accommodation_id', filters.accommodationId);
     if (filters.userId) params.append('user_id', filters.userId);
 
     const response = await api.get(`/reports/conformity/last-evaluations?${params.toString()}`);
+    return response.data;
+  },
+
+  async getPenaltyTable(): Promise<any[]> {
+    const response = await api.get('/evaluations/penalty-table');
     return response.data;
   },
 

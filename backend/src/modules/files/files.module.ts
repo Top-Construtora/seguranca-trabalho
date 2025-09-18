@@ -8,8 +8,13 @@ import { CommonModule } from '../../common/common.module';
   imports: [
     MulterModule.register({
       limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB
+        fileSize: 10 * 1024 * 1024, // 10MB
         files: 5, // Max 5 files per request
+        fieldSize: 10 * 1024 * 1024, // 10MB field size
+      },
+      fileFilter: (req, file, callback) => {
+        // Accept any file type in production
+        callback(null, true);
       },
     }),
     CommonModule,

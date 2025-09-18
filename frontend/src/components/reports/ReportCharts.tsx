@@ -26,9 +26,10 @@ interface ChartProps {
   data: any[];
   title: string;
   description?: string;
+  penaltyData?: any[];
 }
 
-export function LastWorksConformityChart({ data, title, description }: ChartProps) {
+export function LastWorksConformityChart({ data, title, description, penaltyData }: ChartProps) {
   const [viewMode, setViewMode] = useState<'quantity' | 'percentage'>('quantity');
 
   // Processar dados para porcentagem se necessário
@@ -108,7 +109,7 @@ export function LastWorksConformityChart({ data, title, description }: ChartProp
               ]}
               contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
             />
-            <Legend />
+            <Legend align="right" verticalAlign="top" wrapperStyle={{ paddingBottom: '20px' }} />
             <Bar
               dataKey="conforme"
               name="Conforme"
@@ -123,6 +124,68 @@ export function LastWorksConformityChart({ data, title, description }: ChartProp
             />
           </BarChart>
         </ResponsiveContainer>
+
+        {penaltyData && penaltyData.length > 0 && (
+          <>
+            <div className="mt-8 pt-6 border-t">
+              <h4 className="text-sm font-semibold mb-4">Valores de Multa Possíveis (R$)</h4>
+              <ResponsiveContainer width="100%" height={450}>
+                <BarChart
+                  data={penaltyData}
+                  margin={{ top: 20, right: 30, left: 50, bottom: 80 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    angle={-45}
+                    textAnchor="end"
+                    height={100}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis
+                    label={{
+                      value: 'Valor (R$)',
+                      angle: -90,
+                      position: 'insideLeft'
+                    }}
+                    tickFormatter={(value) =>
+                      new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format(value)
+                    }
+                  />
+                  <Tooltip
+                    formatter={(value: any) =>
+                      new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }).format(value)
+                    }
+                    contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                  />
+                  <Legend align="right" verticalAlign="top" wrapperStyle={{ paddingBottom: '20px' }} />
+                  <Bar
+                    dataKey="minValue"
+                    name="Valor Mínimo"
+                    fill="#f59e0b"
+                    radius={[8, 8, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="maxValue"
+                    name="Valor Máximo"
+                    fill="#dc2626"
+                    radius={[8, 8, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

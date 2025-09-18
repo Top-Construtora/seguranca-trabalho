@@ -38,18 +38,33 @@ export class FilesController {
     },
   })
   async uploadFiles(@UploadedFiles() files: Array<Express.Multer.File>) {
+    console.log('Upload request received');
+    console.log('Files received:', files?.length || 0);
+
     if (!files || files.length === 0) {
+      console.error('No files in request');
       throw new BadRequestException('Nenhum arquivo foi enviado');
     }
 
-    const uploadedFiles = await Promise.all(
-      files.map(file => this.filesService.uploadFile(file))
-    );
+    console.log('File details:', files.map(f => ({
+      originalname: f.originalname,
+      mimetype: f.mimetype,
+      size: f.size,
+    })));
 
-    return {
-      message: 'Arquivos enviados com sucesso',
-      files: uploadedFiles,
-    };
+    try {
+      const uploadedFiles = await Promise.all(
+        files.map(file => this.filesService.uploadFile(file))
+      );
+
+      return {
+        message: 'Arquivos enviados com sucesso',
+        files: uploadedFiles,
+      };
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw new BadRequestException(`Erro no upload: ${error.message}`);
+    }
   }
 
   @Post('upload/action-plan')

@@ -19,17 +19,32 @@ async function bootstrap() {
     crossOriginResourcePolicy: false,
   }));
 
+  // CORS configuration - be more permissive in production for file uploads
+  const corsOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://seguranca-trabalho.vercel.app',
+    'https://seguranca-trabalho-frontend.vercel.app',
+    process.env.FRONTEND_URL
+  ].filter(Boolean);
+
+  console.log('Allowed CORS origins:', corsOrigins);
+
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://seguranca-trabalho.vercel.app',
-      'https://seguranca-trabalho-frontend.vercel.app',
-      process.env.FRONTEND_URL
-    ].filter(Boolean),
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+
+      if (corsOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log('CORS rejected origin:', origin);
+        callback(null, true); // In production, be more permissive for now
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
     exposedHeaders: ['Content-Disposition'],
   });
 

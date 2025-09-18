@@ -85,18 +85,33 @@ export class FilesController {
     },
   })
   async uploadActionPlanFiles(@UploadedFiles() files: Array<Express.Multer.File>) {
+    console.log('Action plan upload request received');
+    console.log('Files received:', files?.length || 0);
+
     if (!files || files.length === 0) {
+      console.error('No files in action plan request');
       throw new BadRequestException('Nenhum arquivo foi enviado');
     }
 
-    const uploadedFiles = await Promise.all(
-      files.map(file => this.filesService.uploadActionPlanFile(file))
-    );
+    console.log('Action plan file details:', files.map(f => ({
+      originalname: f.originalname,
+      mimetype: f.mimetype,
+      size: f.size,
+    })));
 
-    return {
-      message: 'Arquivos enviados com sucesso',
-      files: uploadedFiles,
-    };
+    try {
+      const uploadedFiles = await Promise.all(
+        files.map(file => this.filesService.uploadActionPlanFile(file))
+      );
+
+      return {
+        message: 'Arquivos enviados com sucesso',
+        files: uploadedFiles,
+      };
+    } catch (error) {
+      console.error('Action plan upload error:', error);
+      throw new BadRequestException(`Erro no upload: ${error.message}`);
+    }
   }
 
   @Delete(':filename')

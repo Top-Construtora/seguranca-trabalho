@@ -16,19 +16,44 @@ export interface UploadResponse {
 
 class ActionPlanFilesService {
   async uploadFiles(files: FileList): Promise<UploadedFile[]> {
-    const formData = new FormData();
+    try {
+      const formData = new FormData();
 
-    Array.from(files).forEach(file => {
-      formData.append('files', file);
-    });
+      Array.from(files).forEach(file => {
+        console.log('Uploading file:', {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        });
+        formData.append('files', file);
+      });
 
-    const response = await api.post<UploadResponse>('/files/upload/action-plan', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+      // Don't set Content-Type header - let Axios set it automatically with boundary
+      const response = await api.post<UploadResponse>('/files/upload/action-plan', formData, {
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
+          console.log('Upload progress:', percentCompleted + '%');
+        },
+      });
 
-    return response.data.files;
+      console.log('Upload successful:', response.data);
+      return response.data.files;
+    } catch (error: any) {
+      console.error('Upload failed:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers,
+      });
+
+      // Provide more specific error message
+      if (error.response?.status === 400) {
+        const errorMessage = error.response?.data?.message || 'Arquivo inv\u00e1lido ou muito grande (m\u00e1ximo 10MB)';
+        throw new Error(errorMessage);
+      }
+
+      throw error;
+    }
   }
 
   async deleteFile(filename: string): Promise<void> {

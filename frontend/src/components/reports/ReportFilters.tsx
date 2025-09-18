@@ -18,6 +18,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '../ui/collapsible';
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 
 interface FilterProps {
   filters: any;
@@ -29,6 +30,7 @@ interface FilterProps {
   users: any[];
   loading?: boolean;
   reportType?: string;
+  onReportTypeChange?: (value: string) => void;
 }
 
 export function ReportFilters({
@@ -39,6 +41,7 @@ export function ReportFilters({
   accommodations,
   users,
   reportType,
+  onReportTypeChange,
 }: FilterProps) {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -79,7 +82,17 @@ export function ReportFilters({
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Tabs de Seleção de Tipo */}
+            {reportType && onReportTypeChange && (
+              <Tabs value={reportType} onValueChange={onReportTypeChange}>
+                <TabsList className="grid w-full grid-cols-2 max-w-xs">
+                  <TabsTrigger value="obra">Obras</TabsTrigger>
+                  <TabsTrigger value="alojamento">Alojamentos</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="startDate" className="flex items-center gap-1 h-5">
                   <Calendar className="h-3 w-3" />
@@ -90,7 +103,7 @@ export function ReportFilters({
                   type="date"
                   value={filters.startDate}
                   onChange={(e) => onFilterChange('startDate', e.target.value)}
-                  className="w-full h-10"
+                  className="w-full h-9 text-sm"
                 />
               </div>
 
@@ -105,7 +118,7 @@ export function ReportFilters({
                   value={filters.endDate}
                   onChange={(e) => onFilterChange('endDate', e.target.value)}
                   min={filters.startDate}
-                  className="w-full h-10"
+                  className="w-full h-9 text-sm"
                 />
               </div>
 
@@ -118,7 +131,7 @@ export function ReportFilters({
                       onFilterChange('workId', value === 'all' ? '' : value)
                     }
                   >
-                    <SelectTrigger className="w-full h-10">
+                    <SelectTrigger className="w-full h-9">
                       <SelectValue placeholder="Todas as obras" />
                     </SelectTrigger>
                     <SelectContent>
@@ -142,7 +155,7 @@ export function ReportFilters({
                       onFilterChange('type', value === 'all' ? '' : value)
                     }
                   >
-                    <SelectTrigger className="w-full h-10">
+                    <SelectTrigger className="w-full h-9">
                       <SelectValue placeholder="Todos os tipos" />
                     </SelectTrigger>
                     <SelectContent>
@@ -163,7 +176,7 @@ export function ReportFilters({
                       onFilterChange('accommodationId', value === 'all' ? '' : value)
                     }
                   >
-                    <SelectTrigger className="w-full h-10">
+                    <SelectTrigger className="w-full h-9">
                       <SelectValue placeholder="Todos os alojamentos" />
                     </SelectTrigger>
                     <SelectContent>
@@ -193,7 +206,7 @@ export function ReportFilters({
                     onFilterChange('userId', value === 'all' ? '' : value)
                   }
                 >
-                  <SelectTrigger className="w-full h-10">
+                  <SelectTrigger className="w-full h-9">
                     <SelectValue placeholder="Todos os avaliadores" />
                   </SelectTrigger>
                   <SelectContent>

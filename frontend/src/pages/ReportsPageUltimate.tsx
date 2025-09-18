@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, subDays, parseISO } from 'date-fns';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
-import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useToast } from '../hooks/use-toast';
 import { useWorks } from '../hooks/useWorks';
 import { useAccommodations } from '../hooks/useAccommodations';
@@ -563,14 +562,6 @@ export function ReportsPageUltimate() {
               </div>
             </div>
           </div>
-
-          {/* Tabs de Seleção */}
-          <Tabs value={reportType} onValueChange={handleReportTypeChange}>
-            <TabsList className="grid w-full grid-cols-2 max-w-xs">
-              <TabsTrigger value="obra">Obras</TabsTrigger>
-              <TabsTrigger value="alojamento">Alojamentos</TabsTrigger>
-            </TabsList>
-          </Tabs>
         </div>
 
         {/* Main Filters */}
@@ -584,6 +575,7 @@ export function ReportsPageUltimate() {
           users={users}
           loading={loading}
           reportType={reportType}
+          onReportTypeChange={handleReportTypeChange}
         />
 
         {/* Loading State */}

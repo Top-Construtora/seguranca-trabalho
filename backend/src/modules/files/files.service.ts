@@ -1,12 +1,24 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { SupabaseService } from '../../common/services/supabase.service';
+import { LocalStorageService } from '../../common/services/local-storage.service';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class FilesService {
+  private readonly logger = new Logger(FilesService.name);
   private readonly bucketName = 'evidence-files';
+  private useLocalStorage = false;
 
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly localStorageService: LocalStorageService,
+  ) {
+    // Check if Supabase is available
+    if (!this.supabaseService.getClient()) {
+      this.logger.warn('Supabase not available, using local storage');
+      this.useLocalStorage = true;
+    }
+  }
 
   async uploadFile(file: Express.Multer.File, folder: string = 'evaluations') {
     // Validate file type
@@ -36,16 +48,49 @@ export class FilesService {
     const filepath = `${folder}/${filename}`;
 
     try {
-      // Upload to Supabase Storage
-      await this.supabaseService.uploadFile(
-        this.bucketName,
-        filepath,
-        file.buffer,
-        file.mimetype
-      );
+      let publicUrl: string;
 
-      // Get public URL
-      const publicUrl = this.supabaseService.getPublicUrl(this.bucketName, filepath);
+      // Try Supabase first, fallback to local storage
+      if (!this.useLocalStorage) {
+        try {
+          // Upload to Supabase Storage
+          await this.supabaseService.uploadFile(
+            this.bucketName,
+            filepath,
+            file.buffer,
+            file.mimetype
+          );
+
+          // Get public URL
+          publicUrl = this.supabaseService.getPublicUrl(this.bucketName, filepath);
+          this.logger.log('File uploaded to Supabase successfully');
+        } catch (supabaseError) {
+          this.logger.error(`Supabase upload failed: ${supabaseError.message}`);
+
+          // Fallback to local storage
+          this.logger.warn('Falling back to local storage');
+          await this.localStorageService.uploadFile(
+            this.bucketName,
+            filepath,
+            file.buffer,
+            file.mimetype
+          );
+
+          publicUrl = this.localStorageService.getPublicUrl(this.bucketName, filepath);
+          this.logger.log('File uploaded to local storage successfully');
+        }
+      } else {
+        // Use local storage directly
+        await this.localStorageService.uploadFile(
+          this.bucketName,
+          filepath,
+          file.buffer,
+          file.mimetype
+        );
+
+        publicUrl = this.localStorageService.getPublicUrl(this.bucketName, filepath);
+        this.logger.log('File uploaded to local storage');
+      }
 
       return {
         originalName: file.originalname,
@@ -56,6 +101,7 @@ export class FilesService {
         mimeType: file.mimetype,
       };
     } catch (error) {
+      this.logger.error(`Upload failed completely: ${error.message}`);
       throw new BadRequestException(`Erro ao fazer upload: ${error.message}`);
     }
   }

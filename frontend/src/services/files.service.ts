@@ -57,7 +57,27 @@ class FilesService {
   }
 
   async deleteFile(filename: string): Promise<void> {
-    await api.delete(`/files/${filename}`);
+    try {
+      console.log('Deleting file:', filename);
+
+      await api.delete(`/files/${filename}`);
+
+      console.log('File deleted successfully:', filename);
+    } catch (error: any) {
+      console.error('Delete failed:', {
+        filename,
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      // Provide more specific error message
+      if (error.response?.status === 404) {
+        throw new Error('Arquivo não encontrado');
+      }
+
+      throw error;
+    }
   }
 }
 

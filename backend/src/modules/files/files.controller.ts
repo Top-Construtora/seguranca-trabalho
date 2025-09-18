@@ -116,7 +116,27 @@ export class FilesController {
 
   @Delete(':filename')
   async deleteFile(@Param('filename') filename: string) {
-    await this.filesService.deleteFile(filename);
-    return { message: 'Arquivo excluído com sucesso' };
+    console.log(`Delete request for file: ${filename}`);
+
+    try {
+      await this.filesService.deleteFile(filename);
+      return { message: 'Arquivo excluído com sucesso' };
+    } catch (error) {
+      console.error(`Failed to delete file ${filename}:`, error);
+      throw error;
+    }
+  }
+
+  @Delete('action-plan/:filename')
+  async deleteActionPlanFile(@Param('filename') filename: string) {
+    console.log(`Delete request for action plan file: ${filename}`);
+
+    try {
+      await this.filesService.deleteActionPlanFile(filename);
+      return { message: 'Arquivo do plano de ação excluído com sucesso' };
+    } catch (error) {
+      console.error(`Failed to delete action plan file ${filename}:`, error);
+      throw error;
+    }
   }
 }

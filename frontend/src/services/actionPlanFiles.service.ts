@@ -57,7 +57,28 @@ class ActionPlanFilesService {
   }
 
   async deleteFile(filename: string): Promise<void> {
-    await api.delete(`/files/${filename}`);
+    try {
+      console.log('Deleting action plan file:', filename);
+
+      // Use the action-plan specific endpoint
+      await api.delete(`/files/action-plan/${filename}`);
+
+      console.log('Action plan file deleted successfully:', filename);
+    } catch (error: any) {
+      console.error('Delete failed:', {
+        filename,
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      // Provide more specific error message
+      if (error.response?.status === 404) {
+        throw new Error('Arquivo não encontrado');
+      }
+
+      throw error;
+    }
   }
 
   // Helper to get just filename from full path or URL

@@ -72,10 +72,17 @@ export class LocalStorageService {
       if (fs.existsSync(fullPath)) {
         await unlink(fullPath);
         this.logger.log(`File deleted locally: ${fullPath}`);
+      } else {
+        this.logger.warn(`File not found locally: ${fullPath}`);
+        // Don't throw error - file might be in Supabase
       }
     } catch (error) {
       this.logger.error(`Failed to delete file locally: ${error.message}`);
-      throw new Error(`Failed to delete file: ${error.message}`);
+
+      // Only throw if it's not a "not found" error
+      if (error.code !== 'ENOENT') {
+        throw new Error(`Failed to delete file: ${error.message}`);
+      }
     }
   }
 

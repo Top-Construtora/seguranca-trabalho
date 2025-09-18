@@ -84,14 +84,27 @@ export class SupabaseService {
 
   async deleteFile(bucket: string, path: string) {
     if (!this.supabase) {
+      this.logger.error('Supabase client not initialized for delete operation');
       throw new Error('Supabase client not initialized. Check SUPABASE_URL and SUPABASE_SERVICE_KEY environment variables.');
     }
+
+    this.logger.log(`Attempting to delete file from Supabase: ${bucket}/${path}`);
 
     const { error } = await this.supabase.storage.from(bucket).remove([path]);
 
     if (error) {
+      this.logger.error(`Supabase delete error: ${error.message}`);
+
+      // Don't throw error for "not found" - file might be in local storage
+      if (error.message?.includes('not found') || error.statusCode === 404) {
+        this.logger.warn(`File not found in Supabase: ${path}`);
+        return; // Silent return, let the service try other locations
+      }
+
       throw new Error(`Failed to delete file: ${error.message}`);
     }
+
+    this.logger.log(`File deleted from Supabase: ${path}`);
   }
 
   getPublicUrl(bucket: string, path: string): string {

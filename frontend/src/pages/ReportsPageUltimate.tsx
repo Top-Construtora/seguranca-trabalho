@@ -569,25 +569,72 @@ export function ReportsPageUltimate() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredEvaluations.slice(0, 10).map((evaluation: any) => (
-                        <tr key={evaluation.id} className="border-b hover:bg-gray-50">
-                          <td className="py-3 px-2">
-                            {format(parseISO(evaluation.date), 'dd/MM/yyyy')}
-                          </td>
-                          <td className="py-3 px-2">{reportType === 'obra' ? evaluation.work?.name : (evaluation.accommodation?.name || '-')}</td>
-                          <td className="py-3 px-2">{evaluation.conformity_rate?.toFixed(1)}%</td>
-                          <td className="py-3 px-2">{evaluation.user?.name}</td>
-                          <td className="py-3 px-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => navigate(`/reports/evaluation/${evaluation.id}`)}
-                            >
-                              Ver Relatório
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
+                      {filteredEvaluations.slice(0, 10).map((evaluation: any) => {
+                        // Calcular a porcentagem de conformidade
+                        let conforme = 0;
+                        let naoConforme = 0;
+
+                        if (evaluation.answers && Array.isArray(evaluation.answers)) {
+                          evaluation.answers.forEach((answer: any) => {
+                            const answerValue = answer.value || answer.answer;
+                            if (answerValue === 'sim' || answerValue === 'SIM') {
+                              conforme++;
+                            } else if (answerValue === 'nao' || answerValue === 'NAO' || answerValue === 'não') {
+                              naoConforme++;
+                            }
+                          });
+                        }
+
+                        // Se não houver answers, usar valores agregados ou safety_score
+                        if (conforme === 0 && naoConforme === 0) {
+                          if (evaluation.safety_score !== null && evaluation.safety_score !== undefined) {
+                            // Se tiver safety_score, usar diretamente
+                            const conformityPercentage = evaluation.safety_score;
+                            return (
+                              <tr key={evaluation.id} className="border-b hover:bg-gray-50">
+                                <td className="py-3 px-2">
+                                  {format(parseISO(evaluation.date), 'dd/MM/yyyy')}
+                                </td>
+                                <td className="py-3 px-2">{reportType === 'obra' ? evaluation.work?.name : (evaluation.accommodation?.name || '-')}</td>
+                                <td className="py-3 px-2">{conformityPercentage.toFixed(1)}%</td>
+                                <td className="py-3 px-2">{evaluation.user?.name}</td>
+                                <td className="py-3 px-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => navigate(`/reports/evaluation/${evaluation.id}`)}
+                                  >
+                                    Ver Relatório
+                                  </Button>
+                                </td>
+                              </tr>
+                            );
+                          }
+                        }
+
+                        const total = conforme + naoConforme;
+                        const conformityPercentage = total > 0 ? (conforme / total) * 100 : 0;
+
+                        return (
+                          <tr key={evaluation.id} className="border-b hover:bg-gray-50">
+                            <td className="py-3 px-2">
+                              {format(parseISO(evaluation.date), 'dd/MM/yyyy')}
+                            </td>
+                            <td className="py-3 px-2">{reportType === 'obra' ? evaluation.work?.name : (evaluation.accommodation?.name || '-')}</td>
+                            <td className="py-3 px-2">{conformityPercentage.toFixed(1)}%</td>
+                            <td className="py-3 px-2">{evaluation.user?.name}</td>
+                            <td className="py-3 px-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => navigate(`/reports/evaluation/${evaluation.id}`)}
+                              >
+                                Ver Relatório
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

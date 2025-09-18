@@ -168,11 +168,18 @@ export function ReportFilters({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os alojamentos</SelectItem>
-                      {accommodations?.map((accommodation) => (
-                        <SelectItem key={accommodation.id} value={accommodation.id}>
-                          {accommodation.name}
-                        </SelectItem>
-                      ))}
+                      {accommodations?.map((accommodation) => {
+                        // Se o alojamento tem obras associadas, mostrar a primeira obra
+                        const workName = accommodation.works && accommodation.works.length > 0
+                          ? accommodation.works[0].name
+                          : null;
+
+                        return (
+                          <SelectItem key={accommodation.id} value={accommodation.id}>
+                            {workName ? `${workName} - ${accommodation.name}` : accommodation.name}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>

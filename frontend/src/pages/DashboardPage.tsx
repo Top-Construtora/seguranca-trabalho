@@ -1,30 +1,42 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useEvaluationStatistics } from '@/hooks/useEvaluations';
+import { useEvaluationStatistics, useEvaluations } from '@/hooks/useEvaluations';
+import { useQuery } from '@tanstack/react-query';
+import { reportsService } from '@/services/reports.service';
 import { useWorks } from '@/hooks/useWorks';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import {
-  Building2,
-
   AlertTriangle,
-  TrendingUp,
-  BarChart3,
-  PieChart,
   HardHat,
   Home,
   FileText,
   Plus,
-  Activity
+  BarChart3
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
 
 export function DashboardPage() {
   const { user, loading: userLoading, refreshUser } = useAuth();
   const { data: statistics, isLoading: statsLoading } = useEvaluationStatistics();
   const { data: works = [], isLoading: worksLoading } = useWorks();
+  const { data: evaluations = [], isLoading: evaluationsLoading } = useEvaluations();
+  const { data: penaltyTable = [], isLoading: penaltyLoading } = useQuery({
+    queryKey: ['penalty-table'],
+    queryFn: () => reportsService.getPenaltyTable(),
+  });
 
   // Verificar se precisamos recuperar o usuário
   React.useEffect(() => {
@@ -33,15 +45,89 @@ export function DashboardPage() {
     }
   }, [user, userLoading, refreshUser]);
 
-  const activeWorks = works.filter(work => work.is_active).length;
-  const totalWorks = works.length;
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
+  // Processar dados das últimas 5 avaliações de obras
+  const lastEvaluationsData = useMemo(() => {
+    // Filtrar apenas avaliações de obras e ordenar por data
+    const obraEvaluations = evaluations
+      .filter(evaluation => evaluation.type === 'obra' && evaluation.status === 'completed')
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 5);
+
+    console.log('Avaliações de obra encontradas:', obraEvaluations.length);
+    console.log('Dados das avaliações:', obraEvaluations);
+
+    // Dados de conformidade
+    const conformityData = obraEvaluations.map(evaluation => {
+      // Corrigir o filtro para usar a propriedade correta 'answer' ao invés de 'status'
+      const conforme = evaluation.answers?.filter(a => a.answer === 'sim').length || 0;
+      const naoConforme = evaluation.answers?.filter(a => a.answer === 'nao').length || 0;
+      const naoAplicavel = evaluation.answers?.filter(a => a.answer === 'na').length || 0;
+
+      const result = {
+        name: evaluation.work?.name || 'Obra',
+        conforme,
+        naoConforme,
+        naoAplicavel,
+        total: conforme + naoConforme + naoAplicavel,
+        conformePercent: ((conforme / (conforme + naoConforme + naoAplicavel)) * 100).toFixed(1)
+      };
+
+      console.log('Dados de conformidade para', result.name, result);
+      return result;
+    });
+
+    // Dados de multas - calcular baseado no peso das questões e quantidade de colaboradores
+    // Usando a mesma lógica da central de relatórios
+    const penaltyData = obraEvaluations.map(evaluation => {
+      const employeeCount = evaluation.employees_count || 100; // Padrão para 100 se não tiver
+
+      // Contar quantas não conformidades existem por peso
+      const nonConformitiesByWeight: Record<number, number> = {};
+
+      if (evaluation.answers && Array.isArray(evaluation.answers)) {
+        evaluation.answers.forEach(answer => {
+          const answerValue = answer.answer;
+          if (answerValue === 'nao' || answerValue === 'NAO' || answerValue === 'não') {
+            const weight = answer.question?.weight || 1;
+            nonConformitiesByWeight[weight] = (nonConformitiesByWeight[weight] || 0) + 1;
+          }
+        });
+      }
+
+      // Calcular valores mínimo e máximo de multa
+      let minValue = 0;
+      let maxValue = 0;
+
+      Object.entries(nonConformitiesByWeight).forEach(([weightStr, count]) => {
+        const weight = parseInt(weightStr);
+        const penaltyRow = penaltyTable.find(
+          p => p.weight === weight &&
+               p.employees_min <= employeeCount &&
+               p.employees_max >= employeeCount
+        );
+
+        if (penaltyRow) {
+          minValue += penaltyRow.min_value * count;
+          maxValue += penaltyRow.max_value * count;
+        }
+      });
+
+      const result = {
+        name: evaluation.work?.name || 'Obra',
+        minValue,
+        maxValue,
+        actualValue: evaluation.total_penalty || 0
+      };
+
+      console.log('Dados de multa para', result.name, '- Colaboradores:', employeeCount, result);
+      return result;
+    }).filter(item => item.minValue > 0 || item.maxValue > 0); // Filtrar apenas os que têm multas
+
+    console.log('Dados finais:', { conformityData, penaltyData });
+    return { conformityData, penaltyData };
+  }, [evaluations, penaltyTable]);
+
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -67,7 +153,7 @@ export function DashboardPage() {
     return 'Usuário';
   };
 
-  if (statsLoading || worksLoading || userLoading) {
+  if (statsLoading || worksLoading || userLoading || evaluationsLoading || penaltyLoading) {
     return (
       <DashboardLayout>
         <div className="space-y-6">
@@ -83,10 +169,6 @@ export function DashboardPage() {
     );
   }
 
-  const completedEvaluations = statistics?.byStatus?.find(s => s.status === 'completed')?.count || 0;
-  const draftEvaluations = statistics?.byStatus?.find(s => s.status === 'draft')?.count || 0;
-  const obraEvaluations = statistics?.byType?.find(t => t.type === 'obra')?.count || 0;
-  const alojamentoEvaluations = statistics?.byType?.find(t => t.type === 'alojamento')?.count || 0;
 
   return (
     <DashboardLayout>
@@ -132,210 +214,98 @@ export function DashboardPage() {
           <div className="absolute -right-8 top-8 h-16 w-16 rounded-full bg-[#12b0a0]/20" />
         </div>
 
-        {/* Cards de estatísticas principais - Paleta personalizada */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-[#12b0a0] to-[#1e6076] text-white rounded-3xl">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">
-                Obras Ativas
-              </CardTitle>
-              <Building2 className="h-5 w-5 opacity-80" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{activeWorks}</div>
-              <p className="text-xs opacity-80">
-                de {totalWorks} obras cadastradas
-              </p>
-              <div className="mt-3 bg-white/20 rounded-full h-2">
-                <div
-                  className="bg-white rounded-full h-2 transition-all duration-500"
-                  style={{ width: `${(activeWorks / totalWorks) * 100}%` }}
-                />
-              </div>
-            </CardContent>
-            <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
-          </Card>
 
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-[#1e6076] to-[#12b0a0] text-white rounded-3xl">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">
-                Total de Avaliações
-              </CardTitle>
-              <Activity className="h-5 w-5 opacity-80" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{statistics?.total || 0}</div>
-              <div className="flex gap-2 mt-2">
-                <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs">
-                  {completedEvaluations} finalizadas
-                </Badge>
-                <Badge variant="outline" className="border-white/30 text-white text-xs">
-                  {draftEvaluations} rascunhos
-                </Badge>
-              </div>
-            </CardContent>
-            <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
-          </Card>
-
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-[#baa673] to-[#1e6076] text-white rounded-3xl">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">
-                Multas Aplicadas
-              </CardTitle>
-              <AlertTriangle className="h-5 w-5 opacity-80" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(statistics?.totalPenalties || 0)}
-              </div>
-              <p className="text-xs opacity-80">
-                em avaliações finalizadas
-              </p>
-            </CardContent>
-            <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
-          </Card>
-
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-[#1e6076] to-[#baa673] text-white rounded-3xl">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-90">
-                Taxa de Conformidade
-              </CardTitle>
-              <TrendingUp className="h-5 w-5 opacity-80" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {completedEvaluations > 0
-                  ? Math.round((completedEvaluations / statistics?.total!) * 100)
-                  : 0}%
-              </div>
-              <p className="text-xs opacity-80">
-                de avaliações finalizadas
-              </p>
-            </CardContent>
-            <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
-          </Card>
-        </div>
-
-        {/* Cards de detalhamento - Paleta personalizada */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Gráficos das últimas 5 avaliações */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Gráfico de Conformidade */}
           <Card className="shadow-md hover:shadow-lg transition-shadow border-0 rounded-3xl">
             <CardHeader className="bg-gradient-to-r from-[#12b0a0]/10 to-[#1e6076]/10 rounded-t-3xl">
               <CardTitle className="flex items-center gap-2 text-[#1e6076]">
-                <PieChart className="h-5 w-5 text-[#12b0a0]" />
-                Distribuição por Tipo
-              </CardTitle>
-              <CardDescription>
-                Avaliações realizadas por tipo
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="space-y-6">
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <HardHat className="h-4 w-4 text-[#baa673]" />
-                      <span className="text-sm font-medium text-[#1e6076]">Obra</span>
-                    </div>
-                    <span className="text-sm font-bold text-[#baa673]">
-                      {obraEvaluations} avaliações
-                    </span>
-                  </div>
-                  <div className="bg-gray-200 rounded-full h-3">
-                    <div
-                      className="bg-gradient-to-r from-[#baa673] to-[#1e6076] rounded-full h-3 transition-all duration-700"
-                      style={{ width: `${statistics?.total && statistics?.total > 0 ? (obraEvaluations / statistics?.total) * 100 : 0}%` }}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Home className="h-4 w-4 text-[#12b0a0]" />
-                      <span className="text-sm font-medium text-[#1e6076]">Alojamento</span>
-                    </div>
-                    <span className="text-sm font-bold text-[#12b0a0]">
-                      {alojamentoEvaluations} avaliações
-                    </span>
-                  </div>
-                  <div className="bg-gray-200 rounded-full h-3">
-                    <div
-                      className="bg-gradient-to-r from-[#12b0a0] to-[#1e6076] rounded-full h-3 transition-all duration-700"
-                      style={{ width: `${statistics?.total && statistics?.total > 0 ? (alojamentoEvaluations / statistics?.total) * 100 : 0}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-md hover:shadow-lg transition-shadow border-0 rounded-3xl">
-            <CardHeader className="bg-gradient-to-r from-[#1e6076]/10 to-[#baa673]/10 rounded-t-3xl">
-              <CardTitle className="flex items-center gap-2 text-[#1e6076]">
                 <BarChart3 className="h-5 w-5 text-[#12b0a0]" />
-                Status das Avaliações
+                Conformidade das Últimas Avaliações
               </CardTitle>
               <CardDescription>
-                Distribuição por status
+                Status de conformidade das últimas 5 avaliações de obras
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-[#12b0a0]/10 rounded-3xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-[#12b0a0]" />
-                    <span className="text-sm font-medium text-[#1e6076]">Finalizadas</span>
-                  </div>
-                  <span className="text-2xl font-bold text-[#12b0a0]">{completedEvaluations}</span>
+              {lastEvaluationsData.conformityData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={lastEvaluationsData.conformityData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="name"
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="conforme" fill="#10b981" name="Conforme" />
+                    <Bar dataKey="naoConforme" fill="#ef4444" name="Não Conforme" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <p>Nenhuma avaliação de obra finalizada</p>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-[#baa673]/10 rounded-3xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-[#baa673]" />
-                    <span className="text-sm font-medium text-[#1e6076]">Em Rascunho</span>
-                  </div>
-                  <span className="text-2xl font-bold text-[#baa673]">{draftEvaluations}</span>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
+          {/* Gráfico de Multas */}
           <Card className="shadow-md hover:shadow-lg transition-shadow border-0 rounded-3xl">
-            <CardHeader className="bg-gradient-to-r from-[#baa673]/10 to-[#12b0a0]/10 rounded-t-3xl">
+            <CardHeader className="bg-gradient-to-r from-[#baa673]/10 to-[#1e6076]/10 rounded-t-3xl">
               <CardTitle className="flex items-center gap-2 text-[#1e6076]">
-                <Activity className="h-5 w-5 text-[#12b0a0]" />
-                Métricas do Sistema
+                <AlertTriangle className="h-5 w-5 text-[#baa673]" />
+                Multas Passíveis das Últimas Avaliações
               </CardTitle>
               <CardDescription>
-                Indicadores de performance e atividade
+                Valores de multas das últimas 5 avaliações de obras
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-[#12b0a0]/10 rounded-3xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-[#12b0a0]" />
-                    <span className="text-sm font-medium text-[#1e6076]">Avaliações Hoje</span>
-                  </div>
-                  <span className="text-2xl font-bold text-[#12b0a0]">
-                    0
-                  </span>
+              {lastEvaluationsData.penaltyData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={lastEvaluationsData.penaltyData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="name"
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis
+                      tickFormatter={(value) =>
+                        new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        }).format(value)
+                      }
+                    />
+                    <Tooltip
+                      formatter={(value: any) =>
+                        new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        }).format(value)
+                      }
+                    />
+                    <Legend />
+                    <Bar dataKey="minValue" name="Valor Mínimo" fill="#f59e0b" />
+                    <Bar dataKey="maxValue" name="Valor Máximo" fill="#ef4444" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <p>Nenhuma avaliação de obra finalizada</p>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-[#baa673]/10 rounded-3xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-[#baa673]" />
-                    <span className="text-sm font-medium text-[#1e6076]">Pendências</span>
-                  </div>
-                  <span className="text-2xl font-bold text-[#baa673]">{draftEvaluations}</span>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-[#1e6076]/10 rounded-3xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-[#1e6076]" />
-                    <span className="text-sm font-medium text-[#1e6076]">Taxa Eficiência</span>
-                  </div>
-                  <span className="text-2xl font-bold text-[#1e6076]">
-                    {statistics?.total && statistics?.total > 0 ? Math.round((completedEvaluations / statistics?.total) * 100) : 0}%
-                  </span>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>

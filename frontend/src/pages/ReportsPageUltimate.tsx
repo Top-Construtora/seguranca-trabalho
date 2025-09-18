@@ -76,8 +76,8 @@ function processDataForPenaltyChart(penalties: any[], evaluations: any[]) {
 
     return {
       name: `${workName} (${date})`,
-      minValue: minValue,
-      maxValue: maxValue,
+      minValue: minValue * 1.0641,
+      maxValue: maxValue * 1.0641,
     };
   }).filter(item => item.minValue > 0 || item.maxValue > 0); // Filtrar apenas os que t\u00eam multas
 }

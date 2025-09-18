@@ -1,4 +1,7 @@
 import { Evaluation, EvaluationStatus } from '@/services/evaluations.service';
+import { calculatePenaltyRange, PenaltyTableEntry } from '@/utils/penaltyCalculator';
+import { reportsService } from '@/services/reports.service';
+import { useQuery } from '@tanstack/react-query';
 import {
   Table,
   TableBody,
@@ -51,6 +54,10 @@ export function EvaluationsList({
   onGenerateReport,
   evaluationType
 }: EvaluationsListProps) {
+  const { data: penaltyTable = [] } = useQuery<PenaltyTableEntry[]>({
+    queryKey: ['penalty-table'],
+    queryFn: () => reportsService.getPenaltyTable(),
+  });
   const getStatusBadge = (status: EvaluationStatus) => {
     switch (status) {
       case EvaluationStatus.DRAFT:
@@ -78,6 +85,33 @@ export function EvaluationsList({
       style: 'currency',
       currency: 'BRL',
     }).format(value);
+  };
+
+  const formatPenaltyRange = (evaluation: Evaluation) => {
+    const { min, max } = calculatePenaltyRange(evaluation, penaltyTable);
+
+    if (min === 0 && max === 0) return '-';
+
+    const minFormatted = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(min);
+
+    const maxFormatted = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(max);
+
+    return (
+      <div className="text-xs">
+        <div className="text-gray-500">Mín: {minFormatted}</div>
+        <div className="text-gray-700 font-medium">Máx: {maxFormatted}</div>
+      </div>
+    );
   };
 
   return (
@@ -144,11 +178,23 @@ export function EvaluationsList({
                           </DropdownMenuItem>
                         </>
                       )}
-                      {evaluation.status === EvaluationStatus.COMPLETED && onGenerateReport && (
-                        <DropdownMenuItem onClick={() => onGenerateReport(evaluation)}>
-                          <FileText className="mr-2 h-4 w-4" />
-                          Gerar Relatório
-                        </DropdownMenuItem>
+                      {evaluation.status === EvaluationStatus.COMPLETED && (
+                        <>
+                          {onGenerateReport && (
+                            <DropdownMenuItem onClick={() => onGenerateReport(evaluation)}>
+                              <FileText className="mr-2 h-4 w-4" />
+                              Gerar Relatório
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => onDelete(evaluation.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -190,11 +236,11 @@ export function EvaluationsList({
 
                 <div className="pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-red-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Multa Total</span>
+                    <AlertTriangle className="h-4 w-4 text-orange-500" />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Multa Passível</span>
                   </div>
-                  <div className="font-semibold text-lg text-red-600 dark:text-red-500">
-                    {formatCurrency(evaluation.total_penalty)}
+                  <div className="text-right">
+                    {formatPenaltyRange(evaluation)}
                   </div>
                 </div>
               </div>
@@ -214,7 +260,7 @@ export function EvaluationsList({
               <TableHead className="hidden md:table-cell">Avaliador</TableHead>
               <TableHead className="w-[80px] text-center">Func.</TableHead>
               <TableHead className="w-[100px]">Status</TableHead>
-              <TableHead className="w-[120px] text-right">Multa Total</TableHead>
+              <TableHead className="w-[140px] text-right">Multa Passível</TableHead>
               <TableHead className="w-[80px] text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -249,8 +295,8 @@ export function EvaluationsList({
                   </TableCell>
                   <TableCell className="text-center text-sm">{evaluation.employees_count}</TableCell>
                   <TableCell>{getStatusBadge(evaluation.status)}</TableCell>
-                  <TableCell className="font-medium text-right text-sm">
-                    {formatCurrency(evaluation.total_penalty)}
+                  <TableCell className="text-right">
+                    {formatPenaltyRange(evaluation)}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -283,11 +329,23 @@ export function EvaluationsList({
                             </DropdownMenuItem>
                           </>
                         )}
-                        {evaluation.status === EvaluationStatus.COMPLETED && onGenerateReport && (
-                          <DropdownMenuItem onClick={() => onGenerateReport(evaluation)}>
-                            <FileText className="mr-2 h-4 w-4" />
-                            Gerar Relatório
-                          </DropdownMenuItem>
+                        {evaluation.status === EvaluationStatus.COMPLETED && (
+                          <>
+                            {onGenerateReport && (
+                              <DropdownMenuItem onClick={() => onGenerateReport(evaluation)}>
+                                <FileText className="mr-2 h-4 w-4" />
+                                Gerar Relatório
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => onDelete(evaluation.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>

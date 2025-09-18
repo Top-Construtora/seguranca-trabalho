@@ -234,18 +234,13 @@ export function ActionPlansPage() {
       <div className="space-y-6">
         {/* Header com gradiente suave */}
         <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-gray-900 dark:to-gray-800/50 rounded-2xl p-6 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-[#baa673] to-[#1e6076] rounded-xl shadow-md">
-              <Target className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 dark:text-gray-100">
-                Planos de Ação
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
-                Crie e gerencie planos de ação para corrigir não conformidades das avaliações
-              </p>
-            </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 dark:text-gray-100">
+              Planos de Ação
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
+              Crie e gerencie planos de ação para corrigir não conformidades das avaliações
+            </p>
           </div>
         </div>
 

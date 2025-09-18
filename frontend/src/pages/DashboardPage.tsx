@@ -8,6 +8,7 @@ import { reportsService } from '@/services/reports.service';
 import { useWorks } from '@/hooks/useWorks';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import {
   AlertTriangle,
   HardHat,
@@ -168,6 +169,10 @@ export function DashboardPage() {
         }
       });
 
+      // Aplicar fator de correção monetária de 1,0641
+      minValue = minValue * 1.0641;
+      maxValue = maxValue * 1.0641;
+
       // Processar nome para o gráfico de multas
       let displayName = '';
       if (evaluationType === 'obra') {
@@ -324,20 +329,20 @@ export function DashboardPage() {
           onMouseLeave={() => setIsHovering(false)}
         >
           {/* Gráfico de Conformidade */}
-          <Card className="group relative overflow-hidden border-0 rounded-2xl shadow-xl hover:shadow-2xl bg-gradient-to-br from-white to-gray-50">
+          <Card className="group relative overflow-hidden border-0 rounded-2xl shadow-xl hover:shadow-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
             {/* Gradiente decorativo sutil */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#12b0a0]/5 via-transparent to-[#1e6076]/5 opacity-50" />
 
-            <CardHeader className="relative border-b border-gray-100 bg-gradient-to-r from-[#12b0a0]/5 to-[#1e6076]/5 pb-6">
+            <CardHeader className="relative border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-[#12b0a0]/5 to-[#1e6076]/5 dark:from-[#12b0a0]/10 dark:to-[#1e6076]/10 pb-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="flex items-center gap-3 text-xl font-semibold text-[#1e6076]">
+                  <CardTitle className="flex items-center gap-3 text-xl font-semibold text-[#1e6076] dark:text-gray-100">
                     <div className="p-2.5 bg-gradient-to-br from-[#12b0a0] to-[#1e6076] rounded-xl shadow-md">
                       <BarChart3 className="h-5 w-5 text-white" />
                     </div>
                     <span className="tracking-tight flex items-center gap-2">
                       Taxa de Conformidade
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#12b0a0]/10 to-[#1e6076]/10 rounded-full text-sm font-medium transition-all duration-500">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#12b0a0]/10 to-[#1e6076]/10 dark:from-[#12b0a0]/20 dark:to-[#1e6076]/20 rounded-full text-sm font-medium transition-all duration-500 text-gray-700 dark:text-gray-300">
                         {evaluationType === 'obra' ? (
                           <span className="inline-flex items-center gap-1.5">
                             <HardHat className="h-4 w-4 text-[#12b0a0]" />
@@ -352,45 +357,51 @@ export function DashboardPage() {
                       </span>
                     </span>
                   </CardTitle>
-                  <CardDescription className="mt-2 text-gray-600">
+                  <CardDescription className="mt-2 text-gray-600 dark:text-gray-400">
                     Status de conformidade das últimas 5 avaliações de {evaluationType === 'obra' ? 'obras' : 'alojamentos'}
                   </CardDescription>
                 </div>
 
-                <div className="flex gap-1">
-                  <Button
-                    variant={conformityViewMode === 'quantity' ? 'default' : 'outline'}
-                    size="sm"
+                <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                  <button
                     onClick={() => setConformityViewMode('quantity')}
-                    className="h-8 px-2"
-                    title="Quantidade"
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200",
+                      conformityViewMode === 'quantity'
+                        ? "bg-white dark:bg-gray-800 text-[#12b0a0] shadow-sm"
+                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                    )}
+                    title="Visualizar em quantidade"
                   >
-                    <Hash className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={conformityViewMode === 'percentage' ? 'default' : 'outline'}
-                    size="sm"
+                    <Hash className="h-3.5 w-3.5" />
+                  </button>
+                  <button
                     onClick={() => setConformityViewMode('percentage')}
-                    className="h-8 px-2"
-                    title="Porcentagem"
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200",
+                      conformityViewMode === 'percentage'
+                        ? "bg-white dark:bg-gray-800 text-[#12b0a0] shadow-sm"
+                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                    )}
+                    title="Visualizar em porcentagem"
                   >
-                    <Percent className="h-4 w-4" />
-                  </Button>
+                    <Percent className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="relative pt-8 pb-6">
+            <CardContent className="relative pt-8 pb-6 bg-white dark:bg-gray-800">
               <div key={evaluationType}>
                 {lastEvaluationsData.conformityData.length > 0 ? (
                   <>
                     <div className="absolute top-2 right-4 z-10 flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#12b0a0' }}></div>
-                      <span className="text-sm text-gray-600">Conforme</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Conforme</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
-                      <span className="text-sm text-gray-600">Não Conforme</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Não Conforme</span>
                     </div>
                   </div>
                   <ResponsiveContainer width="100%" height={360}>
@@ -457,8 +468,8 @@ export function DashboardPage() {
                 </ResponsiveContainer>
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center h-[360px] text-gray-400">
-                  <div className="p-4 bg-gray-100 rounded-full mb-4">
+                <div className="flex flex-col items-center justify-center h-[360px] text-gray-400 dark:text-gray-500">
+                  <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
                     <BarChart3 className="h-8 w-8" />
                   </div>
                   <p className="text-base font-medium">
@@ -472,20 +483,20 @@ export function DashboardPage() {
           </Card>
 
           {/* Gráfico de Multas */}
-          <Card className="group relative overflow-hidden border-0 rounded-2xl shadow-xl hover:shadow-2xl bg-gradient-to-br from-white to-gray-50">
+          <Card className="group relative overflow-hidden border-0 rounded-2xl shadow-xl hover:shadow-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
             {/* Gradiente decorativo sutil */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#baa673]/5 via-transparent to-[#1e6076]/5 opacity-50" />
 
-            <CardHeader className="relative border-b border-gray-100 bg-gradient-to-r from-[#baa673]/5 to-[#1e6076]/5 pb-6">
+            <CardHeader className="relative border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-[#baa673]/5 to-[#1e6076]/5 dark:from-[#baa673]/10 dark:to-[#1e6076]/10 pb-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <CardTitle className="flex items-center gap-3 text-xl font-semibold text-[#1e6076]">
+                  <CardTitle className="flex items-center gap-3 text-xl font-semibold text-[#1e6076] dark:text-gray-100">
                     <div className="p-2.5 bg-gradient-to-br from-[#baa673] to-[#1e6076] rounded-xl shadow-md">
                       <AlertTriangle className="h-5 w-5 text-white" />
                     </div>
                     <span className="tracking-tight flex items-center gap-2">
                       Multas Passíveis
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#baa673]/10 to-[#1e6076]/10 rounded-full text-sm font-medium transition-all duration-500">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#baa673]/10 to-[#1e6076]/10 dark:from-[#baa673]/20 dark:to-[#1e6076]/20 rounded-full text-sm font-medium transition-all duration-500 text-gray-700 dark:text-gray-300">
                         {evaluationType === 'obra' ? (
                           <span className="inline-flex items-center gap-1.5">
                             <HardHat className="h-4 w-4 text-[#baa673]" />
@@ -500,24 +511,24 @@ export function DashboardPage() {
                       </span>
                     </span>
                   </CardTitle>
-                  <CardDescription className="mt-2 text-gray-600">
+                  <CardDescription className="mt-2 text-gray-600 dark:text-gray-400">
                     Valores de multas das últimas 5 avaliações de {evaluationType === 'obra' ? 'obras' : 'alojamentos'}
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="relative pt-8 pb-6">
+            <CardContent className="relative pt-8 pb-6 bg-white dark:bg-gray-800">
               <div key={`penalty-${evaluationType}`}>
                 {lastEvaluationsData.penaltyData.length > 0 ? (
                 <>
                   <div className="absolute top-2 right-4 z-10 flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
-                      <span className="text-sm text-gray-600">Valor Mínimo</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Valor Mínimo</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#baa673' }}></div>
-                      <span className="text-sm text-gray-600">Valor Máximo</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Valor Máximo</span>
                     </div>
                   </div>
                   <ResponsiveContainer width="100%" height={360}>
@@ -593,8 +604,8 @@ export function DashboardPage() {
                 </ResponsiveContainer>
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center h-[360px] text-gray-400">
-                  <div className="p-4 bg-gray-100 rounded-full mb-4">
+                <div className="flex flex-col items-center justify-center h-[360px] text-gray-400 dark:text-gray-500">
+                  <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
                     <AlertTriangle className="h-8 w-8" />
                   </div>
                   <p className="text-base font-medium">

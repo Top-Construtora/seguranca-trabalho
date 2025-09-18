@@ -222,16 +222,23 @@ export class EvaluationsService {
     }
 
     // Calcular penalidade total
-    const totalPenalty = await this.calculatePenalty(evaluation);
+    const penalty = await this.calculatePenalty(evaluation);
 
     evaluation.status = EvaluationStatus.COMPLETED;
-    evaluation.total_penalty = totalPenalty;
+    evaluation.total_penalty = penalty;
 
     return this.evaluationRepository.save(evaluation);
   }
 
   private async calculatePenalty(evaluation: Evaluation): Promise<number> {
+    const penalties = await this.calculatePenalties(evaluation);
+    return penalties.total;
+  }
+
+  private async calculatePenalties(evaluation: Evaluation): Promise<{ total: number; min: number; max: number }> {
     let totalPenalty = 0;
+    let minPenalty = 0;
+    let maxPenalty = 0;
 
     // Agrupar respostas "NÃO" por peso
     const negativeAnswers = evaluation.answers.filter(
@@ -239,7 +246,7 @@ export class EvaluationsService {
     );
 
     const weightGroups = new Map<number, number>();
-    
+
     for (const answer of negativeAnswers) {
       const weight = answer.question.weight;
       weightGroups.set(weight, (weightGroups.get(weight) || 0) + 1);
@@ -255,13 +262,19 @@ export class EvaluationsService {
         .getOne();
 
       if (penalty) {
-        // Usar valor médio entre min e max multiplicado pela quantidade
+        // Calcular valores mínimo, médio e máximo
+        minPenalty += Number(penalty.min_value) * count;
+        maxPenalty += Number(penalty.max_value) * count;
         const avgPenalty = (Number(penalty.min_value) + Number(penalty.max_value)) / 2;
         totalPenalty += avgPenalty * count;
       }
     }
 
-    return totalPenalty;
+    return {
+      total: totalPenalty,
+      min: minPenalty,
+      max: maxPenalty
+    };
   }
 
   async remove(id: string, userId: string, userRole: UserRole): Promise<void> {

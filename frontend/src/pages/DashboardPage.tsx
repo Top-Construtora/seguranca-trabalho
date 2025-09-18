@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEvaluationStatistics, useEvaluations } from '@/hooks/useEvaluations';
@@ -13,9 +13,12 @@ import {
   Home,
   FileText,
   Plus,
-  BarChart3
+  BarChart3,
+  Hash,
+  Percent
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import {
   BarChart,
   Bar,
@@ -38,6 +41,13 @@ export function DashboardPage() {
     queryFn: () => reportsService.getPenaltyTable(),
   });
 
+  // Estado para controlar modo de visualização do gráfico de conformidade
+  const [conformityViewMode, setConformityViewMode] = useState<'quantity' | 'percentage'>('quantity');
+  // Estado para controlar tipo de avaliação no gráfico
+  const [evaluationType, setEvaluationType] = useState<'obra' | 'alojamento'>('obra');
+  // Estado para controlar se o mouse está sobre os gráficos
+  const [isHovering, setIsHovering] = useState(false);
+
   // Verificar se precisamos recuperar o usuário
   React.useEffect(() => {
     if (!user && !userLoading) {
@@ -45,37 +55,74 @@ export function DashboardPage() {
     }
   }, [user, userLoading, refreshUser]);
 
+  // Alternar automaticamente entre obra e alojamento a cada 10 segundos
+  React.useEffect(() => {
+    // Só alterna se não estiver com o mouse em cima
+    if (!isHovering) {
+      const interval = setInterval(() => {
+        setEvaluationType(prev => prev === 'obra' ? 'alojamento' : 'obra');
+      }, 10000); // Alterna a cada 10 segundos
 
-  // Processar dados das últimas 5 avaliações de obras
+      return () => clearInterval(interval);
+    }
+  }, [isHovering]);
+
+
+  // Processar dados das últimas 5 avaliações
   const lastEvaluationsData = useMemo(() => {
-    // Filtrar apenas avaliações de obras e ordenar por data
-    const obraEvaluations = evaluations
-      .filter(evaluation => evaluation.type === 'obra' && evaluation.status === 'completed')
+    // Filtrar avaliações baseado no tipo selecionado e ordenar por data
+    const filteredEvaluations = evaluations
+      .filter(evaluation => evaluation.type === evaluationType && evaluation.status === 'completed')
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 5);
 
-    console.log('Avaliações de obra encontradas:', obraEvaluations.length);
-    console.log('Dados das avaliações:', obraEvaluations);
+    console.log(`Avaliações de ${evaluationType} encontradas:`, filteredEvaluations.length);
+    console.log('Dados das avaliações:', filteredEvaluations);
 
     // Dados de conformidade
-    const conformityData = obraEvaluations.map(evaluation => {
+    const conformityData = filteredEvaluations.map(evaluation => {
       // Corrigir o filtro para usar a propriedade correta 'answer' ao invés de 'status'
       const conforme = evaluation.answers?.filter(a => a.answer === 'sim').length || 0;
       const naoConforme = evaluation.answers?.filter(a => a.answer === 'nao').length || 0;
       const naoAplicavel = evaluation.answers?.filter(a => a.answer === 'na').length || 0;
 
-      // Processar nome da obra - cortar antes do "-"
-      let workName = evaluation.work?.name || 'Obra';
-      if (workName.includes('-')) {
-        workName = workName.split('-')[0].trim();
+      // Processar nome do local
+      let locationName = '';
+      if (evaluationType === 'obra') {
+        // Para obras, cortar antes do "-"
+        locationName = evaluation.work?.name || 'Obra';
+        if (locationName.includes('-')) {
+          locationName = locationName.split('-')[0].trim();
+        }
+      } else {
+        // Para alojamentos, mostrar "Obra - Alojamento"
+        let workName = evaluation.work?.name || 'Obra';
+        let accommodationName = evaluation.accommodation?.name || 'Alojamento';
+
+        // Cortar nome da obra antes do "-" se houver
+        if (workName.includes('-')) {
+          workName = workName.split('-')[0].trim();
+        }
+
+        locationName = `${workName} - ${accommodationName}`;
+      }
+
+      // Calcular valores baseados no modo de visualização
+      const total = conforme + naoConforme; // Não inclui 'não aplicável' no total
+      let conformeValue = conforme;
+      let naoConformeValue = naoConforme;
+
+      if (conformityViewMode === 'percentage' && total > 0) {
+        conformeValue = parseFloat(((conforme / total) * 100).toFixed(1));
+        naoConformeValue = parseFloat(((naoConforme / total) * 100).toFixed(1));
       }
 
       const result = {
-        name: workName,
-        conforme,
-        naoConforme,
+        name: locationName,
+        conforme: conformeValue,
+        naoConforme: naoConformeValue,
         naoAplicavel,
-        total: conforme + naoConforme + naoAplicavel,
+        total,
         conformePercent: ((conforme / (conforme + naoConforme + naoAplicavel)) * 100).toFixed(1)
       };
 
@@ -85,7 +132,7 @@ export function DashboardPage() {
 
     // Dados de multas - calcular baseado no peso das questões e quantidade de colaboradores
     // Usando a mesma lógica da central de relatórios
-    const penaltyData = obraEvaluations.map(evaluation => {
+    const penaltyData = filteredEvaluations.map(evaluation => {
       const employeeCount = evaluation.employees_count || 100; // Padrão para 100 se não tiver
 
       // Contar quantas não conformidades existem por peso
@@ -119,14 +166,29 @@ export function DashboardPage() {
         }
       });
 
-      // Processar nome da obra - cortar antes do "-"
-      let workName = evaluation.work?.name || 'Obra';
-      if (workName.includes('-')) {
-        workName = workName.split('-')[0].trim();
+      // Processar nome para o gráfico de multas
+      let displayName = '';
+      if (evaluationType === 'obra') {
+        // Para obras, cortar antes do "-"
+        displayName = evaluation.work?.name || 'Obra';
+        if (displayName.includes('-')) {
+          displayName = displayName.split('-')[0].trim();
+        }
+      } else {
+        // Para alojamentos, mostrar "Obra - Alojamento"
+        let workName = evaluation.work?.name || 'Obra';
+        let accommodationName = evaluation.accommodation?.name || 'Alojamento';
+
+        // Cortar nome da obra antes do "-" se houver
+        if (workName.includes('-')) {
+          workName = workName.split('-')[0].trim();
+        }
+
+        displayName = `${workName} - ${accommodationName}`;
       }
 
       const result = {
-        name: workName,
+        name: displayName,
         minValue,
         maxValue,
         actualValue: evaluation.total_penalty || 0
@@ -138,7 +200,7 @@ export function DashboardPage() {
 
     console.log('Dados finais:', { conformityData, penaltyData });
     return { conformityData, penaltyData };
-  }, [evaluations, penaltyTable]);
+  }, [evaluations, penaltyTable, conformityViewMode, evaluationType]);
 
 
   const getGreeting = () => {
@@ -254,31 +316,83 @@ export function DashboardPage() {
 
 
         {/* Gráficos das últimas 5 avaliações */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div
+          className="grid gap-6 lg:grid-cols-2"
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+        >
           {/* Gráfico de Conformidade */}
-          <Card className="group relative overflow-hidden border-0 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white to-gray-50">
+          <Card className="group relative overflow-hidden border-0 rounded-2xl shadow-xl hover:shadow-2xl bg-gradient-to-br from-white to-gray-50">
             {/* Gradiente decorativo sutil */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#12b0a0]/5 via-transparent to-[#1e6076]/5 opacity-50" />
 
             <CardHeader className="relative border-b border-gray-100 bg-gradient-to-r from-[#12b0a0]/5 to-[#1e6076]/5 pb-6">
               <div className="flex items-start justify-between">
-                <div>
+                <div className="flex-1">
                   <CardTitle className="flex items-center gap-3 text-xl font-semibold text-[#1e6076]">
                     <div className="p-2.5 bg-gradient-to-br from-[#12b0a0] to-[#1e6076] rounded-xl shadow-md">
                       <BarChart3 className="h-5 w-5 text-white" />
                     </div>
-                    <span className="tracking-tight">Conformidade das Últimas Avaliações</span>
+                    <span className="tracking-tight flex items-center gap-2">
+                      Taxa de Conformidade
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#12b0a0]/10 to-[#1e6076]/10 rounded-full text-sm font-medium transition-all duration-500">
+                        {evaluationType === 'obra' ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <HardHat className="h-4 w-4 text-[#12b0a0]" />
+                            <span>Obras</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Home className="h-4 w-4 text-[#12b0a0]" />
+                            <span>Alojamentos</span>
+                          </span>
+                        )}
+                      </span>
+                    </span>
                   </CardTitle>
                   <CardDescription className="mt-2 text-gray-600">
-                    Status de conformidade das últimas 5 avaliações de obras
+                    Status de conformidade das últimas 5 avaliações de {evaluationType === 'obra' ? 'obras' : 'alojamentos'}
                   </CardDescription>
+                </div>
+
+                <div className="flex gap-1">
+                  <Button
+                    variant={conformityViewMode === 'quantity' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setConformityViewMode('quantity')}
+                    className="h-8 px-2"
+                    title="Quantidade"
+                  >
+                    <Hash className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={conformityViewMode === 'percentage' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setConformityViewMode('percentage')}
+                    className="h-8 px-2"
+                    title="Porcentagem"
+                  >
+                    <Percent className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="relative pt-8 pb-6">
-              {lastEvaluationsData.conformityData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={320}>
-                  <BarChart data={lastEvaluationsData.conformityData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+              <div key={evaluationType}>
+                {lastEvaluationsData.conformityData.length > 0 ? (
+                  <>
+                    <div className="absolute top-2 right-4 z-10 flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#12b0a0' }}></div>
+                      <span className="text-sm text-gray-600">Conforme</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
+                      <span className="text-sm text-gray-600">Não Conforme</span>
+                    </div>
+                  </div>
+                  <ResponsiveContainer width="100%" height={360}>
+                    <BarChart data={lastEvaluationsData.conformityData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
                     <defs>
                       <linearGradient id="conformeGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#12b0a0" stopOpacity={0.9} />
@@ -301,6 +415,8 @@ export function DashboardPage() {
                     <YAxis
                       tick={{ fontSize: 11, fill: '#6b7280' }}
                       axisLine={{ stroke: '#e5e7eb' }}
+                      domain={conformityViewMode === 'percentage' ? [0, 100] : undefined}
+                      tickFormatter={conformityViewMode === 'percentage' ? (value) => `${value}%` : undefined}
                     />
                     <Tooltip
                       contentStyle={{
@@ -310,10 +426,10 @@ export function DashboardPage() {
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                       }}
                       labelStyle={{ color: '#1e6076', fontWeight: 600 }}
-                    />
-                    <Legend
-                      wrapperStyle={{ paddingTop: '20px' }}
-                      iconType="circle"
+                      formatter={(value: any) => {
+                        const formattedValue = conformityViewMode === 'percentage' ? `${value}%` : value;
+                        return formattedValue;
+                      }}
                     />
                     <Bar
                       dataKey="conforme"
@@ -329,20 +445,24 @@ export function DashboardPage() {
                     />
                   </BarChart>
                 </ResponsiveContainer>
+                </>
               ) : (
-                <div className="flex flex-col items-center justify-center h-[320px] text-gray-400">
+                <div className="flex flex-col items-center justify-center h-[360px] text-gray-400">
                   <div className="p-4 bg-gray-100 rounded-full mb-4">
                     <BarChart3 className="h-8 w-8" />
                   </div>
-                  <p className="text-base font-medium">Nenhuma avaliação de obra finalizada</p>
+                  <p className="text-base font-medium">
+                    Nenhuma avaliação de {evaluationType === 'obra' ? 'obra' : 'alojamento'} finalizada
+                  </p>
                   <p className="text-sm mt-1">Os dados aparecerão aqui após as primeiras avaliações</p>
                 </div>
               )}
+              </div>
             </CardContent>
           </Card>
 
           {/* Gráfico de Multas */}
-          <Card className="group relative overflow-hidden border-0 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white to-gray-50">
+          <Card className="group relative overflow-hidden border-0 rounded-2xl shadow-xl hover:shadow-2xl bg-gradient-to-br from-white to-gray-50">
             {/* Gradiente decorativo sutil */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#baa673]/5 via-transparent to-[#1e6076]/5 opacity-50" />
 
@@ -353,18 +473,45 @@ export function DashboardPage() {
                     <div className="p-2.5 bg-gradient-to-br from-[#baa673] to-[#1e6076] rounded-xl shadow-md">
                       <AlertTriangle className="h-5 w-5 text-white" />
                     </div>
-                    <span className="tracking-tight">Multas Passíveis das Últimas Avaliações</span>
+                    <span className="tracking-tight flex items-center gap-2">
+                      Multas Passíveis
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#baa673]/10 to-[#1e6076]/10 rounded-full text-sm font-medium transition-all duration-500">
+                        {evaluationType === 'obra' ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <HardHat className="h-4 w-4 text-[#baa673]" />
+                            <span>Obras</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Home className="h-4 w-4 text-[#baa673]" />
+                            <span>Alojamentos</span>
+                          </span>
+                        )}
+                      </span>
+                    </span>
                   </CardTitle>
                   <CardDescription className="mt-2 text-gray-600">
-                    Valores de multas das últimas 5 avaliações de obras
+                    Valores de multas das últimas 5 avaliações de {evaluationType === 'obra' ? 'obras' : 'alojamentos'}
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="relative pt-8 pb-6">
-              {lastEvaluationsData.penaltyData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={320}>
-                  <BarChart data={lastEvaluationsData.penaltyData} margin={{ top: 20, right: 30, left: 50, bottom: 80 }}>
+              <div key={`penalty-${evaluationType}`}>
+                {lastEvaluationsData.penaltyData.length > 0 ? (
+                <>
+                  <div className="absolute top-2 right-4 z-10 flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
+                      <span className="text-sm text-gray-600">Valor Mínimo</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#baa673' }}></div>
+                      <span className="text-sm text-gray-600">Valor Máximo</span>
+                    </div>
+                  </div>
+                  <ResponsiveContainer width="100%" height={360}>
+                    <BarChart data={lastEvaluationsData.penaltyData} margin={{ top: 20, right: 30, left: 50, bottom: 80 }}>
                     <defs>
                       <linearGradient id="minGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.9} />
@@ -412,10 +559,6 @@ export function DashboardPage() {
                         }).format(value)
                       }
                     />
-                    <Legend
-                      wrapperStyle={{ paddingTop: '20px' }}
-                      iconType="circle"
-                    />
                     <Bar
                       dataKey="minValue"
                       name="Valor Mínimo"
@@ -430,15 +573,19 @@ export function DashboardPage() {
                     />
                   </BarChart>
                 </ResponsiveContainer>
+                </>
               ) : (
-                <div className="flex flex-col items-center justify-center h-[320px] text-gray-400">
+                <div className="flex flex-col items-center justify-center h-[360px] text-gray-400">
                   <div className="p-4 bg-gray-100 rounded-full mb-4">
                     <AlertTriangle className="h-8 w-8" />
                   </div>
-                  <p className="text-base font-medium">Nenhuma avaliação de obra finalizada</p>
+                  <p className="text-base font-medium">
+                    Nenhuma avaliação de {evaluationType === 'obra' ? 'obra' : 'alojamento'} finalizada
+                  </p>
                   <p className="text-sm mt-1">Os dados aparecerão aqui após as primeiras avaliações</p>
                 </div>
               )}
+              </div>
             </CardContent>
           </Card>
         </div>

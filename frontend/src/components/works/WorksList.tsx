@@ -237,9 +237,9 @@ export function WorksList({ works, onEdit, onToggleActive, onDelete }: WorksList
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent className="w-[95vw] max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base sm:text-lg">Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription className="text-sm sm:text-base">
-              Tem certeza que deseja excluir esta obra? Esta ação não pode ser desfeita.
+            <AlertDialogTitle className="text-lg font-semibold">Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-gray-600 dark:text-gray-400">
+              Tem certeza que deseja excluir esta obra? Esta ação não pode ser desfeita e todas as avaliações relacionadas serão removidas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
@@ -251,7 +251,7 @@ export function WorksList({ works, onEdit, onToggleActive, onDelete }: WorksList
                   setDeleteId(null);
                 }
               }}
-              className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="w-full sm:w-auto bg-red-600 text-white hover:bg-red-700 transition-colors"
             >
               Excluir
             </AlertDialogAction>

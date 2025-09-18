@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEvaluationStatistics, useEvaluations } from '@/hooks/useEvaluations';
 import { useQuery } from '@tanstack/react-query';
@@ -33,6 +34,7 @@ import {
 
 export function DashboardPage() {
   const { user, loading: userLoading, refreshUser } = useAuth();
+  const { theme } = useTheme();
   const { data: statistics, isLoading: statsLoading } = useEvaluationStatistics();
   const { data: works = [], isLoading: worksLoading } = useWorks();
   const { data: evaluations = [], isLoading: evaluationsLoading } = useEvaluations();
@@ -403,29 +405,37 @@ export function DashboardPage() {
                         <stop offset="100%" stopColor="#ef4444" stopOpacity={0.6} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} vertical={false} />
                     <XAxis
                       dataKey="name"
                       angle={-45}
                       textAnchor="end"
                       height={80}
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
-                      axisLine={{ stroke: '#e5e7eb' }}
+                      tick={{ fontSize: 11, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+                      axisLine={{ stroke: theme === 'dark' ? '#4b5563' : '#e5e7eb' }}
+                      stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
                     />
                     <YAxis
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
-                      axisLine={{ stroke: '#e5e7eb' }}
+                      tick={{ fontSize: 11, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+                      axisLine={{ stroke: theme === 'dark' ? '#4b5563' : '#e5e7eb' }}
+                      stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
                       domain={conformityViewMode === 'percentage' ? [0, 100] : undefined}
                       tickFormatter={conformityViewMode === 'percentage' ? (value) => `${value}%` : undefined}
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                        border: '1px solid #e5e7eb',
+                        backgroundColor: theme === 'dark' ? 'rgba(31, 41, 55, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+                        border: theme === 'dark' ? '1px solid #4b5563' : '1px solid #e5e7eb',
                         borderRadius: '12px',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                       }}
-                      labelStyle={{ color: '#1e6076', fontWeight: 600 }}
+                      labelStyle={{
+                        color: theme === 'dark' ? '#9ca3af' : '#1e6076',
+                        fontWeight: 600
+                      }}
+                      itemStyle={{
+                        color: theme === 'dark' ? '#d1d5db' : '#374151'
+                      }}
                       formatter={(value: any) => {
                         const formattedValue = conformityViewMode === 'percentage' ? `${value}%` : value;
                         return formattedValue;
@@ -522,18 +532,20 @@ export function DashboardPage() {
                         <stop offset="100%" stopColor="#baa673" stopOpacity={0.6} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} vertical={false} />
                     <XAxis
                       dataKey="name"
                       angle={-45}
                       textAnchor="end"
                       height={80}
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
-                      axisLine={{ stroke: '#e5e7eb' }}
+                      tick={{ fontSize: 11, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+                      axisLine={{ stroke: theme === 'dark' ? '#4b5563' : '#e5e7eb' }}
+                      stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
                     />
                     <YAxis
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
-                      axisLine={{ stroke: '#e5e7eb' }}
+                      tick={{ fontSize: 11, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+                      axisLine={{ stroke: theme === 'dark' ? '#4b5563' : '#e5e7eb' }}
+                      stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
                       tickFormatter={(value) =>
                         new Intl.NumberFormat('pt-BR', {
                           notation: 'compact',
@@ -546,12 +558,18 @@ export function DashboardPage() {
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                        border: '1px solid #e5e7eb',
+                        backgroundColor: theme === 'dark' ? 'rgba(31, 41, 55, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+                        border: theme === 'dark' ? '1px solid #4b5563' : '1px solid #e5e7eb',
                         borderRadius: '12px',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                       }}
-                      labelStyle={{ color: '#1e6076', fontWeight: 600 }}
+                      labelStyle={{
+                        color: theme === 'dark' ? '#9ca3af' : '#1e6076',
+                        fontWeight: 600
+                      }}
+                      itemStyle={{
+                        color: theme === 'dark' ? '#d1d5db' : '#374151'
+                      }}
                       formatter={(value: any) =>
                         new Intl.NumberFormat('pt-BR', {
                           style: 'currency',

@@ -52,18 +52,22 @@ export function ReportFilters({
   };
 
   return (
-    <Card className="shadow-sm">
+    <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader>
+        <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <Filter className="h-5 w-5" />
-              <CardTitle>Filtros</CardTitle>
-              {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {activeFiltersCount} ativos
-                </Badge>
-              )}
+            <CollapsibleTrigger className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+              <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                <Filter className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">Filtros de Relatório</CardTitle>
+                {activeFiltersCount > 0 && (
+                  <Badge className="mt-1 bg-[#12b0a0]/10 text-[#12b0a0] border-[#12b0a0]/20">
+                    {activeFiltersCount} filtro{activeFiltersCount > 1 ? 's' : ''} ativo{activeFiltersCount > 1 ? 's' : ''}
+                  </Badge>
+                )}
+              </div>
             </CollapsibleTrigger>
             <div className="flex gap-2">
               {activeFiltersCount > 0 && (
@@ -71,10 +75,10 @@ export function ReportFilters({
                   variant="ghost"
                   size="sm"
                   onClick={onResetFilters}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <X className="h-4 w-4 mr-1" />
-                  Limpar
+                  Limpar Filtros
                 </Button>
               )}
             </div>
@@ -85,9 +89,9 @@ export function ReportFilters({
             {/* Tabs de Seleção de Tipo */}
             {reportType && onReportTypeChange && (
               <Tabs value={reportType} onValueChange={onReportTypeChange}>
-                <TabsList className="grid w-full grid-cols-2 max-w-xs">
-                  <TabsTrigger value="obra">Obras</TabsTrigger>
-                  <TabsTrigger value="alojamento">Alojamentos</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 max-w-xs bg-gray-100 dark:bg-gray-700">
+                  <TabsTrigger value="obra" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600">Obras</TabsTrigger>
+                  <TabsTrigger value="alojamento" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600">Alojamentos</TabsTrigger>
                 </TabsList>
               </Tabs>
             )}

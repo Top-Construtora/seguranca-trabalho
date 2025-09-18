@@ -17,6 +17,12 @@ import {
 import {
   Download,
   RefreshCw,
+  FileText,
+  TrendingUp,
+  BarChart3,
+  FileSpreadsheet,
+  FileJson,
+  Filter
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -515,37 +521,36 @@ export function ReportsPageUltimate() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header with Tabs */}
-        <div className="space-y-4">
+        {/* Header melhorado com gradiente */}
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-gray-900 dark:to-gray-800/50 rounded-2xl p-6 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
-                Central de Relatórios Avançada
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-1">
+                Central de Relatórios
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                Análise completa com insights, comparações e exportações avançadas
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                Análise completa de dados com gráficos, insights e exportações avançadas
               </p>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Button
-                variant="outline"
-                size="sm"
                 onClick={handleRefresh}
                 disabled={loading}
+                className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 shadow-sm transition-all duration-200"
+                size="sm"
               >
-                <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                 Atualizar
               </Button>
 
               <div className="relative">
                 <Button
-                  variant="outline"
-                  size="sm"
                   onClick={() => {}}
-                  className="pr-8"
+                  className="pr-10 bg-gradient-to-r from-[#1e6076] to-[#12b0a0] hover:from-[#1e6076]/90 hover:to-[#12b0a0]/90 text-white shadow-md transition-all duration-200 hover:shadow-lg"
+                  size="sm"
                 >
-                  <Download className="h-4 w-4 mr-1" />
+                  <Download className="h-4 w-4 mr-2" />
                   Exportar
                 </Button>
                 <select

@@ -22,7 +22,14 @@ import {
   Pencil,
   CheckCircle,
   Trash2,
-  FileText
+  FileText,
+  Calendar,
+  Users,
+  Building2,
+  Home,
+  AlertTriangle,
+  User,
+  ClipboardCheck
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -47,9 +54,19 @@ export function EvaluationsList({
   const getStatusBadge = (status: EvaluationStatus) => {
     switch (status) {
       case EvaluationStatus.DRAFT:
-        return <Badge variant="secondary">Rascunho</Badge>;
+        return (
+          <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800">
+            <Pencil className="h-3 w-3 mr-1" />
+            Rascunho
+          </Badge>
+        );
       case EvaluationStatus.COMPLETED:
-        return <Badge variant="default">Finalizada</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Finalizada
+          </Badge>
+        );
       default:
         return null;
     }
@@ -65,25 +82,38 @@ export function EvaluationsList({
 
   return (
     <>
-      {/* Mobile Cards View */}
-      <div className="block sm:hidden space-y-4">
+      {/* Mobile and Tablet Cards View */}
+      <div className="block lg:hidden space-y-4">
         {evaluations.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
-            Nenhuma avaliação encontrada
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+            <ClipboardCheck className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Nenhuma avaliação encontrada</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Clique em "Nova Avaliação" para começar</p>
           </div>
         ) : (
           evaluations.map((evaluation) => (
-            <div key={evaluation.id} className="bg-card border rounded-lg p-4 space-y-3">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1 flex-1">
-                  <div className="text-sm text-muted-foreground">
-                    {format(new Date(evaluation.date), 'dd/MM/yyyy', { locale: ptBR })}
+            <div key={evaluation.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200">
+              <div className="p-5">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        {format(new Date(evaluation.date), 'dd/MM/yyyy', { locale: ptBR })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Building2 className="h-4 w-4 text-gray-400" />
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Código: {evaluation.work?.number}
+                      </span>
+                    </div>
+                    <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">
+                      {evaluation.work?.name}
+                    </h3>
                   </div>
-                  <div className="font-medium text-base">{evaluation.work?.number}</div>
-                  <div className="text-sm text-muted-foreground truncate">{evaluation.work?.name}</div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(evaluation.status)}
+                  <div className="flex flex-col items-end gap-2">
+                    {getStatusBadge(evaluation.status)}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="h-8 w-8 p-0">
@@ -122,31 +152,50 @@ export function EvaluationsList({
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
+                  </div>
                 </div>
-              </div>
 
-              {evaluationType === 'alojamento' && evaluation.accommodation && (
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Alojamento: </span>
-                  <span className="font-medium">{evaluation.accommodation.name}</span>
-                </div>
-              )}
+                {evaluationType === 'alojamento' && evaluation.accommodation && (
+                  <div className="flex items-start gap-2 mb-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                    <Home className="h-4 w-4 text-gray-400 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Alojamento</p>
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                        {evaluation.accommodation.name}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
-              <div className="grid grid-cols-2 gap-4 pt-2 border-t text-sm">
-                <div>
-                  <span className="text-muted-foreground">Avaliador:</span>
-                  <div className="font-medium truncate">{evaluation.user?.name}</div>
+                <div className="grid grid-cols-2 gap-4 py-3 border-t border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-gray-400" />
+                    <div>
+                      <p className="text-xs text-gray-500">Avaliador</p>
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+                        {evaluation.user?.name}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-gray-400" />
+                    <div>
+                      <p className="text-xs text-gray-500">Funcionários</p>
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                        {evaluation.employees_count}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-muted-foreground">Funcionários:</span>
-                  <div className="font-medium">{evaluation.employees_count}</div>
-                </div>
-              </div>
 
-              <div className="pt-2 border-t">
-                <div className="text-sm text-muted-foreground">Multa Total:</div>
-                <div className="font-semibold text-lg text-red-600">
-                  {formatCurrency(evaluation.total_penalty)}
+                <div className="pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-red-500" />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Multa Total</span>
+                  </div>
+                  <div className="font-semibold text-lg text-red-600 dark:text-red-500">
+                    {formatCurrency(evaluation.total_penalty)}
+                  </div>
                 </div>
               </div>
             </div>

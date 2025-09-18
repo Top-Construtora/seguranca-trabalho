@@ -79,13 +79,6 @@ export function EvaluationsList({
     }
   };
 
-  const formatCurrency = (value?: number) => {
-    if (!value) return '-';
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
 
   const formatPenaltyRange = (evaluation: Evaluation) => {
     const { min, max } = calculatePenaltyRange(evaluation, penaltyTable);

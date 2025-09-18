@@ -20,7 +20,6 @@ import {
   Percent
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
 import {
   BarChart,
   Bar,
@@ -28,16 +27,14 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Cell
+  ResponsiveContainer
 } from 'recharts';
 
 export function DashboardPage() {
   const { user, loading: userLoading, refreshUser } = useAuth();
   const { theme } = useTheme();
-  const { data: statistics, isLoading: statsLoading } = useEvaluationStatistics();
-  const { data: works = [], isLoading: worksLoading } = useWorks();
+  const { isLoading: statsLoading } = useEvaluationStatistics();
+  const { isLoading: worksLoading } = useWorks();
   const { data: evaluations = [], isLoading: evaluationsLoading } = useEvaluations();
   const { data: penaltyTable = [], isLoading: penaltyLoading } = useQuery({
     queryKey: ['penalty-table'],
@@ -144,7 +141,7 @@ export function DashboardPage() {
       if (evaluation.answers && Array.isArray(evaluation.answers)) {
         evaluation.answers.forEach(answer => {
           const answerValue = answer.answer;
-          if (answerValue === 'nao' || answerValue === 'NAO' || answerValue === 'não') {
+          if (answerValue === 'nao') {
             const weight = answer.question?.weight || 1;
             nonConformitiesByWeight[weight] = (nonConformitiesByWeight[weight] || 0) + 1;
           }

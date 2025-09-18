@@ -21,7 +21,7 @@ export function calculatePenaltyRange(evaluation: Evaluation, penaltyTable: Pena
   if (evaluation.answers && Array.isArray(evaluation.answers)) {
     evaluation.answers.forEach(answer => {
       const answerValue = answer.answer;
-      if (answerValue === 'nao' || answerValue === 'NAO' || answerValue === 'não') {
+      if (answerValue === 'nao') {
         const weight = answer.question?.weight || 1;
         nonConformitiesByWeight[weight] = (nonConformitiesByWeight[weight] || 0) + 1;
       }

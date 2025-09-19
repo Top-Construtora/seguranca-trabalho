@@ -24,7 +24,6 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import {
   BarChart,
   Bar,
@@ -212,29 +211,6 @@ export function DashboardPage() {
   }, [evaluations, penaltyTable, conformityViewMode, evaluationType]);
 
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Bom dia';
-    if (hour < 18) return 'Boa tarde';
-    return 'Boa noite';
-  };
-
-  const getUserName = () => {
-    if (user?.name) return user.name;
-
-    // Fallback: tentar recuperar do localStorage
-    try {
-      const savedUser = localStorage.getItem('@SST:user');
-      if (savedUser) {
-        const parsedUser = JSON.parse(savedUser);
-        return parsedUser.name || 'Usuário';
-      }
-    } catch (error) {
-      console.error('Erro ao recuperar nome do usuário:', error);
-    }
-
-    return 'Usuário';
-  };
 
   // Calcular métricas para os cards
   const metrics = useMemo(() => {
@@ -595,7 +571,7 @@ export function DashboardPage() {
                     {metrics.bottomWorks.length === 0 ? (
                       <p className="text-center text-gray-400 py-6 text-sm">Nenhuma avaliação finalizada</p>
                     ) : (
-                      metrics.bottomWorks.map((work, index) => (
+                      metrics.bottomWorks.map((work) => (
                         <div key={work.workId} className="group flex items-center justify-between p-3.5 bg-gradient-to-r from-red-50/50 to-transparent dark:from-red-900/10 dark:to-transparent rounded-xl hover:from-red-100/70 dark:hover:from-red-900/20 transition-all duration-200 border border-red-200/30 dark:border-red-800/30">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-md">

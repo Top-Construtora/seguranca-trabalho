@@ -35,7 +35,6 @@ import {
   ClipboardCheck
 } from 'lucide-react';
 import { formatDate } from '@/utils/date';
-import { ptBR } from 'date-fns/locale';
 
 interface EvaluationsListProps {
   evaluations: Evaluation[];

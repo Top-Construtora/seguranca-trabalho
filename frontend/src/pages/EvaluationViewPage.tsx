@@ -12,7 +12,6 @@ import { useQuestions } from '@/hooks/useQuestions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActionPlanTab } from '@/components/evaluations/ActionPlanTab';
 import { formatDate } from '@/utils/date';
-import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 export function EvaluationViewPage() {

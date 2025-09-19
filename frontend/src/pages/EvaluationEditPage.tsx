@@ -25,7 +25,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { formatDate } from '@/utils/date';
-import { ptBR } from 'date-fns/locale';
 
 export function EvaluationEditPage() {
   const { type, id } = useParams<{ type: string; id: string }>();

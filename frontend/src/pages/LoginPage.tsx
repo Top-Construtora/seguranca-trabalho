@@ -121,7 +121,7 @@ export function LoginPage() {
               </div>
               <div>
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Bem-vindo de volta
+                  Bem-vindo(a)!
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-400 mt-2">
                   Faça login para acessar o sistema de segurança

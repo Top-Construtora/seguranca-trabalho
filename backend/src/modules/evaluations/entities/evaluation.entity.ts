@@ -51,8 +51,39 @@ export class Evaluation {
   })
   type: QuestionType;
 
-  @Column({ type: 'date' })
-  date: Date;
+  @Column({
+    type: 'date',
+    transformer: {
+      to(value: any): string {
+        // Se receber uma string yyyy-MM-dd, retorna ela diretamente
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          return value;
+        }
+        // Se receber um Date, formata como yyyy-MM-dd
+        if (value instanceof Date) {
+          const year = value.getFullYear();
+          const month = String(value.getMonth() + 1).padStart(2, '0');
+          const day = String(value.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+        return value;
+      },
+      from(value: any): string {
+        // Retorna a string diretamente sem conversão para Date
+        // Isso evita problemas de timezone na serialização JSON
+        if (value instanceof Date) {
+          // Se por algum motivo vier como Date, converte para string
+          const year = value.getFullYear();
+          const month = String(value.getMonth() + 1).padStart(2, '0');
+          const day = String(value.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+        // Se já for string, retorna como está
+        return value;
+      }
+    }
+  })
+  date: Date | string;
 
   @Column({ type: 'int' })
   employees_count: number;

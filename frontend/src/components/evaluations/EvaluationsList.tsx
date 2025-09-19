@@ -34,7 +34,7 @@ import {
   User,
   ClipboardCheck
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/utils/date';
 import { ptBR } from 'date-fns/locale';
 
 interface EvaluationsListProps {
@@ -126,7 +126,7 @@ export function EvaluationsList({
                     <div className="flex items-center gap-2 mb-2">
                       <Calendar className="h-4 w-4 text-gray-400" />
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                        {format(new Date(evaluation.date), 'dd/MM/yyyy', { locale: ptBR })}
+                        {formatDate(evaluation.date, 'dd/MM/yyyy')}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 mb-1">
@@ -268,7 +268,7 @@ export function EvaluationsList({
               evaluations.map((evaluation) => (
                 <TableRow key={evaluation.id}>
                   <TableCell className="text-xs sm:text-sm">
-                    {format(new Date(evaluation.date), 'dd/MM/yy', { locale: ptBR })}
+                    {formatDate(evaluation.date, 'dd/MM/yy')}
                   </TableCell>
                   <TableCell>
                     <div>

@@ -84,7 +84,7 @@ export class EvaluationsService {
         work_id: createEvaluationDto.work_id,
         accommodation_id: accommodationId,
         type: createEvaluationDto.type,
-        date: new Date(createEvaluationDto.date),
+        date: createEvaluationDto.date as any, // Passa a string diretamente, o transformer vai cuidar
         employees_count: createEvaluationDto.employees_count,
         notes: createEvaluationDto.notes,
         user_id: userId,
@@ -153,7 +153,7 @@ export class EvaluationsService {
     Object.assign(evaluation, updateEvaluationDto);
     
     if (updateEvaluationDto.date) {
-      evaluation.date = new Date(updateEvaluationDto.date);
+      evaluation.date = updateEvaluationDto.date as any; // Passa a string diretamente, o transformer vai cuidar
     }
 
     return this.evaluationRepository.save(evaluation);

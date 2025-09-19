@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { useEvaluation } from '@/hooks/useEvaluations';
 import { useQuestions } from '@/hooks/useQuestions';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format } from 'date-fns';
+import { formatDate } from '@/utils/date';
 import { ptBR } from 'date-fns/locale';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
@@ -153,7 +153,7 @@ export function EvaluationReportPage() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Data da Avaliação</p>
                     <p className="font-semibold">
-                      {format(new Date(evaluation.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      {formatDate(evaluation.date, "dd 'de' MMMM 'de' yyyy")}
                     </p>
                   </div>
                   <div>

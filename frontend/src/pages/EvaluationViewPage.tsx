@@ -11,7 +11,7 @@ import { useEvaluation } from '@/hooks/useEvaluations';
 import { useQuestions } from '@/hooks/useQuestions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActionPlanTab } from '@/components/evaluations/ActionPlanTab';
-import { format } from 'date-fns';
+import { formatDate } from '@/utils/date';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
@@ -142,7 +142,7 @@ export function EvaluationViewPage() {
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    {format(new Date(evaluation.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    {formatDate(evaluation.date, "dd 'de' MMMM 'de' yyyy")}
                   </span>
                   <span className="flex items-center gap-1">
                     <Users className="h-4 w-4" />

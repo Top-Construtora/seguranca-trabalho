@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { format } from 'date-fns';
+import { formatDate } from '@/utils/date';
 import { ptBR } from 'date-fns/locale';
 
 export function EvaluationEditPage() {
@@ -165,7 +165,7 @@ export function EvaluationEditPage() {
                 <CardTitle>{evaluation.work?.name}</CardTitle>
                 <CardDescription>
                   {evaluation.work?.number} • {' '}
-                  {format(new Date(evaluation.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })} • {' '}
+                  {formatDate(evaluation.date, "dd 'de' MMMM 'de' yyyy")} • {' '}
                   {evaluation.employees_count} funcionários
                 </CardDescription>
               </div>

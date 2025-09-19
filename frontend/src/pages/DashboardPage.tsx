@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +8,13 @@ import { reportsService } from '@/services/reports.service';
 import { useWorks } from '@/hooks/useWorks';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import documentsService from '@/services/documents.service';
+import { Document } from '@/types/document';
+import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
   HardHat,
@@ -21,7 +28,10 @@ import {
   TrendingUp,
   TrendingDown,
   Trophy,
-  AlertCircle
+  AlertCircle,
+  Calendar,
+  FolderOpen,
+  ArrowRight
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -35,6 +45,7 @@ import {
 } from 'recharts';
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   const { user, loading: userLoading, refreshUser } = useAuth();
   const { theme } = useTheme();
   const { isLoading: statsLoading } = useEvaluationStatistics();
@@ -44,6 +55,7 @@ export function DashboardPage() {
     queryKey: ['penalty-table'],
     queryFn: () => reportsService.getPenaltyTable(),
   });
+  const [expiringDocuments, setExpiringDocuments] = useState<Document[]>([]);
 
   // Estado para controlar modo de visualização do gráfico de conformidade
   const [conformityViewMode, setConformityViewMode] = useState<'quantity' | 'percentage'>('quantity');
@@ -58,6 +70,19 @@ export function DashboardPage() {
       refreshUser();
     }
   }, [user, userLoading, refreshUser]);
+
+  // Carregar documentos próximos do vencimento
+  useEffect(() => {
+    const loadExpiringDocuments = async () => {
+      try {
+        const data = await documentsService.getExpiring(30);
+        setExpiringDocuments(data.slice(0, 3)); // Pegar apenas os 3 primeiros
+      } catch (error) {
+        console.error('Erro ao carregar documentos próximos do vencimento:', error);
+      }
+    };
+    loadExpiringDocuments();
+  }, []);
 
   // Alternar automaticamente entre obra e alojamento a cada 10 segundos
   React.useEffect(() => {
@@ -339,7 +364,7 @@ export function DashboardPage() {
         </div>
 
         {/* Cards de Métricas Principais */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {/* Card Obras Ativas */}
           <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-[#1e6076]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -366,53 +391,38 @@ export function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Card Avaliações Finalizadas */}
+          {/* Card Avaliações Unificado */}
           <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#12b0a0]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <CardContent className="p-6 relative">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="inline-flex items-center gap-2 px-2 py-1 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-lg mb-3">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                    <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                      Finalizadas
+                  <div className="inline-flex items-center gap-2 px-2 py-1 bg-[#12b0a0]/10 dark:bg-[#12b0a0]/20 rounded-lg mb-3">
+                    <FileText className="h-4 w-4 text-[#12b0a0]" />
+                    <p className="text-xs font-semibold text-[#12b0a0] uppercase tracking-wider">
+                      Avaliações
                     </p>
                   </div>
-                  <p className="text-4xl font-bold bg-gradient-to-br from-emerald-600 to-green-500 bg-clip-text text-transparent">
-                    {metrics.completedCount}
+                  <p className="text-4xl font-bold bg-gradient-to-br from-[#12b0a0] to-[#1e6076] bg-clip-text text-transparent">
+                    {metrics.completedCount + metrics.draftCount}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 font-medium">
-                    avaliações completas
-                  </p>
-                </div>
-                <div className="absolute top-4 right-4 p-3 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-2xl">
-                  <CheckCircle className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Card Rascunhos */}
-          <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <CardContent className="p-6 relative">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="inline-flex items-center gap-2 px-2 py-1 bg-amber-500/10 dark:bg-amber-500/20 rounded-lg mb-3">
-                    <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                    <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-                      Rascunhos
-                    </p>
+                  <div className="flex items-center gap-4 mt-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                        {metrics.completedCount} finalizadas
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                        {metrics.draftCount} rascunhos
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-4xl font-bold bg-gradient-to-br from-amber-600 to-orange-500 bg-clip-text text-transparent">
-                    {metrics.draftCount}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 font-medium">
-                    em elaboração
-                  </p>
                 </div>
-                <div className="absolute top-4 right-4 p-3 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-2xl">
-                  <FileText className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                <div className="absolute top-4 right-4 p-3 bg-gradient-to-br from-[#12b0a0]/20 to-[#1e6076]/20 rounded-2xl">
+                  <FileText className="h-8 w-8 text-[#12b0a0]" />
                 </div>
               </div>
             </CardContent>
@@ -447,55 +457,143 @@ export function DashboardPage() {
           </Card>
         </div>
 
-        {/* Segunda Linha - Multas e Ranking */}
-        <div className="grid gap-4 lg:grid-cols-3">
-          {/* Card de Multas Passíveis */}
-          <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <CardHeader className="pb-4 relative">
-              <div className="flex items-center justify-between">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-red-500/10 to-orange-500/10 dark:from-red-500/20 dark:to-orange-500/20 rounded-lg">
-                  <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                  <CardTitle className="text-sm font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider">
-                    Multas Passíveis
-                  </CardTitle>
+        {/* Segunda Linha - Cards em Layout Vertical */}
+        <div className="grid gap-4 lg:grid-cols-4">
+          {/* Card de Documentos Próximos do Vencimento - Vertical */}
+          <Card className="lg:col-span-1 group relative overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-red-500/5 opacity-50" />
+            <CardHeader className="pb-4 relative border-b border-gray-100 dark:border-gray-700">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="p-2.5 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl shadow-md">
+                    <FolderOpen className="h-5 w-5 text-white" />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/documents')}
+                    className="text-[#12b0a0] hover:text-[#12b0a0]/80 h-8 px-2"
+                  >
+                    Ver todos
+                    <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                  </Button>
                 </div>
-                <div className="p-2 bg-gradient-to-br from-red-500/10 to-orange-500/10 rounded-xl">
-                  <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                <div>
+                  <CardTitle className="text-base font-semibold text-gray-800 dark:text-gray-100">
+                    Documentos Vencendo
+                  </CardTitle>
+                  <CardDescription className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    Próximos 30 dias
+                  </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3 relative">
-              <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-900/20 dark:to-orange-800/10 rounded-xl border border-orange-200/50 dark:border-orange-800/50">
-                <p className="text-xs font-semibold text-orange-700 dark:text-orange-300 uppercase tracking-wider mb-1">
-                  Valor Mínimo
-                </p>
-                <p className="text-2xl font-bold bg-gradient-to-br from-orange-600 to-amber-600 bg-clip-text text-transparent">
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  }).format(metrics.totalMinPenalty)}
-                </p>
+            <CardContent className="pt-4 space-y-2.5 max-h-[400px] overflow-y-auto">
+              {expiringDocuments.length > 0 ? (
+                expiringDocuments.map((document) => {
+                  const expiryDate = parseISO(document.expiryDate!);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  expiryDate.setHours(0, 0, 0, 0);
+                  const days = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                  const getStatusBadge = () => {
+                    if (days < 0) return { variant: 'destructive' as const, label: 'Vencido' };
+                    if (days === 0) return { variant: 'destructive' as const, label: 'Hoje' };
+                    if (days === 1) return { variant: 'destructive' as const, label: 'Amanhã' };
+                    if (days <= 7) return { variant: 'secondary' as const, label: `${days}d` };
+                    return { variant: 'outline' as const, label: `${days}d` };
+                  };
+                  const status = getStatusBadge();
+
+                  return (
+                    <div
+                      key={document.id}
+                      className="group/item p-3 bg-gradient-to-r from-gray-50 to-transparent dark:from-gray-900/50 dark:to-transparent rounded-lg hover:from-gray-100 dark:hover:from-gray-900/70 transition-all duration-200 border border-gray-200/50 dark:border-gray-700/50 cursor-pointer"
+                      onClick={() => navigate(`/documents/${document.id}/edit`)}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
+                            {document.name}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <Calendar className="h-3 w-3 text-gray-500" />
+                            <span className="text-xs text-gray-600 dark:text-gray-400">
+                              {format(parseISO(document.expiryDate!), 'dd/MM', { locale: ptBR })}
+                            </span>
+                          </div>
+                        </div>
+                        <Badge variant={status.variant} className="text-xs px-2 py-0.5">
+                          {status.label}
+                        </Badge>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-center text-gray-400 py-8 text-sm">Nenhum documento vencendo</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Card de Multas Evitadas */}
+          <Card className="lg:col-span-1 group relative overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <CardHeader className="pb-4 relative">
+              <div className="flex items-center justify-between">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-emerald-500/10 to-green-500/10 dark:from-emerald-500/20 dark:to-green-500/20 rounded-lg">
+                  <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <CardTitle className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                    Multas Evitadas
+                  </CardTitle>
+                </div>
+                <div className="p-2 bg-gradient-to-br from-emerald-500/10 to-green-500/10 rounded-xl">
+                  <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
               </div>
-              <div className="p-4 bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-900/20 dark:to-red-800/10 rounded-xl border border-red-200/50 dark:border-red-800/50">
-                <p className="text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider mb-1">
-                  Valor Máximo
-                </p>
-                <p className="text-2xl font-bold bg-gradient-to-br from-red-600 to-rose-600 bg-clip-text text-transparent">
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  }).format(metrics.totalMaxPenalty)}
+            </CardHeader>
+            <CardContent className="relative">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-800/10 rounded-lg border border-emerald-200/50 dark:border-emerald-800/50">
+                  <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider mb-1">
+                    Mínimo
+                  </p>
+                  <p className="text-lg font-bold bg-gradient-to-br from-emerald-600 to-green-600 bg-clip-text text-transparent">
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                      notation: 'compact',
+                      compactDisplay: 'short'
+                    }).format(metrics.totalMinPenalty)}
+                  </p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-900/20 dark:to-green-800/10 rounded-lg border border-green-200/50 dark:border-green-800/50">
+                  <p className="text-xs font-semibold text-green-700 dark:text-green-300 uppercase tracking-wider mb-1">
+                    Máximo
+                  </p>
+                  <p className="text-lg font-bold bg-gradient-to-br from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                      notation: 'compact',
+                      compactDisplay: 'short'
+                    }).format(metrics.totalMaxPenalty)}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 p-2 bg-gray-50 dark:bg-gray-900/50 rounded-lg text-center">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Economia potencial com conformidade
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Card de Ranking Unificado */}
+          {/* Card de Ranking - Agora Vertical */}
           <Card className="lg:col-span-2 group relative overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-[#12b0a0]/5 to-[#1e6076]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <CardHeader className="pb-4 relative">
@@ -511,93 +609,85 @@ export function DashboardPage() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="relative">
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Coluna Top 3 Melhores */}
-                <div>
-                  <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-gradient-to-r from-emerald-500/20 to-transparent">
-                    <div className="p-1.5 bg-gradient-to-br from-emerald-500/10 to-green-500/10 rounded-lg">
-                      <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <h3 className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">Top 3 Melhores</h3>
+            <CardContent className="relative space-y-6">
+              {/* Top 3 Melhores */}
+              <div>
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
+                  <div className="p-1.5 bg-gradient-to-br from-emerald-500/10 to-green-500/10 rounded-lg">
+                    <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  <div className="space-y-2.5">
-                    {metrics.topWorks.length === 0 ? (
-                      <p className="text-center text-gray-400 py-6 text-sm">Nenhuma avaliação finalizada</p>
-                    ) : (
-                      metrics.topWorks.map((work, index) => (
-                        <div key={work.workId} className="group flex items-center justify-between p-3.5 bg-gradient-to-r from-emerald-50/50 to-transparent dark:from-emerald-900/10 dark:to-transparent rounded-xl hover:from-emerald-100/70 dark:hover:from-emerald-900/20 transition-all duration-200 border border-emerald-200/30 dark:border-emerald-800/30">
-                          <div className="flex items-center gap-3">
-                            <div className={cn(
-                              "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md",
-                              index === 0 ? "bg-gradient-to-br from-yellow-400 to-amber-500" :
-                              index === 1 ? "bg-gradient-to-br from-gray-300 to-gray-400" :
-                              "bg-gradient-to-br from-orange-400 to-orange-500"
-                            )}>
-                              {index + 1}º
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-bold text-gray-800 dark:text-gray-100">
-                                {work.workNumber}
-                              </p>
-                              <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                                {work.workName}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold bg-gradient-to-br from-emerald-600 to-green-600 bg-clip-text text-transparent">
-                              {work.conformityRate.toFixed(1)}%
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {work.totalEvaluations} aval.
-                            </p>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                  <h3 className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">Top 3 Melhores</h3>
                 </div>
-
-                {/* Coluna Precisam Atenção */}
-                <div>
-                  <div className="flex items-center gap-2 mb-4 pb-3 border-b-2 border-gradient-to-r from-red-500/20 to-transparent">
-                    <div className="p-1.5 bg-gradient-to-br from-red-500/10 to-rose-500/10 rounded-lg">
-                      <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                    </div>
-                    <h3 className="text-sm font-bold text-red-700 dark:text-red-400 uppercase tracking-wide">Precisam Atenção</h3>
-                  </div>
-                  <div className="space-y-2.5">
-                    {metrics.bottomWorks.length === 0 ? (
-                      <p className="text-center text-gray-400 py-6 text-sm">Nenhuma avaliação finalizada</p>
-                    ) : (
-                      metrics.bottomWorks.map((work) => (
-                        <div key={work.workId} className="group flex items-center justify-between p-3.5 bg-gradient-to-r from-red-50/50 to-transparent dark:from-red-900/10 dark:to-transparent rounded-xl hover:from-red-100/70 dark:hover:from-red-900/20 transition-all duration-200 border border-red-200/30 dark:border-red-800/30">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-md">
-                              <TrendingDown className="h-4 w-4 text-white" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-bold text-gray-800 dark:text-gray-100">
-                                {work.workNumber}
-                              </p>
-                              <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                                {work.workName}
-                              </p>
-                            </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  {metrics.topWorks.length === 0 ? (
+                    <p className="col-span-3 text-center text-gray-400 py-4 text-sm">Nenhuma avaliação finalizada</p>
+                  ) : (
+                    metrics.topWorks.map((work, index) => (
+                      <div key={work.workId} className="group flex items-center justify-between p-3 bg-gradient-to-r from-emerald-50/50 to-transparent dark:from-emerald-900/10 dark:to-transparent rounded-lg hover:from-emerald-100/70 dark:hover:from-emerald-900/20 transition-all duration-200 border border-emerald-200/30 dark:border-emerald-800/30">
+                        <div className="flex items-center gap-2">
+                          <div className={cn(
+                            "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md",
+                            index === 0 ? "bg-gradient-to-br from-yellow-400 to-amber-500" :
+                            index === 1 ? "bg-gradient-to-br from-gray-300 to-gray-400" :
+                            "bg-gradient-to-br from-orange-400 to-orange-500"
+                          )}>
+                            {index + 1}º
                           </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold bg-gradient-to-br from-red-600 to-rose-600 bg-clip-text text-transparent">
-                              {work.conformityRate.toFixed(1)}%
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-gray-800 dark:text-gray-100">
+                              {work.workNumber}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {work.totalEvaluations} aval.
+                            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                              {work.workName.split('-')[0].trim()}
                             </p>
                           </div>
                         </div>
-                      ))
-                    )}
+                        <div className="text-right">
+                          <p className="text-sm font-bold bg-gradient-to-br from-emerald-600 to-green-600 bg-clip-text text-transparent">
+                            {work.conformityRate.toFixed(0)}%
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Precisam Atenção */}
+              <div>
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
+                  <div className="p-1.5 bg-gradient-to-br from-red-500/10 to-rose-500/10 rounded-lg">
+                    <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
                   </div>
+                  <h3 className="text-sm font-bold text-red-700 dark:text-red-400 uppercase tracking-wide">Precisam Atenção</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  {metrics.bottomWorks.length === 0 ? (
+                    <p className="col-span-3 text-center text-gray-400 py-4 text-sm">Nenhuma avaliação finalizada</p>
+                  ) : (
+                    metrics.bottomWorks.map((work) => (
+                      <div key={work.workId} className="group flex items-center justify-between p-3 bg-gradient-to-r from-red-50/50 to-transparent dark:from-red-900/10 dark:to-transparent rounded-lg hover:from-red-100/70 dark:hover:from-red-900/20 transition-all duration-200 border border-red-200/30 dark:border-red-800/30">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-md">
+                            <TrendingDown className="h-3.5 w-3.5 text-white" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-gray-800 dark:text-gray-100">
+                              {work.workNumber}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                              {work.workName.split('-')[0].trim()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold bg-gradient-to-br from-red-600 to-rose-600 bg-clip-text text-transparent">
+                            {work.conformityRate.toFixed(0)}%
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </CardContent>

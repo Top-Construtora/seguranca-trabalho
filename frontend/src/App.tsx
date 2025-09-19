@@ -11,6 +11,9 @@ import { EvaluationReportPage } from './pages/EvaluationReportPage'
 import { EvaluationRedirect } from './components/EvaluationRedirect'
 import { ActionPlansPage } from './pages/ActionPlansPage'
 import { ReportsPageUltimate as ReportsPage } from './pages/ReportsPageUltimate'
+import ListDocuments from './pages/documents/ListDocuments'
+import CreateDocument from './pages/documents/CreateDocument'
+import EditDocument from './pages/documents/EditDocument'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Toaster } from './components/ui/toaster'
 
@@ -100,6 +103,30 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <EvaluationReportPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/documents"
+              element={
+                <ProtectedRoute>
+                  <ListDocuments />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/documents/new"
+              element={
+                <ProtectedRoute>
+                  <CreateDocument />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/documents/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <EditDocument />
                 </ProtectedRoute>
               }
             />

@@ -61,7 +61,7 @@ async function bootstrap() {
   // Serve static files from uploads directory
   const uploadsPath = path.join(process.cwd(), 'uploads');
   app.useStaticAssets(uploadsPath, {
-    prefix: '/api/uploads/',
+    prefix: '/uploads/',
   });
 
   // Set global prefix for all routes

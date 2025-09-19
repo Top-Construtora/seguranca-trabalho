@@ -18,6 +18,7 @@ import {
   ClipboardList,
   Sun,
   Moon,
+  FolderOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -43,6 +44,7 @@ const navigation = [
   { name: 'Avaliação de Obra', href: '/evaluations/obra', icon: HardHat },
   { name: 'Avaliação de Alojamento', href: '/evaluations/alojamento', icon: Home },
   { name: 'Planos de Ação', href: '/action-plans', icon: ClipboardList },
+  { name: 'Documentos', href: '/documents', icon: FolderOpen },
   { name: 'Relatórios', href: '/reports', icon: FileText },
 ];
 

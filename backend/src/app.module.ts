@@ -10,6 +10,7 @@ import { EvaluationsModule } from './modules/evaluations/evaluations.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { LogsModule } from './modules/logs/logs.module';
 import { FilesModule } from './modules/files/files.module';
+import { DocumentsModule } from './modules/documents/documents.module';
 import { databaseConfig } from './config/database.config';
 
 @Module({
@@ -30,6 +31,7 @@ import { databaseConfig } from './config/database.config';
     ReportsModule,
     LogsModule,
     FilesModule,
+    DocumentsModule,
   ],
 })
 export class AppModule {}

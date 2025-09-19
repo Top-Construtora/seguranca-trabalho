@@ -79,7 +79,24 @@ export class SupabaseService {
     }
 
     this.logger.log(`File uploaded successfully: ${path}`);
-    return data;
+    this.logger.log(`Upload data result:`, data);
+
+    // Get the public URL for the uploaded file
+    const { data: publicUrlData } = this.supabase.storage
+      .from(bucket)
+      .getPublicUrl(path);
+
+    this.logger.log(`Public URL data:`, publicUrlData);
+
+    const finalUrl = publicUrlData?.publicUrl;
+
+    if (!finalUrl) {
+      this.logger.error('Failed to get public URL from Supabase');
+      throw new Error('Failed to get public URL for uploaded file');
+    }
+
+    this.logger.log(`Returning URL: ${finalUrl}`);
+    return finalUrl;
   }
 
   async deleteFile(bucket: string, path: string) {

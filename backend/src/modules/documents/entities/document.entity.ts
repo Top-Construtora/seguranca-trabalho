@@ -4,12 +4,18 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Work } from '../../works/entities/work.entity';
 
 @Entity('documents')
 export class Document {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column({ type: 'uuid', name: 'work_id' })
+  workId: string;
 
   @Column({ type: 'varchar', length: 255 })
   name: string;
@@ -37,4 +43,8 @@ export class Document {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @ManyToOne(() => Work, (work) => work.documents)
+  @JoinColumn({ name: 'work_id' })
+  work: Work;
 }

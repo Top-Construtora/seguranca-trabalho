@@ -1,6 +1,9 @@
-import { IsString, IsDateString, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsDateString, IsOptional, IsNumber, IsUUID } from 'class-validator';
 
 export class CreateDocumentDto {
+  @IsUUID()
+  workId: string;
+
   @IsString()
   name: string;
 

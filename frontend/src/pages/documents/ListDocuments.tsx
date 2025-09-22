@@ -4,6 +4,13 @@ import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -13,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import documentsService from '@/services/documents.service';
+import { worksService, Work } from '@/services/works.service';
 import { Document } from '@/types/document';
 import {
   Plus,
@@ -29,6 +37,7 @@ import {
   FileSpreadsheet,
   File,
   Eye,
+  Building,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -52,18 +61,39 @@ export default function ListDocuments() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteDocumentId, setDeleteDocumentId] = useState<string | null>(null);
+  const [works, setWorks] = useState<Work[]>([]);
+  const [selectedWorkId, setSelectedWorkId] = useState<string>('');
 
   useEffect(() => {
+    loadWorks();
     loadDocuments();
   }, []);
 
   useEffect(() => {
     filterDocuments();
-  }, [searchTerm, documents]);
+  }, [searchTerm, documents, selectedWorkId]);
 
-  const loadDocuments = async () => {
+  useEffect(() => {
+    if (selectedWorkId) {
+      loadDocuments(selectedWorkId);
+    } else {
+      loadDocuments();
+    }
+  }, [selectedWorkId]);
+
+  const loadWorks = async () => {
     try {
-      const data = await documentsService.getAll();
+      const data = await worksService.getAll();
+      setWorks(data);
+    } catch (error) {
+      console.error('Erro ao carregar obras:', error);
+    }
+  };
+
+  const loadDocuments = async (workId?: string) => {
+    try {
+      setLoading(true);
+      const data = await documentsService.getAll(workId);
       setDocuments(data);
       setFilteredDocuments(data);
     } catch (error) {
@@ -78,9 +108,14 @@ export default function ListDocuments() {
   };
 
   const filterDocuments = () => {
-    const filtered = documents.filter((doc) =>
-      doc.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    let filtered = documents;
+
+    if (searchTerm) {
+      filtered = filtered.filter((doc) =>
+        doc.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
     setFilteredDocuments(filtered);
   };
 
@@ -205,7 +240,7 @@ export default function ListDocuments() {
 
         {/* Barra de pesquisa melhorada */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="relative flex-1 max-w-full sm:max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -215,6 +250,19 @@ export default function ListDocuments() {
                 className="pl-10 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-[#12b0a0]/20 focus:border-[#12b0a0] transition-all"
               />
             </div>
+            <Select value={selectedWorkId || "all"} onValueChange={(value) => setSelectedWorkId(value === "all" ? "" : value)}>
+              <SelectTrigger className="w-full sm:w-[250px]">
+                <SelectValue placeholder="Todas as obras" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as obras</SelectItem>
+                {works.map((work) => (
+                  <SelectItem key={work.id} value={work.id}>
+                    {work.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <div className="text-sm text-gray-500">
               {filteredDocuments.length} {filteredDocuments.length === 1 ? 'documento encontrado' : 'documentos encontrados'}
             </div>
@@ -296,6 +344,14 @@ export default function ListDocuments() {
                         <CardTitle className="text-base font-medium truncate" title={document.name}>
                           {document.name}
                         </CardTitle>
+                        {document.work && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <Building className="h-3 w-3 text-gray-500" />
+                            <span className="text-xs text-gray-500 truncate">
+                              {document.work.name}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

@@ -2,8 +2,15 @@ import { api } from './api';
 import { Document, CreateDocumentDTO, UpdateDocumentDTO } from '@/types/document';
 
 class DocumentsService {
-  async getAll(): Promise<Document[]> {
-    const { data } = await api.get('/documents');
+  async getAll(workId?: string): Promise<Document[]> {
+    const { data } = await api.get('/documents', {
+      params: workId ? { workId } : undefined,
+    });
+    return data;
+  }
+
+  async getByWorkId(workId: string): Promise<Document[]> {
+    const { data } = await api.get(`/documents/work/${workId}`);
     return data;
   }
 
@@ -12,21 +19,24 @@ class DocumentsService {
     return data;
   }
 
-  async getExpiring(days: number = 30): Promise<Document[]> {
+  async getExpiring(days: number = 30, workId?: string): Promise<Document[]> {
     const { data } = await api.get('/documents/expiring', {
-      params: { days },
+      params: { days, ...(workId ? { workId } : {}) },
     });
     return data;
   }
 
-  async getExpired(): Promise<Document[]> {
-    const { data } = await api.get('/documents/expired');
+  async getExpired(workId?: string): Promise<Document[]> {
+    const { data } = await api.get('/documents/expired', {
+      params: workId ? { workId } : undefined,
+    });
     return data;
   }
 
   async create(documentData: CreateDocumentDTO): Promise<Document> {
     const formData = new FormData();
 
+    formData.append('workId', documentData.workId);
     formData.append('name', documentData.name);
     formData.append('issueDate', documentData.issueDate);
 
@@ -48,6 +58,10 @@ class DocumentsService {
 
   async update(id: string, documentData: UpdateDocumentDTO): Promise<Document> {
     const formData = new FormData();
+
+    if (documentData.workId) {
+      formData.append('workId', documentData.workId);
+    }
 
     if (documentData.name) {
       formData.append('name', documentData.name);

@@ -58,8 +58,11 @@ export class DocumentsService {
     return await this.documentsRepository.save(document);
   }
 
-  async findAll(): Promise<Document[]> {
+  async findAll(workId?: string): Promise<Document[]> {
+    const whereCondition = workId ? { workId } : {};
     return await this.documentsRepository.find({
+      where: whereCondition,
+      relations: ['work'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -67,6 +70,7 @@ export class DocumentsService {
   async findOne(id: string): Promise<Document> {
     const document = await this.documentsRepository.findOne({
       where: { id },
+      relations: ['work'],
     });
 
     if (!document) {
@@ -147,25 +151,43 @@ export class DocumentsService {
     await this.documentsRepository.remove(document);
   }
 
-  async findExpiringDocuments(days: number = 30): Promise<Document[]> {
+  async findExpiringDocuments(days: number = 30, workId?: string): Promise<Document[]> {
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + days);
 
-    return await this.documentsRepository
+    const query = this.documentsRepository
       .createQueryBuilder('document')
+      .leftJoinAndSelect('document.work', 'work')
       .where('document.expiryDate IS NOT NULL')
       .andWhere('document.expiryDate <= :futureDate', { futureDate })
-      .andWhere('document.expiryDate >= CURRENT_DATE')
-      .orderBy('document.expiryDate', 'ASC')
-      .getMany();
+      .andWhere('document.expiryDate >= CURRENT_DATE');
+
+    if (workId) {
+      query.andWhere('document.workId = :workId', { workId });
+    }
+
+    return await query.orderBy('document.expiryDate', 'ASC').getMany();
   }
 
-  async findExpiredDocuments(): Promise<Document[]> {
-    return await this.documentsRepository
+  async findExpiredDocuments(workId?: string): Promise<Document[]> {
+    const query = this.documentsRepository
       .createQueryBuilder('document')
+      .leftJoinAndSelect('document.work', 'work')
       .where('document.expiryDate IS NOT NULL')
-      .andWhere('document.expiryDate < CURRENT_DATE')
-      .orderBy('document.expiryDate', 'DESC')
-      .getMany();
+      .andWhere('document.expiryDate < CURRENT_DATE');
+
+    if (workId) {
+      query.andWhere('document.workId = :workId', { workId });
+    }
+
+    return await query.orderBy('document.expiryDate', 'DESC').getMany();
+  }
+
+  async findByWorkId(workId: string): Promise<Document[]> {
+    return await this.documentsRepository.find({
+      where: { workId },
+      relations: ['work'],
+      order: { createdAt: 'DESC' },
+    });
   }
 }

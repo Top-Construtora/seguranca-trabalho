@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Evaluation } from '../../evaluations/entities/evaluation.entity';
 import { Accommodation } from './accommodation.entity';
+import { Document } from '../../documents/entities/document.entity';
 
 @Entity('works')
 export class Work {
@@ -47,4 +48,7 @@ export class Work {
 
   @ManyToMany(() => Accommodation, (accommodation) => accommodation.works)
   accommodations: Accommodation[];
+
+  @OneToMany(() => Document, (document) => document.work)
+  documents: Document[];
 }

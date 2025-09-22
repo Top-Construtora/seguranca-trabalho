@@ -64,19 +64,24 @@ export class DocumentsController {
   }
 
   @Get()
-  findAll() {
-    return this.documentsService.findAll();
+  findAll(@Query('workId') workId?: string) {
+    return this.documentsService.findAll(workId);
   }
 
   @Get('expiring')
-  findExpiring(@Query('days') days?: string) {
+  findExpiring(@Query('days') days?: string, @Query('workId') workId?: string) {
     const daysNumber = days ? parseInt(days, 10) : 30;
-    return this.documentsService.findExpiringDocuments(daysNumber);
+    return this.documentsService.findExpiringDocuments(daysNumber, workId);
   }
 
   @Get('expired')
-  findExpired() {
-    return this.documentsService.findExpiredDocuments();
+  findExpired(@Query('workId') workId?: string) {
+    return this.documentsService.findExpiredDocuments(workId);
+  }
+
+  @Get('work/:workId')
+  findByWork(@Param('workId') workId: string) {
+    return this.documentsService.findByWorkId(workId);
   }
 
   @Get(':id')

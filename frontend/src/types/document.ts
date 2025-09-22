@@ -1,5 +1,9 @@
+import { Work } from '@/services/works.service';
+
 export interface Document {
   id: string;
+  workId: string;
+  work?: Work;
   name: string;
   issueDate: string;
   expiryDate?: string;
@@ -12,6 +16,7 @@ export interface Document {
 }
 
 export interface CreateDocumentDTO {
+  workId: string;
   name: string;
   issueDate: string;
   expiryDate?: string;
@@ -19,6 +24,7 @@ export interface CreateDocumentDTO {
 }
 
 export interface UpdateDocumentDTO {
+  workId?: string;
   name?: string;
   issueDate?: string;
   expiryDate?: string;

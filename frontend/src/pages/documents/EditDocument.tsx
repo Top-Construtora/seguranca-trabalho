@@ -14,14 +14,23 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import documentsService from '@/services/documents.service';
+import { worksService, Work } from '@/services/works.service';
 import { ArrowLeft } from 'lucide-react';
 import type { UpdateDocumentDTO } from '@/types/document';
 import { format } from 'date-fns';
 
 const formSchema = z.object({
+  workId: z.string().min(1, 'Obra é obrigatória'),
   name: z.string().min(1, 'Nome é obrigatório'),
   issueDate: z.string().min(1, 'Data de emissão é obrigatória'),
   expiryDate: z.string().optional().nullable(),
@@ -35,10 +44,12 @@ export default function EditDocument() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [loadingDocument, setLoadingDocument] = useState(true);
+  const [works, setWorks] = useState<Work[]>([]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      workId: '',
       name: '',
       issueDate: '',
       expiryDate: '',
@@ -46,10 +57,24 @@ export default function EditDocument() {
   });
 
   useEffect(() => {
+    loadWorks();
     if (id) {
       loadDocument();
     }
   }, [id]);
+
+  const loadWorks = async () => {
+    try {
+      const data = await worksService.getAll();
+      setWorks(data);
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar obras',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const loadDocument = async () => {
     try {
@@ -61,6 +86,7 @@ export default function EditDocument() {
       const expiryDate = data.expiryDate ? format(new Date(data.expiryDate), 'yyyy-MM-dd') : '';
 
       form.reset({
+        workId: data.workId,
         name: data.name,
         issueDate,
         expiryDate: expiryDate || '',
@@ -83,6 +109,7 @@ export default function EditDocument() {
     setLoading(true);
     try {
       const updateData: UpdateDocumentDTO = {
+        workId: data.workId,
         name: data.name,
         issueDate: data.issueDate,
         expiryDate: data.expiryDate || undefined,
@@ -138,6 +165,31 @@ export default function EditDocument() {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="workId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Obra</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma obra" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {works.map((work) => (
+                            <SelectItem key={work.id} value={work.id}>
+                              {work.name} - {work.number}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="name"

@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import documentsService from '@/services/documents.service';
 import { ArrowLeft } from 'lucide-react';
-import { UpdateDocumentDTO } from '@/types/document';
+import type { UpdateDocumentDTO } from '@/types/document';
 import { format } from 'date-fns';
 
 const formSchema = z.object({

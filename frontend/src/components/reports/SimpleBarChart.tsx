@@ -7,6 +7,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  LabelList,
 } from 'recharts';
 
 interface SimpleBarChartProps {
@@ -46,13 +47,25 @@ export function SimpleBarChart({ data, height = 400 }: SimpleBarChartProps) {
           fill="#10b981"
           name="conforme"
           radius={[8, 8, 0, 0]}
-        />
+        >
+          <LabelList
+            dataKey="conforme"
+            position="top"
+            style={{ fontSize: '12px', fontWeight: 'bold', fill: '#059669' }}
+          />
+        </Bar>
         <Bar
           dataKey="nao_conforme"
           fill="#ef4444"
           name="nao_conforme"
           radius={[8, 8, 0, 0]}
-        />
+        >
+          <LabelList
+            dataKey="nao_conforme"
+            position="top"
+            style={{ fontSize: '12px', fontWeight: 'bold', fill: '#dc2626' }}
+          />
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   );

@@ -15,6 +15,7 @@ import {
   ResponsiveContainer,
   Area,
   AreaChart,
+  LabelList,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
@@ -115,13 +116,27 @@ export function LastWorksConformityChart({ data, title, description, penaltyData
               name="Conforme"
               fill="#10b981"
               radius={[8, 8, 0, 0]}
-            />
+            >
+              <LabelList
+                dataKey="conforme"
+                position="top"
+                formatter={(value: number) => viewMode === 'percentage' ? `${value}%` : value}
+                style={{ fontSize: '12px', fontWeight: 'bold', fill: '#059669' }}
+              />
+            </Bar>
             <Bar
               dataKey="naoConforme"
               name="Não Conforme"
               fill="#ef4444"
               radius={[8, 8, 0, 0]}
-            />
+            >
+              <LabelList
+                dataKey="naoConforme"
+                position="top"
+                formatter={(value: number) => viewMode === 'percentage' ? `${value}%` : value}
+                style={{ fontSize: '12px', fontWeight: 'bold', fill: '#dc2626' }}
+              />
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
 

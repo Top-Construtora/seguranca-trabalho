@@ -12,8 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import documentsService from '@/services/documents.service';
 import { Document } from '@/types/document';
-import { format, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -26,10 +24,8 @@ import {
   FileText,
   CheckCircle,
   TrendingUp,
-  TrendingDown,
   Trophy,
   AlertCircle,
-  Calendar,
   FolderOpen,
   ArrowRight,
   FileCheck,

@@ -24,32 +24,34 @@ interface QuestionSection {
 }
 
 const OBRA_SECTIONS: QuestionSection[] = [
-  { title: 'Documentação Legal', startIndex: 1, endIndex: 12 },
-  { title: 'Projetos', startIndex: 13, endIndex: 17 },
-  { title: 'Áreas de Vivência - Instalações Sanitárias', startIndex: 18, endIndex: 26 },
-  { title: 'Áreas de Vivência - Chuveiros', startIndex: 27, endIndex: 30 },
-  { title: 'Áreas de Vivência - Vestiários', startIndex: 31, endIndex: 35 },
-  { title: 'Áreas de Vivência - Local para Refeições', startIndex: 36, endIndex: 42 },
-  { title: 'Controle de Saúde Ocupacional', startIndex: 43, endIndex: 45 },
-  { title: 'Controle de Colaboradores', startIndex: 46, endIndex: 47 },
-  { title: 'Instalações Elétricas', startIndex: 48, endIndex: 60 },
-  { title: 'Escavação, Fundação e Desmonte de Rochas', startIndex: 61, endIndex: 67 },
-  { title: 'Escadas e Rampas', startIndex: 68, endIndex: 72 },
-  { title: 'Máquinas e Equipamentos', startIndex: 73, endIndex: 74 },
-  { title: 'Carpintaria', startIndex: 75, endIndex: 82 },
-  { title: 'Armação/Policorte', startIndex: 83, endIndex: 90 },
-  { title: 'Betoneira', startIndex: 91, endIndex: 98 },
-  { title: 'Elevador Cremalheira', startIndex: 99, endIndex: 120 },
-  { title: 'Guincho de Coluna/Mini Grua', startIndex: 121, endIndex: 129 },
-  { title: 'Andaime Fachadeiro', startIndex: 130, endIndex: 141 },
-  { title: 'Andaime Suspenso', startIndex: 142, endIndex: 155 },
-  { title: 'Andaime Suspenso Motorizado', startIndex: 156, endIndex: 160 },
-  { title: 'Plataforma Elevatória Móvel de Trabalho', startIndex: 161, endIndex: 171 },
-  { title: 'Medidas de Proteção Contra Queda em Altura', startIndex: 172, endIndex: 176 },
-  { title: 'Içamento de Cargas', startIndex: 177, endIndex: 180 },
-  { title: 'Sinalização/Isolamento', startIndex: 181, endIndex: 182 },
-  { title: 'Equipamento de Proteção Individual', startIndex: 183, endIndex: 185 },
-  { title: 'Capacitação', startIndex: 186, endIndex: 188 },
+  { title: 'DOCUMENTAÇÃO LEGAL', startIndex: 1, endIndex: 12 },
+  { title: 'PROJETOS', startIndex: 13, endIndex: 17 },
+  { title: 'ÁREAS DE VIVENCIA - Instalações sanitárias', startIndex: 18, endIndex: 26 },
+  { title: 'ÁREAS DE VIVENCIA - Chuveiros', startIndex: 27, endIndex: 30 },
+  { title: 'ÁREAS DE VIVENCIA - Vestiários', startIndex: 31, endIndex: 35 },
+  { title: 'ÁREAS DE VIVENCIA - Local para refeições', startIndex: 36, endIndex: 42 },
+  { title: 'CIPA', startIndex: 43, endIndex: 45 },
+  { title: 'CONTROLE DE COLABORADORES', startIndex: 46, endIndex: 47 },
+  { title: 'INSTALAÇÕES ELETRICAS', startIndex: 48, endIndex: 60 },
+  { title: 'ESCAVAÇÃO, FUNDAÇÃO E DESMONTE DE ROCHAS', startIndex: 61, endIndex: 69 },
+  { title: 'ESCADAS E RAMPAS', startIndex: 70, endIndex: 74 },
+  { title: 'MAQUINAS E EQUIPAMENTOS', startIndex: 75, endIndex: 76 },
+  { title: 'CARPINTARIA', startIndex: 77, endIndex: 84 },
+  { title: 'ARMAÇÃO / POLICORTE', startIndex: 85, endIndex: 92 },
+  { title: 'BETONEIRA', startIndex: 93, endIndex: 100 },
+  { title: 'ELEVADOR CREMALHEIRA', startIndex: 101, endIndex: 122 },
+  { title: 'GUINCHO DE COLUNA / MINI GRUA', startIndex: 123, endIndex: 131 },
+  { title: 'ANDAIME SIMPLES APOIADO', startIndex: 132, endIndex: 136 },
+  { title: 'ANDAIME FACHADEIRO', startIndex: 137, endIndex: 148 },
+  { title: 'ANDAIME SUSPENSO', startIndex: 139, endIndex: 152 },
+  { title: 'ANDAIME SUSPENSO MOTORIZADO', startIndex: 153, endIndex: 157 },
+  { title: 'PLATAFORMA ELEVATÓRIA MÓVEL DE TRABALHO', startIndex: 158, endIndex: 167 },
+  { title: 'CADEIRA SUSPENSA', startIndex: 169, endIndex: 172 },
+  { title: 'MEDIDAS DE PROTEÇÃO CONTRA QUEDA EM ALTURA', startIndex: 173, endIndex: 181 },
+  { title: 'IÇAMENTO DE CARGAS', startIndex: 182, endIndex: 185 },
+  { title: 'SINALIZAÇÃO / ISOLAMENTO', startIndex: 186, endIndex: 187 },
+  { title: 'EQUIPAMENTO DE PROTEÇÃO INDIVIDUAL', startIndex: 188, endIndex: 190 },
+  { title: 'CAPACITAÇÃO', startIndex: 191, endIndex: 193 },
 ];
 
 const ALOJAMENTO_SECTIONS: QuestionSection[] = [
@@ -183,13 +185,13 @@ export function QuestionForm({ questions, answers, onAnswersChange, readOnly = f
 
     const sections = getSectionsForType();
     const groupedQuestions: { section: QuestionSection | null, questions: Question[] }[] = [];
-    
+
     sections.forEach(section => {
-      const sectionQuestions = questions.filter((_, index) => {
-        const questionNumber = index + 1;
+      const sectionQuestions = questions.filter((question) => {
+        const questionNumber = question.order;
         return questionNumber >= section.startIndex && questionNumber <= section.endIndex;
       });
-      
+
       if (sectionQuestions.length > 0) {
         groupedQuestions.push({ section, questions: sectionQuestions });
       }
@@ -219,9 +221,8 @@ export function QuestionForm({ questions, answers, onAnswersChange, readOnly = f
           {/* Perguntas da seção */}
           <div className="space-y-6">
             {group.questions.map((question) => {
-              // Calcular o número real da questão baseado na posição original
-              const originalIndex = questions.indexOf(question);
-              const questionNumber = originalIndex + 1;
+              // Usar o campo order da questão para exibir o número correto
+              const questionNumber = question.order;
               const answer = localAnswers[question.id];
               const isNegative = answer?.answer === AnswerValue.NAO;
 

@@ -112,10 +112,8 @@ export class EvaluationsService {
       .leftJoinAndSelect('evaluation.answers', 'answer')
       .leftJoinAndSelect('answer.question', 'question');
 
-    // Se não for admin, mostrar apenas suas próprias avaliações
-    if (userRole !== UserRole.ADMIN) {
-      query.where('evaluation.user_id = :userId', { userId });
-    }
+    // Todos os usuários (admin e avaliadores) veem todas as avaliações
+    // Removido filtro por user_id
 
     return query.orderBy('evaluation.created_at', 'DESC').getMany();
   }
@@ -130,10 +128,8 @@ export class EvaluationsService {
       throw new NotFoundException('Avaliação não encontrada');
     }
 
-    // Verificar permissão
-    if (userRole !== UserRole.ADMIN && evaluation.user_id !== userId) {
-      throw new ForbiddenException('Você não tem permissão para acessar esta avaliação');
-    }
+    // Todos os usuários podem visualizar qualquer avaliação
+    // Removido verificação de permissão por user_id
 
     return evaluation;
   }

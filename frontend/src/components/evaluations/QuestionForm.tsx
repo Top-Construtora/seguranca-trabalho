@@ -42,14 +42,15 @@ const OBRA_SECTIONS: QuestionSection[] = [
   { title: 'Elevador Cremalheira', startIndex: 99, endIndex: 120 },
   { title: 'Guincho de Coluna/Mini Grua', startIndex: 121, endIndex: 129 },
   { title: 'Andaime Fachadeiro', startIndex: 130, endIndex: 141 },
-  { title: 'Andaime Suspenso', startIndex: 142, endIndex: 155 },
-  { title: 'Andaime Suspenso Motorizado', startIndex: 156, endIndex: 160 },
-  { title: 'Plataforma Elevatória Móvel de Trabalho', startIndex: 161, endIndex: 171 },
-  { title: 'Medidas de Proteção Contra Queda em Altura', startIndex: 172, endIndex: 176 },
-  { title: 'Içamento de Cargas', startIndex: 177, endIndex: 180 },
-  { title: 'Sinalização/Isolamento', startIndex: 181, endIndex: 182 },
-  { title: 'Equipamento de Proteção Individual', startIndex: 183, endIndex: 185 },
-  { title: 'Capacitação', startIndex: 186, endIndex: 188 },
+  { title: 'Andaime Suspenso', startIndex: 149, endIndex: 162 },
+  { title: 'Andaime Suspenso Motorizado', startIndex: 163, endIndex: 167 },
+  { title: 'Plataforma Elevatória Móvel de Trabalho', startIndex: 168, endIndex: 178 },
+  { title: 'Cadeira Suspensa', startIndex: 179, endIndex: 182 },
+  { title: 'Medidas de Proteção Contra Queda em Altura', startIndex: 183, endIndex: 191 },
+  { title: 'Içamento de Cargas', startIndex: 192, endIndex: 195 },
+  { title: 'Sinalização/Isolamento', startIndex: 196, endIndex: 197 },
+  { title: 'Equipamento de Proteção Individual', startIndex: 198, endIndex: 200 },
+  { title: 'Capacitação', startIndex: 201, endIndex: 203 },
 ];
 
 const ALOJAMENTO_SECTIONS: QuestionSection[] = [

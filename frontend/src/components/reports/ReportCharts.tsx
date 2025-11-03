@@ -120,7 +120,7 @@ export function LastWorksConformityChart({ data, title, description, penaltyData
               <LabelList
                 dataKey="conforme"
                 position="top"
-                formatter={(value: number) => viewMode === 'percentage' ? `${value}%` : value}
+                formatter={(value: any) => viewMode === 'percentage' ? `${value}%` : value}
                 style={{ fontSize: '12px', fontWeight: 'bold', fill: '#059669' }}
               />
             </Bar>
@@ -133,7 +133,7 @@ export function LastWorksConformityChart({ data, title, description, penaltyData
               <LabelList
                 dataKey="naoConforme"
                 position="top"
-                formatter={(value: number) => viewMode === 'percentage' ? `${value}%` : value}
+                formatter={(value: any) => viewMode === 'percentage' ? `${value}%` : value}
                 style={{ fontSize: '12px', fontWeight: 'bold', fill: '#dc2626' }}
               />
             </Bar>

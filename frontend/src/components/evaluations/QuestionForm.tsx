@@ -184,13 +184,13 @@ export function QuestionForm({ questions, answers, onAnswersChange, readOnly = f
 
     const sections = getSectionsForType();
     const groupedQuestions: { section: QuestionSection | null, questions: Question[] }[] = [];
-    
+
     sections.forEach(section => {
-      const sectionQuestions = questions.filter((_, index) => {
-        const questionNumber = index + 1;
+      const sectionQuestions = questions.filter((question) => {
+        const questionNumber = question.order;
         return questionNumber >= section.startIndex && questionNumber <= section.endIndex;
       });
-      
+
       if (sectionQuestions.length > 0) {
         groupedQuestions.push({ section, questions: sectionQuestions });
       }
@@ -220,9 +220,8 @@ export function QuestionForm({ questions, answers, onAnswersChange, readOnly = f
           {/* Perguntas da seção */}
           <div className="space-y-6">
             {group.questions.map((question) => {
-              // Calcular o número real da questão baseado na posição original
-              const originalIndex = questions.indexOf(question);
-              const questionNumber = originalIndex + 1;
+              // Usar o campo order da questão para exibir o número correto
+              const questionNumber = question.order;
               const answer = localAnswers[question.id];
               const isNegative = answer?.answer === AnswerValue.NAO;
 

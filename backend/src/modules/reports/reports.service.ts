@@ -350,7 +350,7 @@ export class ReportsService {
       fgColor: { argb: 'FFE0E0E0' },
     };
 
-    return workbook.xlsx.writeBuffer() as Promise<Buffer>;
+    return Buffer.from(await workbook.xlsx.writeBuffer());
   }
 
   async generateEvaluationPDFReport(evaluationId: string): Promise<Buffer> {

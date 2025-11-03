@@ -67,6 +67,16 @@ async function bootstrap() {
   // Set global prefix for all routes
   app.setGlobalPrefix('api');
 
+  // Serve frontend static files in production
+  if (process.env.NODE_ENV === 'production') {
+    const frontendPath = path.join(process.cwd(), '..', 'frontend', 'dist');
+    console.log('Serving frontend from:', frontendPath);
+    app.useStaticAssets(frontendPath, {
+      prefix: '',
+      index: false,
+    });
+  }
+
   const config = new DocumentBuilder()
     .setTitle('Sistema de Saúde e Segurança do Trabalho')
     .setDescription('API para gerenciamento de avaliações de saúde e segurança')

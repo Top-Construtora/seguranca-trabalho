@@ -12,6 +12,7 @@ import { LogsModule } from './modules/logs/logs.module';
 import { FilesModule } from './modules/files/files.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { databaseConfig } from './config/database.config';
+import { SpaController } from './spa.controller';
 
 @Module({
   imports: [
@@ -33,5 +34,6 @@ import { databaseConfig } from './config/database.config';
     FilesModule,
     DocumentsModule,
   ],
+  controllers: [SpaController],
 })
 export class AppModule {}

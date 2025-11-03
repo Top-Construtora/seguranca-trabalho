@@ -27,8 +27,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const loadUser = async () => {
-      const token = localStorage.getItem('@SST:token');
-      const savedUser = localStorage.getItem('@SST:user');
+      // Migração única: limpar dados antigos do localStorage
+      const oldToken = localStorage.getItem('@SST:token');
+      const oldUser = localStorage.getItem('@SST:user');
+      if (oldToken || oldUser) {
+        localStorage.removeItem('@SST:token');
+        localStorage.removeItem('@SST:user');
+      }
+
+      const token = sessionStorage.getItem('@SST:token');
+      const savedUser = sessionStorage.getItem('@SST:user');
 
       if (token) {
         api.defaults.headers.authorization = `Bearer ${token}`;
@@ -45,13 +53,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const response = await api.get('/auth/me');
           setUser(response.data);
-          // Atualizar localStorage com dados mais recentes
-          localStorage.setItem('@SST:user', JSON.stringify(response.data));
+          // Atualizar sessionStorage com dados mais recentes
+          sessionStorage.setItem('@SST:user', JSON.stringify(response.data));
         } catch {
-          // Se falhar ao buscar dados atualizados, manter usuário do localStorage se existir
+          // Se falhar ao buscar dados atualizados, manter usuário do sessionStorage se existir
           if (!savedUser) {
-            localStorage.removeItem('@SST:token');
-            localStorage.removeItem('@SST:user');
+            sessionStorage.removeItem('@SST:token');
+            sessionStorage.removeItem('@SST:user');
             setUser(null);
           }
         }
@@ -68,8 +76,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await api.post('/auth/login', { email, password });
       const { access_token, user } = response.data;
 
-      localStorage.setItem('@SST:token', access_token);
-      localStorage.setItem('@SST:user', JSON.stringify(user));
+      sessionStorage.setItem('@SST:token', access_token);
+      sessionStorage.setItem('@SST:user', JSON.stringify(user));
 
       api.defaults.headers.authorization = `Bearer ${access_token}`;
 
@@ -86,8 +94,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = () => {
-    localStorage.removeItem('@SST:token');
-    localStorage.removeItem('@SST:user');
+    sessionStorage.removeItem('@SST:token');
+    sessionStorage.removeItem('@SST:user');
 
     delete api.defaults.headers.authorization;
 
@@ -96,12 +104,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshUser = () => {
-    const savedUser = localStorage.getItem('@SST:user');
+    const savedUser = sessionStorage.getItem('@SST:user');
     if (savedUser && !user) {
       try {
         setUser(JSON.parse(savedUser));
       } catch (error) {
-        console.error('Erro ao recuperar usuário do localStorage:', error);
+        console.error('Erro ao recuperar usuário do sessionStorage:', error);
       }
     }
   };

@@ -25,12 +25,12 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('@SST:token');
-  
+  const token = sessionStorage.getItem('@SST:token');
+
   if (token) {
     config.headers.authorization = `Bearer ${token}`;
   }
-  
+
   return config;
 });
 
@@ -40,8 +40,8 @@ api.interceptors.response.use(
     // Só limpar dados se for realmente um erro de autenticação (401)
     // e não for um erro temporário de rede
     if (error.response?.status === 401 && error.config && !error.config.__isRetryRequest) {
-      localStorage.removeItem('@SST:token');
-      localStorage.removeItem('@SST:user');
+      sessionStorage.removeItem('@SST:token');
+      sessionStorage.removeItem('@SST:user');
 
       // Só redirecionar se não estivermos já na página de login
       if (window.location.pathname !== '/login') {

@@ -6,19 +6,21 @@ import * as fs from 'fs';
 @Controller()
 export class SpaController {
   @Get('*')
-  serveSpa(@Res() res: Response): void {
+  serveSpa(@Res() res: Response) {
     // Only serve SPA in production
     if (process.env.NODE_ENV !== 'production') {
-      return res.status(404).send('Not Found - Use frontend dev server in development');
+      res.status(404).send('Not Found - Use frontend dev server in development');
+      return;
     }
 
     const indexPath = path.join(process.cwd(), '..', 'frontend', 'dist', 'index.html');
 
     // Check if file exists
     if (fs.existsSync(indexPath)) {
-      return res.sendFile(indexPath);
+      res.sendFile(indexPath);
+      return;
     }
 
-    return res.status(404).send('Frontend not found. Please build the frontend first.');
+    res.status(404).send('Frontend not found. Please build the frontend first.');
   }
 }

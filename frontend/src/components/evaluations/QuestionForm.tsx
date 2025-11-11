@@ -40,7 +40,7 @@ const OBRA_SECTIONS: QuestionSection[] = [
   { title: 'Armação/Policorte', startIndex: 86, endIndex: 93 }, 
   { title: 'Betoneira', startIndex: 94, endIndex: 101 },
   { title: 'Elevador Cremalheira', startIndex: 102, endIndex: 123 },
-  { title: 'Guincho de Coluna/Mini Grua', startIndex: 124, endIndex: 125 },
+  { title: 'Guincho de Coluna/Mini Grua', startIndex: 124, endIndex: 132 },
   { title: 'Andaime Simples Apoiado', startIndex: 133, endIndex: 142 },
   { title: 'Andaime Fachadeiro', startIndex: 143, endIndex: 154 },
   { title: 'Andaime Suspenso', startIndex: 155, endIndex: 167 },
@@ -281,7 +281,7 @@ export function QuestionForm({ questions, answers, onAnswersChange, readOnly = f
                               className={cn(
                                 "flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer text-lg font-semibold transition-colors",
                                 answer?.answer === AnswerValue.NA
-                                  ? "bg-gray-100 border-gray-300 text-gray-800"
+                                  ? "bg-gray-600 border-gray-700 text-white"
                                   : "hover:bg-gray-50 border-gray-200"
                               )}
                             >
@@ -290,7 +290,7 @@ export function QuestionForm({ questions, answers, onAnswersChange, readOnly = f
                             </Label>
                           </RadioGroup>
 
-                          {(isNegative || answer?.observation || answer?.evidence_urls?.length) && (
+                          {(isNegative || answer?.observation || (answer?.evidence_urls && answer.evidence_urls.length > 0)) && (
                             <div className="space-y-4 mt-4">
                               <div className="space-y-2">
                                 <Label htmlFor={`${question.id}-obs`} className="text-sm">

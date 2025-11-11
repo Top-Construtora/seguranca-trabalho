@@ -66,9 +66,14 @@ export function EvaluationEditPage() {
   };
 
   const handleComplete = async () => {
-    // Verificar se todas as perguntas foram respondidas
+    // Verificar se todas as perguntas foram respondidas com um valor válido
     const allAnswered = questions.every(question =>
-      answers.some(answer => answer.question_id === question.id)
+      answers.some(answer =>
+        answer.question_id === question.id &&
+        answer.answer !== undefined &&
+        answer.answer !== null &&
+        answer.answer !== ''
+      )
     );
 
     if (!allAnswered) {
@@ -78,7 +83,7 @@ export function EvaluationEditPage() {
 
     // Salvar respostas antes de finalizar
     await handleSave();
-    
+
     // Finalizar avaliação
     await completeEvaluation.mutateAsync(id!);
     setShowCompleteDialog(false);
@@ -111,7 +116,15 @@ export function EvaluationEditPage() {
     );
   }
 
-  const answeredCount = answers.filter(a => a.answer).length;
+  // Contar apenas perguntas que têm uma resposta válida (sim, não, ou n/a)
+  const answeredCount = questions.filter(question =>
+    answers.some(answer =>
+      answer.question_id === question.id &&
+      answer.answer !== undefined &&
+      answer.answer !== null &&
+      answer.answer !== ''
+    )
+  ).length;
   const progress = (answeredCount / questions.length) * 100;
 
   return (

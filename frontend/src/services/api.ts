@@ -13,13 +13,6 @@ const getApiUrl = () => {
 
 const baseURL = getApiUrl();
 
-// Debug log for production
-console.log('API Configuration:', {
-  VITE_API_URL: import.meta.env.VITE_API_URL,
-  baseURL: baseURL,
-  environment: import.meta.env.MODE
-});
-
 export const api = axios.create({
   baseURL: baseURL,
 });

@@ -117,39 +117,14 @@ export function EvaluationEditPage() {
   }
 
   // Contar apenas perguntas que têm uma resposta válida (sim, não, ou n/a)
-  const answeredCount = questions.filter(question => {
-    const hasAnswer = answers.some(answer =>
+  const answeredCount = questions.filter(question =>
+    answers.some(answer =>
       answer.question_id === question.id &&
       answer.answer !== undefined &&
       answer.answer !== null &&
       answer.answer !== ''
-    );
-    return hasAnswer;
-  }).length;
-
-  // Debug: log para identificar perguntas não respondidas
-  console.log('Total questions:', questions.length);
-  console.log('Total answers:', answers.length);
-  console.log('Answered count:', answeredCount);
-
-  // Identificar perguntas não respondidas
-  const unansweredQuestions = questions.filter(question => {
-    const hasAnswer = answers.some(answer =>
-      answer.question_id === question.id &&
-      answer.answer !== undefined &&
-      answer.answer !== null &&
-      answer.answer !== ''
-    );
-    return !hasAnswer;
-  });
-
-  console.log('❌ Perguntas NÃO respondidas:', unansweredQuestions.map(q => ({
-    id: q.id,
-    order: q.order,
-    text: q.text,
-    type: q.type
-  })));
-
+    )
+  ).length;
   const progress = (answeredCount / questions.length) * 100;
 
   return (

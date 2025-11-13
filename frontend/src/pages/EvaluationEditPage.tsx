@@ -71,8 +71,7 @@ export function EvaluationEditPage() {
       answers.some(answer =>
         answer.question_id === question.id &&
         answer.answer !== undefined &&
-        answer.answer !== null &&
-        answer.answer !== ''
+        answer.answer !== null
       )
     );
 
@@ -121,8 +120,7 @@ export function EvaluationEditPage() {
     answers.some(answer =>
       answer.question_id === question.id &&
       answer.answer !== undefined &&
-      answer.answer !== null &&
-      answer.answer !== ''
+      answer.answer !== null
     )
   ).length;
   const progress = (answeredCount / questions.length) * 100;

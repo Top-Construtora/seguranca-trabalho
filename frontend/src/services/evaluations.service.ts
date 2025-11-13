@@ -77,7 +77,7 @@ export interface UpdateEvaluationDto {
 
 export interface CreateAnswerDto {
   question_id: string;
-  answer: AnswerValue;
+  answer?: AnswerValue;
   observation?: string;
   evidence_urls?: string[];
 }

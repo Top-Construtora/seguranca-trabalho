@@ -30,7 +30,7 @@ const OBRA_SECTIONS: QuestionSection[] = [
   { title: 'Áreas de Vivência - Chuveiros', startIndex: 27, endIndex: 30 },
   { title: 'Áreas de Vivência - Vestiários', startIndex: 31, endIndex: 35 },
   { title: 'Áreas de Vivência - Local para Refeições', startIndex: 36, endIndex: 42 },
-  { title: 'Controle de Saúde Ocupacional', startIndex: 43, endIndex: 45 },
+  { title: 'CIPA', startIndex: 43, endIndex: 45 },
   { title: 'Controle de Colaboradores', startIndex: 46, endIndex: 47 },
   { title: 'Instalações Elétricas', startIndex: 48, endIndex: 61 },
   { title: 'Escavação, Fundação e Desmonte de Rochas', startIndex: 62, endIndex: 70 },

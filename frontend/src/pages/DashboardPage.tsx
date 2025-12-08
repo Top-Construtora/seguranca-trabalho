@@ -42,6 +42,19 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
+// Função para formatar valores monetários de forma compacta
+const formatCurrencyCompact = (value: number): string => {
+  if (value >= 1000000) {
+    const millions = value / 1000000;
+    return `R$ ${millions.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mi`;
+  }
+  if (value >= 1000) {
+    const thousands = value / 1000;
+    return `R$ ${thousands.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 })} mil`;
+  }
+  return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+};
+
 export function DashboardPage() {
   const navigate = useNavigate();
   const { user, loading: userLoading, refreshUser } = useAuth();
@@ -503,7 +516,7 @@ export function DashboardPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigate('/evaluations')}
+                    onClick={() => navigate('/ranking')}
                     className="text-[#12b0a0] hover:text-[#12b0a0]/80 h-8 px-2"
                   >
                     Ver todas
@@ -648,14 +661,7 @@ export function DashboardPage() {
                     Economia Total Estimada
                   </p>
                   <p className="text-3xl font-bold text-[#12b0a0]">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                      notation: 'compact',
-                      compactDisplay: 'short'
-                    }).format((metrics.totalMinPenalty + metrics.totalMaxPenalty) / 2)}
+                    {formatCurrencyCompact((metrics.totalMinPenalty + metrics.totalMaxPenalty) / 2)}
                   </p>
                 </div>
               </div>
@@ -670,14 +676,7 @@ export function DashboardPage() {
                     </span>
                   </div>
                   <span className="text-sm font-bold text-gray-800 dark:text-gray-200">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                      notation: 'compact',
-                      compactDisplay: 'short'
-                    }).format(metrics.totalMinPenalty)}
+                    {formatCurrencyCompact(metrics.totalMinPenalty)}
                   </span>
                 </div>
 
@@ -689,14 +688,7 @@ export function DashboardPage() {
                     </span>
                   </div>
                   <span className="text-sm font-bold text-gray-800 dark:text-gray-200">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                      notation: 'compact',
-                      compactDisplay: 'short'
-                    }).format(metrics.totalMaxPenalty)}
+                    {formatCurrencyCompact(metrics.totalMaxPenalty)}
                   </span>
                 </div>
               </div>

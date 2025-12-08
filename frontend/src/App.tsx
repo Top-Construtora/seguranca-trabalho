@@ -10,6 +10,7 @@ import { EvaluationEditPage } from './pages/EvaluationEditPage'
 import { EvaluationReportPage } from './pages/EvaluationReportPage'
 import { EvaluationRedirect } from './components/EvaluationRedirect'
 import { ActionPlansPage } from './pages/ActionPlansPage'
+import { RankingPage } from './pages/RankingPage'
 import { ReportsPageUltimate as ReportsPage } from './pages/ReportsPageUltimate'
 import ListDocuments from './pages/documents/ListDocuments'
 import CreateDocument from './pages/documents/CreateDocument'
@@ -79,6 +80,14 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <EvaluationEditPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ranking"
+              element={
+                <ProtectedRoute>
+                  <RankingPage />
                 </ProtectedRoute>
               }
             />

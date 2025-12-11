@@ -15,6 +15,11 @@ import { ReportsPageUltimate as ReportsPage } from './pages/ReportsPageUltimate'
 import ListDocuments from './pages/documents/ListDocuments'
 import CreateDocument from './pages/documents/CreateDocument'
 import EditDocument from './pages/documents/EditDocument'
+import { AccidentsPage } from './pages/AccidentsPage'
+import { AccidentFormPage } from './pages/AccidentFormPage'
+import { AccidentDetailsPage } from './pages/AccidentDetailsPage'
+import { AccidentDashboardPage } from './pages/AccidentDashboardPage'
+import { CorrectiveActionsPage } from './pages/CorrectiveActionsPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Toaster } from './components/ui/toaster'
 
@@ -136,6 +141,55 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <EditDocument />
+                </ProtectedRoute>
+              }
+            />
+            {/* Rotas de Acidentes */}
+            <Route
+              path="/accidents"
+              element={
+                <ProtectedRoute>
+                  <AccidentsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/accidents/new"
+              element={
+                <ProtectedRoute>
+                  <AccidentFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/accidents/dashboard"
+              element={
+                <ProtectedRoute>
+                  <AccidentDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/accidents/:id"
+              element={
+                <ProtectedRoute>
+                  <AccidentDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/accidents/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <AccidentFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/corrective-actions"
+              element={
+                <ProtectedRoute>
+                  <CorrectiveActionsPage />
                 </ProtectedRoute>
               }
             />

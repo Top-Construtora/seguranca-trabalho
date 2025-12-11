@@ -24,7 +24,12 @@ export function parseLocalDate(dateString: string): Date {
 /**
  * Format a date string from the backend to a formatted string
  */
-export function formatDate(dateString: string, formatStr: string, options?: any): string {
-  const date = parseLocalDate(dateString);
-  return dateFnsFormat(date, formatStr, { locale: ptBR, ...options });
+export function formatDate(dateString: string | undefined | null, formatStr: string = 'dd/MM/yyyy', options?: any): string {
+  if (!dateString) return '-';
+  try {
+    const date = parseLocalDate(dateString);
+    return dateFnsFormat(date, formatStr, { locale: ptBR, ...options });
+  } catch {
+    return '-';
+  }
 }

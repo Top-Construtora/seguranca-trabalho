@@ -14,11 +14,16 @@ import {
   Home,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   User,
   ClipboardList,
   Sun,
   Moon,
   FolderOpen,
+  AlertTriangle,
+  Activity,
+  CheckCircle2,
+  List,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -38,12 +43,28 @@ interface DashboardLayoutProps {
   children: ReactNode;
 }
 
-const navigation = [
+interface NavItem {
+  name: string;
+  href?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children?: NavItem[];
+}
+
+const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Obras', href: '/works', icon: Building2 },
   { name: 'Avaliação de Obra', href: '/evaluations/obra', icon: HardHat },
   { name: 'Avaliação de Alojamento', href: '/evaluations/alojamento', icon: Home },
   { name: 'Planos de Ação', href: '/action-plans', icon: ClipboardList },
+  {
+    name: 'Acidentes',
+    icon: AlertTriangle,
+    children: [
+      { name: 'Lista de Acidentes', href: '/accidents', icon: List },
+      { name: 'Dashboard', href: '/accidents/dashboard', icon: Activity },
+      { name: 'Ações Corretivas', href: '/corrective-actions', icon: CheckCircle2 },
+    ]
+  },
   { name: 'Documentos', href: '/documents', icon: FolderOpen },
   { name: 'Relatórios', href: '/reports', icon: FileText },
 ];
@@ -57,11 +78,41 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     const saved = localStorage.getItem('sidebar-collapsed');
     return saved ? JSON.parse(saved) : false;
   });
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(() => {
+    const saved = localStorage.getItem('expanded-menus');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const handleLogout = () => {
     signOut();
   };
+
+  const toggleMenu = (menuName: string) => {
+    setExpandedMenus(prev => {
+      const newExpanded = prev.includes(menuName)
+        ? prev.filter(name => name !== menuName)
+        : [...prev, menuName];
+      return newExpanded;
+    });
+  };
+
+  // Check if any child route is active
+  const isChildActive = (item: NavItem) => {
+    if (!item.children) return false;
+    return item.children.some(child =>
+      child.href && (location.pathname === child.href || location.pathname.startsWith(child.href + '/'))
+    );
+  };
+
+  // Auto-expand menu if child is active
+  useEffect(() => {
+    navigation.forEach(item => {
+      if (item.children && isChildActive(item) && !expandedMenus.includes(item.name)) {
+        setExpandedMenus(prev => [...prev, item.name]);
+      }
+    });
+  }, [location.pathname]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -75,6 +126,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   useEffect(() => {
     localStorage.setItem('sidebar-collapsed', JSON.stringify(sidebarCollapsed));
   }, [sidebarCollapsed]);
+
+  // Save expanded menus to localStorage
+  useEffect(() => {
+    localStorage.setItem('expanded-menus', JSON.stringify(expandedMenus));
+  }, [expandedMenus]);
 
   return (
     <div className="min-h-screen bg-[#1e2938] dark:bg-gray-900">
@@ -104,13 +160,66 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           
           <nav className="flex-1 space-y-1 px-3 py-4">
             {navigation.map((item) => {
-              const isActive = location.pathname === item.href || 
-                (item.href.startsWith('/evaluations') && location.pathname.startsWith('/evaluations') && 
-                 location.pathname.includes(item.href.split('/')[2]));
+              const hasChildren = item.children && item.children.length > 0;
+              const isExpanded = expandedMenus.includes(item.name);
+              const isActive = item.href && (location.pathname === item.href ||
+                (item.href.startsWith('/evaluations') && location.pathname.startsWith('/evaluations') &&
+                 location.pathname.includes(item.href.split('/')[2])));
+              const hasActiveChild = isChildActive(item);
+
+              if (hasChildren) {
+                return (
+                  <div key={item.name}>
+                    <button
+                      onClick={() => toggleMenu(item.name)}
+                      className={cn(
+                        "flex items-center gap-4 rounded-lg px-4 py-3 text-base font-medium transition-colors w-full",
+                        hasActiveChild
+                          ? "bg-blue-600 text-white dark:bg-blue-500"
+                          : "text-gray-300 dark:text-gray-400 hover:bg-white/10 dark:hover:bg-white/5 hover:text-white dark:hover:text-gray-200"
+                      )}
+                    >
+                      <item.icon className="h-6 w-6" />
+                      <span className="flex-1 text-left">{item.name}</span>
+                      <ChevronDown className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        isExpanded && "rotate-180"
+                      )} />
+                    </button>
+                    <div className={cn(
+                      "overflow-hidden transition-all duration-200",
+                      isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                    )}>
+                      <div className="mt-1 space-y-1">
+                        {item.children?.map((child) => {
+                          const isChildItemActive = child.href && (location.pathname === child.href || location.pathname.startsWith(child.href + '/'));
+                          return (
+                            <Link
+                              key={child.name}
+                              to={child.href || '#'}
+                              className={cn(
+                                "flex items-center gap-4 rounded-lg px-4 py-3 text-base font-medium transition-colors ml-6",
+                                isChildItemActive
+                                  ? "bg-blue-600 text-white dark:bg-blue-500"
+                                  : "text-gray-300 dark:text-gray-400 hover:bg-white/10 dark:hover:bg-white/5 hover:text-white dark:hover:text-gray-200"
+                              )}
+                              onClick={() => setSidebarOpen(false)}
+                            >
+                              <child.icon className="h-6 w-6" />
+                              {child.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <Link
                   key={item.name}
-                  to={item.href}
+                  to={item.href || '#'}
                   className={cn(
                     "flex items-center gap-4 rounded-lg px-4 py-3 text-base font-medium transition-colors",
                     isActive
@@ -171,13 +280,110 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             )}
 
             {navigation.map((item) => {
-              const isActive = location.pathname === item.href || 
-                (item.href.startsWith('/evaluations') && location.pathname.startsWith('/evaluations') && 
-                 location.pathname.includes(item.href.split('/')[2]));
+              const hasChildren = item.children && item.children.length > 0;
+              const isExpanded = expandedMenus.includes(item.name);
+              const isActive = item.href && (location.pathname === item.href ||
+                (item.href.startsWith('/evaluations') && location.pathname.startsWith('/evaluations') &&
+                 location.pathname.includes(item.href.split('/')[2])));
+              const hasActiveChild = isChildActive(item);
+
+              if (hasChildren) {
+                // Menu com submenus (expandível)
+                if (sidebarCollapsed) {
+                  // Quando colapsado, mostrar dropdown no hover
+                  return (
+                    <DropdownMenu key={item.name}>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          className={cn(
+                            "flex items-center rounded-lg py-3 px-3 justify-center text-base font-medium transition-colors relative group w-full",
+                            hasActiveChild
+                              ? "bg-blue-600 text-white dark:bg-blue-500"
+                              : "text-gray-300 dark:text-gray-400 hover:bg-white/10 dark:hover:bg-white/5 hover:text-white dark:hover:text-gray-200"
+                          )}
+                          title={item.name}
+                        >
+                          <item.icon className="h-6 w-6 shrink-0" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent side="right" align="start" className="w-48">
+                        <DropdownMenuLabel>{item.name}</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {item.children?.map((child) => {
+                          const isChildItemActive = child.href && (location.pathname === child.href || location.pathname.startsWith(child.href + '/'));
+                          return (
+                            <DropdownMenuItem key={child.name} asChild>
+                              <Link
+                                to={child.href || '#'}
+                                className={cn(
+                                  "flex items-center gap-2 w-full",
+                                  isChildItemActive && "bg-blue-100 dark:bg-blue-900"
+                                )}
+                              >
+                                <child.icon className="h-4 w-4" />
+                                {child.name}
+                              </Link>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  );
+                }
+
+                // Quando expandido, mostrar submenu colapsável
+                return (
+                  <div key={item.name}>
+                    <button
+                      onClick={() => toggleMenu(item.name)}
+                      className={cn(
+                        "flex items-center rounded-lg py-3 px-4 gap-4 text-base font-medium transition-colors w-full",
+                        hasActiveChild
+                          ? "bg-blue-600 text-white dark:bg-blue-500"
+                          : "text-gray-300 dark:text-gray-400 hover:bg-white/10 dark:hover:bg-white/5 hover:text-white dark:hover:text-gray-200"
+                      )}
+                    >
+                      <item.icon className="h-6 w-6 shrink-0" />
+                      <span className="flex-1 text-left transition-opacity duration-200">{item.name}</span>
+                      <ChevronDown className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        isExpanded && "rotate-180"
+                      )} />
+                    </button>
+                    <div className={cn(
+                      "overflow-hidden transition-all duration-200",
+                      isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                    )}>
+                      <div className="mt-1 space-y-2">
+                        {item.children?.map((child) => {
+                          const isChildItemActive = child.href && (location.pathname === child.href || location.pathname.startsWith(child.href + '/'));
+                          return (
+                            <Link
+                              key={child.name}
+                              to={child.href || '#'}
+                              className={cn(
+                                "flex items-center rounded-lg py-3 px-4 gap-4 text-base font-medium transition-colors ml-6",
+                                isChildItemActive
+                                  ? "bg-blue-600 text-white dark:bg-blue-500"
+                                  : "text-gray-300 dark:text-gray-400 hover:bg-white/10 dark:hover:bg-white/5 hover:text-white dark:hover:text-gray-200"
+                              )}
+                            >
+                              <child.icon className="h-6 w-6 shrink-0" />
+                              <span>{child.name}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // Item simples sem submenus
               return (
                 <Link
                   key={item.name}
-                  to={item.href}
+                  to={item.href || '#'}
                   className={cn(
                     "flex items-center rounded-lg py-3 text-base font-medium transition-colors relative group",
                     sidebarCollapsed ? "px-3 justify-center" : "px-4 gap-4",

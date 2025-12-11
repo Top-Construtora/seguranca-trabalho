@@ -11,6 +11,7 @@ import { ReportsModule } from './modules/reports/reports.module';
 import { LogsModule } from './modules/logs/logs.module';
 import { FilesModule } from './modules/files/files.module';
 import { DocumentsModule } from './modules/documents/documents.module';
+import { AccidentsModule } from './modules/accidents/accidents.module';
 import { databaseConfig } from './config/database.config';
 
 @Module({
@@ -32,6 +33,7 @@ import { databaseConfig } from './config/database.config';
     LogsModule,
     FilesModule,
     DocumentsModule,
+    AccidentsModule,
   ],
 })
 export class AppModule {}

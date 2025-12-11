@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, LayoutGrid, List, AlertTriangle, Search } from 'lucide-react';
+import { Plus, LayoutGrid, List, Search } from 'lucide-react';
 import { AccidentFilters } from '@/components/accidents/AccidentFilters';
 import { AccidentsList } from '@/components/accidents/AccidentsList';
 import { AccidentCard } from '@/components/accidents/AccidentCard';

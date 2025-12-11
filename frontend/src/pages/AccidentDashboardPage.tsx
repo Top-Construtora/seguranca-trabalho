@@ -60,7 +60,7 @@ export function AccidentDashboardPage() {
   }>({});
 
   const { data: works = [] } = useWorks();
-  const { data: summary, isLoading: summaryLoading } = useAccidentsDashboard(filters);
+  const { data: summary } = useAccidentsDashboard(filters);
   const { data: byWork = [] } = useDaysAwayByWork(filters);
   const { data: byBodyPart = [] } = useAccidentsByBodyPart(filters);
   const { data: bySeverity = [] } = useAccidentsBySeverity(filters);
@@ -70,8 +70,6 @@ export function AccidentDashboardPage() {
   const clearFilters = () => {
     setFilters({});
   };
-
-  const pieColors = ['#22c55e', '#eab308', '#f97316', '#ef4444'];
 
   return (
     <DashboardLayout>
@@ -217,7 +215,7 @@ export function AccidentDashboardPage() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) =>
+                      label={({ name, percent }: { name: string; percent: number }) =>
                         `${name} (${(percent * 100).toFixed(0)}%)`
                       }
                       outerRadius={100}
@@ -289,7 +287,7 @@ export function AccidentDashboardPage() {
                     />
                     <YAxis />
                     <Tooltip
-                      formatter={(value, name) => [value, 'Ocorrências']}
+                      formatter={(value) => [value, 'Ocorrências']}
                       labelFormatter={(v) => BODY_PART_LABELS[v as keyof typeof BODY_PART_LABELS] || v}
                     />
                     <Bar dataKey="count" fill="#12b0a0" name="Ocorrências" />

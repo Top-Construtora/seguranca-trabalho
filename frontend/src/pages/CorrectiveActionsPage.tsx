@@ -52,7 +52,7 @@ import {
 
 export function CorrectiveActionsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  useAuth();
   const [activeTab, setActiveTab] = useState('all');
   const [filters, setFilters] = useState<{
     status?: CorrectiveActionStatus;

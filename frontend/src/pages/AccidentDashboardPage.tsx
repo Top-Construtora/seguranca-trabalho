@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,23 +21,18 @@ import {
 import { useWorks } from '@/hooks/useWorks';
 import {
   SEVERITY_LABELS,
-  STATUS_LABELS,
   BODY_PART_LABELS,
   SEVERITY_COLORS,
   AccidentSeverity,
-  AccidentStatus,
 } from '@/types/accident.types';
 import { SeverityBadge, AccidentStatusBadge } from '@/components/accidents/AccidentStatusBadge';
 import { formatDate } from '@/utils/date';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
-  Calendar,
   Clock,
   TrendingUp,
   Building2,
-  Activity,
-  Users,
   Filter,
 } from 'lucide-react';
 import {

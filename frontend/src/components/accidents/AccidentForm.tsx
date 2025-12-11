@@ -71,7 +71,7 @@ export function AccidentForm({
   onCancel,
   isLoading = false,
 }: AccidentFormProps) {
-  const { data: works = [], isLoading: worksLoading } = useWorks();
+  const { data: works = [] } = useWorks();
 
   const form = useForm<AccidentFormData>({
     resolver: zodResolver(accidentSchema),

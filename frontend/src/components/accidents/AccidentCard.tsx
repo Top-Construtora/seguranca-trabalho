@@ -8,7 +8,6 @@ import {
   Building2,
   User,
   Clock,
-  MapPin,
   Eye,
   Pencil,
   Trash2,

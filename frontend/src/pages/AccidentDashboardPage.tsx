@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +34,8 @@ import {
   TrendingUp,
   Building2,
   Filter,
+  BarChart3,
+  User,
 } from 'lucide-react';
 import {
   BarChart,
@@ -50,6 +52,7 @@ import {
   Line,
   Legend,
 } from 'recharts';
+import { BodySilhouette } from '@/components/accidents/BodySilhouette';
 
 export function AccidentDashboardPage() {
   const navigate = useNavigate();
@@ -58,6 +61,25 @@ export function AccidentDashboardPage() {
     start_date?: string;
     end_date?: string;
   }>({});
+  const [bodyPartView, setBodyPartView] = useState<'silhouette' | 'chart'>('chart');
+  const [isAutoRotate, setIsAutoRotate] = useState(true);
+
+  // Alternar automaticamente a cada 10 segundos
+  useEffect(() => {
+    if (!isAutoRotate) return;
+
+    const interval = setInterval(() => {
+      setBodyPartView((prev) => (prev === 'silhouette' ? 'chart' : 'silhouette'));
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [isAutoRotate]);
+
+  // Parar auto-rotate quando o usuário clicar manualmente
+  const handleViewChange = useCallback((view: 'silhouette' | 'chart') => {
+    setIsAutoRotate(false);
+    setBodyPartView(view);
+  }, []);
 
   const { data: works = [] } = useWorks();
   const { data: summary } = useAccidentsDashboard(filters);
@@ -269,30 +291,60 @@ export function AccidentDashboardPage() {
 
         {/* Charts Row 2 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Body Parts */}
+          {/* Body Parts - Silhueta Humana ou Gráfico */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Partes do Corpo Mais Afetadas</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Partes do Corpo Mais Afetadas</h3>
+              <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                <button
+                  onClick={() => handleViewChange('silhouette')}
+                  className={`p-1.5 rounded-md transition-colors ${
+                    bodyPartView === 'silhouette'
+                      ? 'bg-white dark:bg-gray-600 text-[#1e6076] dark:text-[#12b0a0] shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                  title="Visualização em silhueta"
+                >
+                  <User className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => handleViewChange('chart')}
+                  className={`p-1.5 rounded-md transition-colors ${
+                    bodyPartView === 'chart'
+                      ? 'bg-white dark:bg-gray-600 text-[#1e6076] dark:text-[#12b0a0] shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                  title="Visualização em gráfico"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
             <div>
               {byBodyPart.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={byBodyPart.slice(0, 8)}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="body_part"
-                      tick={{ fontSize: 10 }}
-                      tickFormatter={(v) => BODY_PART_LABELS[v as keyof typeof BODY_PART_LABELS] || v}
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                    />
-                    <YAxis />
-                    <Tooltip
-                      formatter={(value) => [value, 'Ocorrências']}
-                      labelFormatter={(v) => BODY_PART_LABELS[v as keyof typeof BODY_PART_LABELS] || v}
-                    />
-                    <Bar dataKey="count" fill="#12b0a0" name="Ocorrências" />
-                  </BarChart>
-                </ResponsiveContainer>
+                bodyPartView === 'silhouette' ? (
+                  <BodySilhouette data={byBodyPart} className="h-[320px]" />
+                ) : (
+                  <ResponsiveContainer width="100%" height={350}>
+                    <BarChart data={byBodyPart.slice(0, 8)}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="body_part"
+                        tick={{ fontSize: 10 }}
+                        tickFormatter={(v) => BODY_PART_LABELS[v as keyof typeof BODY_PART_LABELS] || v}
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                      />
+                      <YAxis />
+                      <Tooltip
+                        formatter={(value) => [value, 'Ocorrências']}
+                        labelFormatter={(v) => BODY_PART_LABELS[v as keyof typeof BODY_PART_LABELS] || v}
+                      />
+                      <Bar dataKey="count" fill="#12b0a0" name="Ocorrências" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-gray-400 dark:text-gray-500">
                   Nenhum dado disponível

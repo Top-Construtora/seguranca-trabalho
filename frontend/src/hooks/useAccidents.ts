@@ -6,8 +6,6 @@ import {
   CreateAccidentDto,
   UpdateAccidentDto,
   CreateEvidenceDto,
-  CreateInvestigationDto,
-  UpdateInvestigationDto,
   CreateCorrectiveActionDto,
   UpdateCorrectiveActionDto,
   CorrectiveActionStatus,
@@ -160,103 +158,6 @@ export function useRemoveEvidence() {
       toast({
         title: 'Erro ao remover evidência',
         description: error.response?.data?.message || 'Ocorreu um erro ao remover a evidência.',
-        variant: 'destructive',
-      });
-    },
-  });
-}
-
-// === Investigações ===
-
-export function useAccidentInvestigations(accidentId: string) {
-  return useQuery({
-    queryKey: ['accidents', accidentId, 'investigations'],
-    queryFn: () => accidentsService.getInvestigations(accidentId),
-    enabled: !!accidentId,
-  });
-}
-
-export function useInvestigation(id: string) {
-  return useQuery({
-    queryKey: ['investigations', id],
-    queryFn: () => accidentsService.getInvestigationById(id),
-    enabled: !!id,
-  });
-}
-
-export function useCreateInvestigation() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: ({
-      accidentId,
-      data,
-    }: {
-      accidentId: string;
-      data: Omit<CreateInvestigationDto, 'accident_id'>;
-    }) => accidentsService.createInvestigation(accidentId, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['accidents', variables.accidentId] });
-      queryClient.invalidateQueries({ queryKey: ['accidents', variables.accidentId, 'investigations'] });
-      toast({
-        title: 'Investigação criada',
-        description: 'A investigação foi criada com sucesso.',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Erro ao criar investigação',
-        description: error.response?.data?.message || 'Ocorreu um erro ao criar a investigação.',
-        variant: 'destructive',
-      });
-    },
-  });
-}
-
-export function useUpdateInvestigation() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateInvestigationDto }) =>
-      accidentsService.updateInvestigation(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accidents'] });
-      queryClient.invalidateQueries({ queryKey: ['investigations'] });
-      toast({
-        title: 'Investigação atualizada',
-        description: 'A investigação foi atualizada com sucesso.',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Erro ao atualizar investigação',
-        description: error.response?.data?.message || 'Ocorreu um erro ao atualizar a investigação.',
-        variant: 'destructive',
-      });
-    },
-  });
-}
-
-export function useDeleteInvestigation() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: (id: string) => accidentsService.deleteInvestigation(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accidents'] });
-      queryClient.invalidateQueries({ queryKey: ['investigations'] });
-      toast({
-        title: 'Investigação excluída',
-        description: 'A investigação foi excluída com sucesso.',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Erro ao excluir investigação',
-        description: error.response?.data?.message || 'Ocorreu um erro ao excluir a investigação.',
         variant: 'destructive',
       });
     },

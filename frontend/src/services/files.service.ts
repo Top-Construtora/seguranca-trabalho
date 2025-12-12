@@ -79,6 +79,42 @@ class FilesService {
       throw error;
     }
   }
+
+  async uploadEvidenceFile(file: File): Promise<UploadedFile> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      console.log('Uploading evidence file:', {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      });
+
+      const response = await api.post<UploadedFile>('/files/upload/evidence', formData, {
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
+          console.log('Evidence upload progress:', percentCompleted + '%');
+        },
+      });
+
+      console.log('Evidence upload successful:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Evidence upload failed:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      if (error.response?.status === 400) {
+        const errorMessage = error.response?.data?.message || 'Arquivo inválido ou muito grande';
+        throw new Error(errorMessage);
+      }
+
+      throw error;
+    }
+  }
 }
 
 export const filesService = new FilesService();

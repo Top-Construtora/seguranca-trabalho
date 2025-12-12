@@ -8,7 +8,6 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Accident } from './accident.entity';
-import { AccidentInvestigation } from './accident-investigation.entity';
 import { User } from '../../users/entities/user.entity';
 
 export enum CorrectiveActionStatus {
@@ -32,16 +31,6 @@ export class AccidentCorrectiveAction {
 
   @Column({ name: 'accident_id' })
   accident_id: string;
-
-  @ManyToOne(() => AccidentInvestigation, (inv) => inv.corrective_actions, {
-    onDelete: 'SET NULL',
-    nullable: true,
-  })
-  @JoinColumn({ name: 'investigation_id' })
-  investigation: AccidentInvestigation;
-
-  @Column({ name: 'investigation_id', nullable: true })
-  investigation_id: string;
 
   @Column({ type: 'text', name: 'action_description' })
   action_description: string;

@@ -38,7 +38,6 @@ export class CorrectiveActionsService {
 
     const action = this.actionRepository.create({
       accident_id: createDto.accident_id,
-      investigation_id: createDto.investigation_id,
       action_description: createDto.action_description,
       responsible_id: createDto.responsible_id,
       target_date: new Date(createDto.target_date),
@@ -64,8 +63,7 @@ export class CorrectiveActionsService {
       .createQueryBuilder('action')
       .leftJoinAndSelect('action.accident', 'accident')
       .leftJoinAndSelect('accident.work', 'work')
-      .leftJoinAndSelect('action.responsible', 'responsible')
-      .leftJoinAndSelect('action.investigation', 'investigation');
+      .leftJoinAndSelect('action.responsible', 'responsible');
 
     if (filters?.status) {
       query.andWhere('action.status = :status', { status: filters.status });
@@ -99,7 +97,7 @@ export class CorrectiveActionsService {
   async findByAccident(accidentId: string): Promise<AccidentCorrectiveAction[]> {
     return this.actionRepository.find({
       where: { accident_id: accidentId },
-      relations: ['responsible', 'investigation'],
+      relations: ['responsible'],
       order: { priority: 'ASC', target_date: 'ASC' },
     });
   }
@@ -126,7 +124,6 @@ export class CorrectiveActionsService {
         'accident',
         'accident.work',
         'responsible',
-        'investigation',
       ],
     });
 
@@ -174,9 +171,6 @@ export class CorrectiveActionsService {
       }
       if (updateDto.verification_method !== undefined) {
         updateData.verification_method = updateDto.verification_method;
-      }
-      if (updateDto.investigation_id !== undefined) {
-        updateData.investigation_id = updateDto.investigation_id;
       }
     }
 

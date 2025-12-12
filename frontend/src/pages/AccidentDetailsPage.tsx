@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   useAccident,
   useUpdateAccident,
+  useRemoveEvidence,
 } from '@/hooks/useAccidents';
 import {
   SeverityBadge,
@@ -17,9 +18,11 @@ import {
   TYPE_LABELS,
   BODY_PART_LABELS,
   AccidentStatus,
+  EvidenceFileType,
 } from '@/types/accident.types';
 import { formatDate } from '@/utils/date';
 import { useAuth } from '@/contexts/AuthContext';
+import { EvidenceUploadModal } from '@/components/accidents/EvidenceUploadModal';
 import {
   ArrowLeft,
   Pencil,
@@ -30,10 +33,13 @@ import {
   MapPin,
   FileText,
   Image,
-  FileSearch,
   CheckCircle2,
   AlertTriangle,
   Plus,
+  Video,
+  Trash2,
+  ExternalLink,
+  File,
 } from 'lucide-react';
 
 export function AccidentDetailsPage() {
@@ -41,11 +47,20 @@ export function AccidentDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('details');
+  const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false);
 
   const { data: accident, isLoading } = useAccident(id || '');
   const updateAccident = useUpdateAccident();
+  const removeEvidence = useRemoveEvidence();
 
   const isAdmin = user?.role === 'admin';
+
+  const handleRemoveEvidence = async (evidenceId: string) => {
+    if (!id) return;
+    if (window.confirm('Tem certeza que deseja remover esta evidência?')) {
+      await removeEvidence.mutateAsync({ accidentId: id, evidenceId });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -142,10 +157,6 @@ export function AccidentDetailsPage() {
             <TabsTrigger value="evidences">
               <Image className="h-4 w-4 mr-2" />
               Evidências ({accident.evidences?.length || 0})
-            </TabsTrigger>
-            <TabsTrigger value="investigations">
-              <FileSearch className="h-4 w-4 mr-2" />
-              Investigações ({accident.investigations?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="actions">
               <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -287,6 +298,7 @@ export function AccidentDetailsPage() {
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Evidências</h3>
                 <Button
                   size="sm"
+                  onClick={() => setIsEvidenceModalOpen(true)}
                   className="bg-gradient-to-r from-[#1e6076] to-[#12b0a0] hover:from-[#1e6076]/90 hover:to-[#12b0a0]/90 text-white"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -295,91 +307,101 @@ export function AccidentDetailsPage() {
               </div>
               <div>
                 {accident.evidences && accident.evidences.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {accident.evidences.map((evidence) => (
                       <div
                         key={evidence.id}
-                        className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-2"
+                        className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-2 group relative"
                       >
-                        <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
-                          {evidence.file_type === 'image' ? (
+                        {/* Preview */}
+                        <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center overflow-hidden">
+                          {evidence.file_type === EvidenceFileType.IMAGE && evidence.file_url ? (
                             <img
                               src={evidence.file_url}
                               alt={evidence.file_name}
-                              className="object-cover rounded"
+                              className="w-full h-full object-cover rounded"
                             />
+                          ) : evidence.file_type === EvidenceFileType.VIDEO && evidence.file_url ? (
+                            <video
+                              src={evidence.file_url}
+                              className="w-full h-full object-cover rounded"
+                            />
+                          ) : evidence.file_type === EvidenceFileType.VIDEO ? (
+                            <Video className="h-12 w-12 text-gray-400 dark:text-gray-500" />
+                          ) : evidence.file_type === EvidenceFileType.PDF ? (
+                            <File className="h-12 w-12 text-red-500" />
                           ) : (
                             <FileText className="h-12 w-12 text-gray-400 dark:text-gray-500" />
                           )}
                         </div>
-                        <p className="text-sm text-gray-700 dark:text-gray-300 truncate">{evidence.file_name}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Por {evidence.uploaded_by?.name || 'N/A'}
+
+                        {/* Type Badge */}
+                        <div className="absolute top-4 left-4">
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                            evidence.file_type === EvidenceFileType.IMAGE
+                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                              : evidence.file_type === EvidenceFileType.VIDEO
+                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                              : evidence.file_type === EvidenceFileType.PDF
+                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                              : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
+                          }`}>
+                            {evidence.file_type === EvidenceFileType.IMAGE ? 'Imagem' :
+                             evidence.file_type === EvidenceFileType.VIDEO ? 'Vídeo' :
+                             evidence.file_type === EvidenceFileType.PDF ? 'PDF' : 'Texto'}
+                          </span>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                          {evidence.file_url && (
+                            <a
+                              href={evidence.file_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-50 dark:hover:bg-gray-700"
+                            >
+                              <ExternalLink className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                            </a>
+                          )}
+                          <button
+                            onClick={() => handleRemoveEvidence(evidence.id)}
+                            className="p-1.5 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-red-50 dark:hover:bg-red-900/30"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </button>
+                        </div>
+
+                        {/* Info */}
+                        <p className="text-sm text-gray-700 dark:text-gray-300 truncate" title={evidence.file_name}>
+                          {evidence.file_name}
+                        </p>
+                        {evidence.description && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                            {evidence.description}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                          Por {evidence.uploaded_by?.name || 'N/A'} • {formatDate(evidence.created_at)}
                         </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center py-8 text-gray-400 dark:text-gray-500">
-                    Nenhuma evidência registrada
-                  </p>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Investigations Tab */}
-          <TabsContent value="investigations">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Investigações</h3>
-                {isAdmin && (
-                  <Button
-                    size="sm"
-                    className="bg-gradient-to-r from-[#1e6076] to-[#12b0a0] hover:from-[#1e6076]/90 hover:to-[#12b0a0]/90 text-white"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nova Investigação
-                  </Button>
-                )}
-              </div>
-              <div>
-                {accident.investigations && accident.investigations.length > 0 ? (
-                  <div className="space-y-4">
-                    {accident.investigations.map((inv) => (
-                      <div key={inv.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium text-gray-800 dark:text-gray-100">
-                              Investigação - {formatDate(inv.investigation_date)}
-                            </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              Por {inv.investigator?.name || 'N/A'}
-                            </p>
-                          </div>
-                          {inv.method_used && (
-                            <span className="text-xs bg-[#1e6076]/10 dark:bg-[#12b0a0]/20 text-[#1e6076] dark:text-[#12b0a0] px-2 py-1 rounded">
-                              {inv.method_used}
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Causa Raiz:</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{inv.root_cause}</p>
-                        </div>
-                        {inv.recommendations && (
-                          <div>
-                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Recomendações:</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{inv.recommendations}</p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                  <div className="text-center py-12">
+                    <Image className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                    <p className="text-gray-400 dark:text-gray-500 mb-4">
+                      Nenhuma evidência registrada
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEvidenceModalOpen(true)}
+                      className="border-[#1e6076] text-[#1e6076] hover:bg-[#1e6076]/10 dark:border-[#12b0a0] dark:text-[#12b0a0] dark:hover:bg-[#12b0a0]/10"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar primeira evidência
+                    </Button>
                   </div>
-                ) : (
-                  <p className="text-center py-8 text-gray-400 dark:text-gray-500">
-                    Nenhuma investigação registrada
-                  </p>
                 )}
               </div>
             </div>
@@ -444,6 +466,13 @@ export function AccidentDetailsPage() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Evidence Upload Modal */}
+        <EvidenceUploadModal
+          open={isEvidenceModalOpen}
+          onOpenChange={setIsEvidenceModalOpen}
+          accidentId={id || ''}
+        />
       </div>
     </DashboardLayout>
   );

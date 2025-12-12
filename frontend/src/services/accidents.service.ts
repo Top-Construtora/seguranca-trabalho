@@ -6,9 +6,6 @@ import {
   UpdateAccidentDto,
   AccidentEvidence,
   CreateEvidenceDto,
-  AccidentInvestigation,
-  CreateInvestigationDto,
-  UpdateInvestigationDto,
   AccidentCorrectiveAction,
   CreateCorrectiveActionDto,
   UpdateCorrectiveActionDto,
@@ -80,38 +77,6 @@ class AccidentsService {
 
   async removeEvidence(accidentId: string, evidenceId: string): Promise<void> {
     await api.delete(`/accidents/${accidentId}/evidences/${evidenceId}`);
-  }
-
-  // === Investigações ===
-
-  async getInvestigations(accidentId: string): Promise<AccidentInvestigation[]> {
-    const response = await api.get(`/accidents/${accidentId}/investigations`);
-    return response.data;
-  }
-
-  async getInvestigationById(id: string): Promise<AccidentInvestigation> {
-    const response = await api.get(`/accidents/investigations/${id}`);
-    return response.data;
-  }
-
-  async createInvestigation(
-    accidentId: string,
-    data: Omit<CreateInvestigationDto, 'accident_id'>
-  ): Promise<AccidentInvestigation> {
-    const response = await api.post(`/accidents/${accidentId}/investigations`, {
-      ...data,
-      accident_id: accidentId,
-    });
-    return response.data;
-  }
-
-  async updateInvestigation(id: string, data: UpdateInvestigationDto): Promise<AccidentInvestigation> {
-    const response = await api.patch(`/accidents/investigations/${id}`, data);
-    return response.data;
-  }
-
-  async deleteInvestigation(id: string): Promise<void> {
-    await api.delete(`/accidents/investigations/${id}`);
   }
 
   // === Ações Corretivas ===

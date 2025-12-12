@@ -96,40 +96,10 @@ export interface AccidentEvidence {
   created_at: string;
 }
 
-export interface Witness {
-  name: string;
-  role?: string;
-  statement?: string;
-  contact?: string;
-}
-
-export interface AccidentInvestigation {
-  id: string;
-  accident_id: string;
-  investigator_id: string;
-  investigator?: {
-    id: string;
-    name: string;
-  };
-  investigation_date: string;
-  root_cause: string;
-  contributing_factors?: string;
-  method_used?: string;
-  findings?: string;
-  recommendations?: string;
-  witnesses: Witness[];
-  timeline?: string;
-  created_at: string;
-  updated_at: string;
-  corrective_actions?: AccidentCorrectiveAction[];
-}
-
 export interface AccidentCorrectiveAction {
   id: string;
   accident_id: string;
   accident?: Accident;
-  investigation_id?: string;
-  investigation?: AccidentInvestigation;
   action_description: string;
   responsible_id: string;
   responsible?: {
@@ -178,7 +148,6 @@ export interface Accident {
   updated_at: string;
   body_parts?: AccidentBodyPart[];
   evidences?: AccidentEvidence[];
-  investigations?: AccidentInvestigation[];
   corrective_actions?: AccidentCorrectiveAction[];
 }
 
@@ -206,23 +175,8 @@ export interface UpdateAccidentDto extends Partial<CreateAccidentDto> {
   status?: AccidentStatus;
 }
 
-export interface CreateInvestigationDto {
-  accident_id: string;
-  investigation_date: string;
-  root_cause: string;
-  contributing_factors?: string;
-  method_used?: string;
-  findings?: string;
-  recommendations?: string;
-  witnesses?: Witness[];
-  timeline?: string;
-}
-
-export interface UpdateInvestigationDto extends Partial<Omit<CreateInvestigationDto, 'accident_id'>> {}
-
 export interface CreateCorrectiveActionDto {
   accident_id: string;
-  investigation_id?: string;
   action_description: string;
   responsible_id: string;
   target_date: string;

@@ -27,6 +27,9 @@ export class FilesService {
       'image/png',
       'image/gif',
       'image/webp',
+      'video/mp4',
+      'video/webm',
+      'video/quicktime',
       'application/pdf',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -36,10 +39,13 @@ export class FilesService {
       throw new BadRequestException('Tipo de arquivo não permitido');
     }
 
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate file size (50MB for videos, 10MB for images, 5MB for documents)
+    const isVideo = file.mimetype.startsWith('video/');
+    const isImage = file.mimetype.startsWith('image/');
+    const maxSize = isVideo ? 50 * 1024 * 1024 : (isImage ? 10 * 1024 * 1024 : 5 * 1024 * 1024);
     if (file.size > maxSize) {
-      throw new BadRequestException('Arquivo muito grande. Máximo 5MB');
+      const maxMB = maxSize / (1024 * 1024);
+      throw new BadRequestException(`Arquivo muito grande. Máximo ${maxMB}MB`);
     }
 
     // Generate unique filename

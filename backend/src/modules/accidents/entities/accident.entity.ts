@@ -12,7 +12,6 @@ import { User } from '../../users/entities/user.entity';
 import { Work } from '../../works/entities/work.entity';
 import { AccidentBodyPart } from './accident-body-part.entity';
 import { AccidentEvidence } from './accident-evidence.entity';
-import { AccidentInvestigation } from './accident-investigation.entity';
 import { AccidentCorrectiveAction } from './accident-corrective-action.entity';
 
 export enum AccidentSeverity {
@@ -123,13 +122,6 @@ export class Accident {
     cascade: true,
   })
   evidences: AccidentEvidence[];
-
-  @OneToMany(
-    () => AccidentInvestigation,
-    (investigation) => investigation.accident,
-    { cascade: true },
-  )
-  investigations: AccidentInvestigation[];
 
   @OneToMany(() => AccidentCorrectiveAction, (action) => action.accident, {
     cascade: true,

@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  UploadedFile,
   UploadedFiles,
   UseInterceptors,
   BadRequestException,
@@ -8,7 +9,7 @@ import {
   Delete,
   Param,
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FilesService } from './files.service';
@@ -137,6 +138,47 @@ export class FilesController {
     } catch (error) {
       console.error(`Failed to delete action plan file ${filename}:`, error);
       throw error;
+    }
+  }
+
+  @Post('upload/evidence')
+  @UseInterceptors(FileInterceptor('file', {
+    limits: {
+      fileSize: 50 * 1024 * 1024, // 50MB max for videos
+    },
+  }))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  async uploadEvidenceFile(@UploadedFile() file: Express.Multer.File) {
+    console.log('Evidence upload request received');
+
+    if (!file) {
+      console.error('No file in evidence request');
+      throw new BadRequestException('Nenhum arquivo foi enviado');
+    }
+
+    console.log('Evidence file details:', {
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+    });
+
+    try {
+      const uploadedFile = await this.filesService.uploadFile(file, 'accidents');
+      return uploadedFile;
+    } catch (error) {
+      console.error('Evidence upload error:', error);
+      throw new BadRequestException(`Erro no upload: ${error.message}`);
     }
   }
 }

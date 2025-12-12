@@ -15,14 +15,6 @@ export class CreateCorrectiveActionDto {
   @IsUUID()
   accident_id: string;
 
-  @ApiProperty({
-    description: 'ID da investigação relacionada',
-    required: false,
-  })
-  @IsOptional()
-  @IsUUID()
-  investigation_id?: string;
-
   @ApiProperty({ description: 'Descrição da ação corretiva' })
   @IsString()
   action_description: string;

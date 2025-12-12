@@ -162,8 +162,6 @@ export class AccidentsService {
         'body_parts',
         'evidences',
         'evidences.uploaded_by',
-        'investigations',
-        'investigations.investigator',
         'corrective_actions',
         'corrective_actions.responsible',
       ],

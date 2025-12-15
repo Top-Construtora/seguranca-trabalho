@@ -147,7 +147,7 @@ export function LastWorksConformityChart({ data, title, description, penaltyData
               <ResponsiveContainer width="100%" height={450}>
                 <BarChart
                   data={penaltyData}
-                  margin={{ top: 20, right: 30, left: 50, bottom: 80 }}
+                  margin={{ top: 20, right: 30, left: 60, bottom: 80 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
@@ -158,11 +158,6 @@ export function LastWorksConformityChart({ data, title, description, penaltyData
                     tick={{ fontSize: 12 }}
                   />
                   <YAxis
-                    label={{
-                      value: 'Valor (R$)',
-                      angle: -90,
-                      position: 'insideLeft'
-                    }}
                     tickFormatter={(value) =>
                       new Intl.NumberFormat('pt-BR', {
                         style: 'currency',

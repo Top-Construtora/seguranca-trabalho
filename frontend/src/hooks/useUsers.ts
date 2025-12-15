@@ -15,3 +15,10 @@ export function useUser(id: string) {
     enabled: !!id,
   });
 }
+
+export function useProfileStats() {
+  return useQuery({
+    queryKey: ['profile', 'stats'],
+    queryFn: () => usersService.getProfileStats(),
+  });
+}

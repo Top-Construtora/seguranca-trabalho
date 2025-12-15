@@ -20,6 +20,7 @@ import { AccidentFormPage } from './pages/AccidentFormPage'
 import { AccidentDetailsPage } from './pages/AccidentDetailsPage'
 import { AccidentDashboardPage } from './pages/AccidentDashboardPage'
 import { CorrectiveActionsPage } from './pages/CorrectiveActionsPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Toaster } from './components/ui/toaster'
 
@@ -190,6 +191,14 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <CorrectiveActionsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
                 </ProtectedRoute>
               }
             />

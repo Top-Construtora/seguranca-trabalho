@@ -8,6 +8,8 @@ import {
   useAccident,
   useUpdateAccident,
   useRemoveEvidence,
+  useDeleteCorrectiveAction,
+  useUpdateCorrectiveAction,
 } from '@/hooks/useAccidents';
 import {
   SeverityBadge,
@@ -19,10 +21,14 @@ import {
   BODY_PART_LABELS,
   AccidentStatus,
   EvidenceFileType,
+  AccidentCorrectiveAction,
+  CorrectiveActionStatus,
+  CORRECTIVE_ACTION_STATUS_LABELS,
 } from '@/types/accident.types';
 import { formatDate } from '@/utils/date';
 import { useAuth } from '@/contexts/AuthContext';
 import { EvidenceUploadModal } from '@/components/accidents/EvidenceUploadModal';
+import { CorrectiveActionModal } from '@/components/accidents/CorrectiveActionModal';
 import {
   ArrowLeft,
   Pencil,
@@ -40,7 +46,19 @@ import {
   Trash2,
   ExternalLink,
   File,
+  MoreVertical,
+  Edit2,
+  PlayCircle,
+  CheckCheck,
+  XCircle,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export function AccidentDetailsPage() {
   const navigate = useNavigate();
@@ -48,12 +66,73 @@ export function AccidentDetailsPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('details');
   const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [selectedAction, setSelectedAction] = useState<AccidentCorrectiveAction | null>(null);
 
   const { data: accident, isLoading } = useAccident(id || '');
   const updateAccident = useUpdateAccident();
   const removeEvidence = useRemoveEvidence();
+  const deleteCorrectiveAction = useDeleteCorrectiveAction();
+  const updateCorrectiveAction = useUpdateCorrectiveAction();
 
   const isAdmin = user?.role === 'admin';
+
+  const handleEditAction = (action: AccidentCorrectiveAction) => {
+    setSelectedAction(action);
+    setIsActionModalOpen(true);
+  };
+
+  const handleNewAction = () => {
+    setSelectedAction(null);
+    setIsActionModalOpen(true);
+  };
+
+  const handleDeleteAction = async (actionId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir esta ação corretiva?')) {
+      await deleteCorrectiveAction.mutateAsync(actionId);
+    }
+  };
+
+  const handleQuickStatusChange = async (actionId: string, newStatus: CorrectiveActionStatus) => {
+    await updateCorrectiveAction.mutateAsync({
+      id: actionId,
+      data: {
+        status: newStatus,
+        ...(newStatus === CorrectiveActionStatus.CONCLUIDA && {
+          completion_date: new Date().toISOString().split('T')[0],
+        }),
+      },
+    });
+  };
+
+  const getPriorityLabel = (priority: number) => {
+    const labels: Record<number, string> = {
+      1: 'Muito Alta',
+      2: 'Alta',
+      3: 'Média',
+      4: 'Baixa',
+      5: 'Muito Baixa',
+    };
+    return labels[priority] || 'Média';
+  };
+
+  const getPriorityColor = (priority: number) => {
+    const colors: Record<number, string> = {
+      1: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+      2: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+      3: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+      4: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+      5: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400',
+    };
+    return colors[priority] || colors[3];
+  };
+
+  const isOverdue = (targetDate: string, status: CorrectiveActionStatus) => {
+    if (status === CorrectiveActionStatus.CONCLUIDA || status === CorrectiveActionStatus.CANCELADA) {
+      return false;
+    }
+    return new Date(targetDate) < new Date();
+  };
 
   const handleRemoveEvidence = async (evidenceId: string) => {
     if (!id) return;
@@ -410,10 +489,16 @@ export function AccidentDetailsPage() {
           {/* Corrective Actions Tab */}
           <TabsContent value="actions">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Ações Corretivas</h3>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Ações Corretivas</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Gerencie as ações corretivas para este acidente
+                  </p>
+                </div>
                 <Button
                   size="sm"
+                  onClick={handleNewAction}
                   className="bg-gradient-to-r from-[#1e6076] to-[#12b0a0] hover:from-[#1e6076]/90 hover:to-[#12b0a0]/90 text-white"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -427,40 +512,155 @@ export function AccidentDetailsPage() {
                     {accident.corrective_actions.map((action) => (
                       <div
                         key={action.id}
-                        className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3"
+                        className={`border rounded-lg p-4 space-y-3 transition-colors ${
+                          isOverdue(action.target_date, action.status)
+                            ? 'border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-900/10'
+                            : 'border-gray-200 dark:border-gray-700'
+                        }`}
                       >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-800 dark:text-gray-100">{action.action_description}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              Responsável: {action.responsible?.name || 'N/A'}
-                            </p>
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start gap-2 mb-2">
+                              <p className="font-medium text-gray-800 dark:text-gray-100 flex-1">
+                                {action.action_description}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <CorrectiveActionStatusBadge status={action.status} />
+                              <span className={`text-xs px-2 py-1 rounded-full font-medium ${getPriorityColor(action.priority)}`}>
+                                {getPriorityLabel(action.priority)}
+                              </span>
+                              {isOverdue(action.target_date, action.status) && (
+                                <span className="text-xs px-2 py-1 rounded-full font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                                  Atrasada
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <CorrectiveActionStatusBadge status={action.status} />
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEditAction(action)}>
+                                <Edit2 className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              {action.status !== CorrectiveActionStatus.EM_ANDAMENTO && (
+                                <DropdownMenuItem
+                                  onClick={() => handleQuickStatusChange(action.id, CorrectiveActionStatus.EM_ANDAMENTO)}
+                                >
+                                  <PlayCircle className="h-4 w-4 mr-2" />
+                                  Marcar Em Andamento
+                                </DropdownMenuItem>
+                              )}
+                              {action.status !== CorrectiveActionStatus.CONCLUIDA && (
+                                <DropdownMenuItem
+                                  onClick={() => handleQuickStatusChange(action.id, CorrectiveActionStatus.CONCLUIDA)}
+                                >
+                                  <CheckCheck className="h-4 w-4 mr-2" />
+                                  Marcar Concluída
+                                </DropdownMenuItem>
+                              )}
+                              {action.status !== CorrectiveActionStatus.CANCELADA && (
+                                <DropdownMenuItem
+                                  onClick={() => handleQuickStatusChange(action.id, CorrectiveActionStatus.CANCELADA)}
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Cancelar
+                                </DropdownMenuItem>
+                              )}
+                              {isAdmin && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => handleDeleteAction(action.id)}
+                                    className="text-red-600 dark:text-red-400"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Excluir
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-                        <div className="flex gap-4 text-sm">
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm pt-2 border-t border-gray-100 dark:border-gray-700">
                           <div>
-                            <span className="text-gray-500 dark:text-gray-400">Prazo: </span>
-                            <span className="text-gray-700 dark:text-gray-300">{formatDate(action.target_date)}</span>
+                            <span className="text-gray-500 dark:text-gray-400 block text-xs mb-1">Responsável</span>
+                            <span className="text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              {action.responsible?.name || 'N/A'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400 block text-xs mb-1">Prazo</span>
+                            <span className={`flex items-center gap-1 ${
+                              isOverdue(action.target_date, action.status)
+                                ? 'text-red-600 dark:text-red-400 font-medium'
+                                : 'text-gray-700 dark:text-gray-300'
+                            }`}>
+                              <Calendar className="h-3 w-3" />
+                              {formatDate(action.target_date)}
+                            </span>
                           </div>
                           {action.completion_date && (
                             <div>
-                              <span className="text-gray-500 dark:text-gray-400">Concluído: </span>
-                              <span className="text-gray-700 dark:text-gray-300">{formatDate(action.completion_date)}</span>
+                              <span className="text-gray-500 dark:text-gray-400 block text-xs mb-1">Concluído em</span>
+                              <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
+                                <CheckCircle2 className="h-3 w-3" />
+                                {formatDate(action.completion_date)}
+                              </span>
                             </div>
                           )}
-                          <div>
-                            <span className="text-gray-500 dark:text-gray-400">Prioridade: </span>
-                            <span className="text-gray-700 dark:text-gray-300">{action.priority}</span>
-                          </div>
+                          {action.verification_method && (
+                            <div>
+                              <span className="text-gray-500 dark:text-gray-400 block text-xs mb-1">Verificação</span>
+                              <span className="text-gray-700 dark:text-gray-300">
+                                {action.verification_method}
+                              </span>
+                            </div>
+                          )}
                         </div>
+
+                        {(action.notes || action.verification_result) && (
+                          <div className="pt-2 border-t border-gray-100 dark:border-gray-700 space-y-2">
+                            {action.notes && (
+                              <div>
+                                <span className="text-gray-500 dark:text-gray-400 text-xs">Observações:</span>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">{action.notes}</p>
+                              </div>
+                            )}
+                            {action.verification_result && (
+                              <div>
+                                <span className="text-gray-500 dark:text-gray-400 text-xs">Resultado da Verificação:</span>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">{action.verification_result}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center py-8 text-gray-400 dark:text-gray-500">
-                    Nenhuma ação corretiva registrada
-                  </p>
+                  <div className="text-center py-12">
+                    <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                    <p className="text-gray-400 dark:text-gray-500 mb-4">
+                      Nenhuma ação corretiva registrada
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={handleNewAction}
+                      className="border-[#1e6076] text-[#1e6076] hover:bg-[#1e6076]/10 dark:border-[#12b0a0] dark:text-[#12b0a0] dark:hover:bg-[#12b0a0]/10"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar primeira ação corretiva
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
@@ -472,6 +672,14 @@ export function AccidentDetailsPage() {
           open={isEvidenceModalOpen}
           onOpenChange={setIsEvidenceModalOpen}
           accidentId={id || ''}
+        />
+
+        {/* Corrective Action Modal */}
+        <CorrectiveActionModal
+          open={isActionModalOpen}
+          onOpenChange={setIsActionModalOpen}
+          accidentId={id || ''}
+          action={selectedAction}
         />
       </div>
     </DashboardLayout>

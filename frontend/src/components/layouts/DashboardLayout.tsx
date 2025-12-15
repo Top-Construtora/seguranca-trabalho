@@ -1,8 +1,10 @@
 import { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
+import { ForceChangePasswordModal } from '@/components/auth/ForceChangePasswordModal';
+import { ChangePasswordModal } from '@/components/auth/ChangePasswordModal';
 import {
   LayoutDashboard,
   Building2,
@@ -24,6 +26,7 @@ import {
   Activity,
   CheckCircle2,
   List,
+  KeyRound,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -73,6 +76,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed');
@@ -83,6 +87,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return saved ? JSON.parse(saved) : [];
   });
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
 
   const handleLogout = () => {
     signOut();
@@ -494,12 +499,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-gray-600">
+                <DropdownMenuItem
+                  onClick={() => navigate('/profile')}
+                  className="text-gray-600 dark:text-gray-300 cursor-pointer"
+                >
                   <User className="mr-2 h-4 w-4" />
-                  Perfil
+                  Meu Perfil
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setIsChangePasswordModalOpen(true)}
+                  className="text-gray-600 dark:text-gray-300 cursor-pointer"
+                >
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  Alterar Senha
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair
                 </DropdownMenuItem>
@@ -515,6 +530,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </main>
       </div>
+
+      {/* Modal de alteração de senha obrigatória */}
+      <ForceChangePasswordModal open={user?.must_change_password === true} />
+
+      {/* Modal de alteração de senha voluntária */}
+      <ChangePasswordModal
+        open={isChangePasswordModalOpen}
+        onOpenChange={setIsChangePasswordModalOpen}
+      />
     </div>
   );
 }

@@ -13,7 +13,8 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from './entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -32,6 +33,12 @@ export class UsersController {
   @Roles(UserRole.ADMIN)
   findAll() {
     return this.usersService.findAll();
+  }
+
+  @Get('profile/stats')
+  @ApiOperation({ summary: 'Obter estatísticas do perfil do usuário logado' })
+  getProfileStats(@CurrentUser() user: any) {
+    return this.usersService.getProfileStats(user.id);
   }
 
   @Get(':id')

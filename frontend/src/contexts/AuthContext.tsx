@@ -8,6 +8,7 @@ interface User {
   email: string;
   name: string;
   role: 'admin' | 'avaliador';
+  must_change_password?: boolean;
 }
 
 interface AuthContextData {
@@ -16,6 +17,7 @@ interface AuthContextData {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => void;
   refreshUser: () => void;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -114,8 +116,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+    sessionStorage.setItem('@SST:user', JSON.stringify(updatedUser));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signOut, refreshUser, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

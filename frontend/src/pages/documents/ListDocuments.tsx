@@ -16,8 +16,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import documentsService from '@/services/documents.service';
 import { worksService, Work } from '@/services/works.service';
@@ -25,13 +33,11 @@ import { Document } from '@/types/document';
 import {
   Plus,
   Search,
-  MoreHorizontal,
+  MoreVertical,
   Edit,
   Trash2,
   FileText,
   Download,
-  Calendar,
-  Paperclip,
   FolderOpen,
   FileImage,
   FileSpreadsheet,
@@ -209,11 +215,6 @@ export default function ListDocuments() {
     return File;
   };
 
-  const isImageFile = (fileType?: string) => {
-    if (!fileType) return false;
-    return fileType.includes('image');
-  };
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -271,10 +272,13 @@ export default function ListDocuments() {
 
         {/* Lista de Documentos */}
         {loading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="p-4 space-y-3">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
           </div>
         ) : filteredDocuments.length === 0 ? (
           <Card className="bg-white dark:bg-gray-800">
@@ -286,139 +290,131 @@ export default function ListDocuments() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredDocuments.map((document) => {
-              const expiryStatus = getExpiryStatus(document.expiryDate);
-              return (
-                <Card key={document.id} className="bg-white dark:bg-gray-800 hover:shadow-md transition-shadow duration-200 group overflow-hidden">
-                  {/* Document Preview */}
-                  <div className="h-32 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 relative border-b border-gray-200 dark:border-gray-700 overflow-hidden">
-                    {document.fileUrl && isImageFile(document.fileType) ? (
-                      <img
-                        src={document.fileUrl}
-                        alt={document.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const parent = target.parentElement;
-                          if (parent) {
-                            const fallback = parent.querySelector('.fallback-icon');
-                            if (fallback) {
-                              fallback.classList.remove('hidden');
-                            }
-                          }
-                        }}
-                      />
-                    ) : null}
-                    <div className={`fallback-icon flex items-center justify-center h-full ${document.fileUrl && isImageFile(document.fileType) ? 'hidden' : ''}`}>
-                      {
-                        (() => {
-                          const IconComponent = getFileIcon(document.fileType);
-                          return <IconComponent className="h-12 w-12 text-gray-400 dark:text-gray-600" />;
-                        })()
-                      }
-                    </div>
-                    {document.fileUrl && (
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm"
-                        onClick={() => handleDownload(document)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {expiryStatus && (
-                      <div className="absolute top-2 left-2">
-                        <Badge variant={expiryStatus.variant} className="text-xs">
-                          {expiryStatus.label}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-
-                  <CardHeader className="pb-3 pt-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-base font-medium truncate" title={document.name}>
-                          {document.name}
-                        </CardTitle>
-                        {document.work && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <Building className="h-3 w-3 text-gray-500" />
-                            <span className="text-xs text-gray-500 truncate">
-                              {document.work.name}
-                            </span>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50 dark:bg-gray-900/50">
+                    <TableHead className="min-w-[350px]">Documento</TableHead>
+                    <TableHead className="min-w-[200px]">Obra</TableHead>
+                    <TableHead className="w-[120px]">Emissão</TableHead>
+                    <TableHead className="w-[120px]">Vencimento</TableHead>
+                    <TableHead className="w-[100px]">Status</TableHead>
+                    <TableHead className="w-[100px]">Anexo</TableHead>
+                    <TableHead className="text-right w-[80px]">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredDocuments.map((document) => {
+                    const expiryStatus = getExpiryStatus(document.expiryDate);
+                    const FileIcon = getFileIcon(document.fileType);
+                    return (
+                      <TableRow key={document.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/30">
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                              <FileIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-gray-900 dark:text-gray-100" title={document.name}>
+                                {document.name}
+                              </p>
+                              {document.fileName && (
+                                <p className="text-xs text-gray-500 truncate">
+                                  {document.fileName}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {document.fileUrl && (
-                            <DropdownMenuItem onClick={() => handleDownload(document)}>
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
-                            </DropdownMenuItem>
+                        </TableCell>
+                        <TableCell>
+                          {document.work ? (
+                            <div className="flex items-center gap-2">
+                              <Building className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                              <span className="text-sm text-gray-700 dark:text-gray-300" title={document.work.name}>
+                                {document.work.name}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">-</span>
                           )}
-                          <DropdownMenuItem onClick={() => navigate(`/documents/${document.id}/edit`)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => setDeleteDocumentId(document.id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3 pt-0">
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3.5 w-3.5 text-gray-500" />
-                        <span className="text-gray-600 dark:text-gray-400">Emissão:</span>
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
-                          {format(parseISO(document.issueDate), 'dd/MM/yyyy', { locale: ptBR })}
-                        </span>
-                      </div>
-                      {document.expiryDate && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-3.5 w-3.5 text-gray-500" />
-                          <span className="text-gray-600 dark:text-gray-400">Vencimento:</span>
-                          <span className="font-medium text-gray-900 dark:text-gray-100">
-                            {format(parseISO(document.expiryDate), 'dd/MM/yyyy', { locale: ptBR })}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {format(parseISO(document.issueDate), 'dd/MM/yyyy', { locale: ptBR })}
                           </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {document.fileUrl && (
-                      <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownload(document)}
-                          className="w-full h-8 text-xs"
-                        >
-                          <Paperclip className="h-3 w-3 mr-1" />
-                          {document.fileName || 'Documento'}
-                          {document.fileSize && ` (${formatFileSize(document.fileSize)})`}
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+                        </TableCell>
+                        <TableCell>
+                          {document.expiryDate ? (
+                            <span className="text-sm text-gray-700 dark:text-gray-300">
+                              {format(parseISO(document.expiryDate), 'dd/MM/yyyy', { locale: ptBR })}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {expiryStatus ? (
+                            <Badge variant={expiryStatus.variant} className="text-xs">
+                              {expiryStatus.label}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">
+                              Válido
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {document.fileUrl ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDownload(document)}
+                              className="h-8 px-2 text-[#1e6076] dark:text-[#12b0a0] hover:bg-[#1e6076]/10 dark:hover:bg-[#12b0a0]/10"
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              <span className="text-xs">
+                                {formatFileSize(document.fileSize)}
+                              </span>
+                            </Button>
+                          ) : (
+                            <span className="text-gray-400 text-sm">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {document.fileUrl && (
+                                <DropdownMenuItem onClick={() => handleDownload(document)}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Visualizar
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem onClick={() => navigate(`/documents/${document.id}/edit`)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setDeleteDocumentId(document.id)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
       </div>

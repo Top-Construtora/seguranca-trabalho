@@ -23,7 +23,6 @@ import {
   EvidenceFileType,
   AccidentCorrectiveAction,
   CorrectiveActionStatus,
-  CORRECTIVE_ACTION_STATUS_LABELS,
 } from '@/types/accident.types';
 import { formatDate } from '@/utils/date';
 import { useAuth } from '@/contexts/AuthContext';

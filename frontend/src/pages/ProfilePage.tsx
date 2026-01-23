@@ -43,14 +43,6 @@ export function ProfilePage() {
     }
   };
 
-  const formatDateTime = (dateString: string) => {
-    try {
-      return format(parseISO(dateString), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
-    } catch {
-      return dateString;
-    }
-  };
-
   if (isLoading) {
     return (
       <DashboardLayout>

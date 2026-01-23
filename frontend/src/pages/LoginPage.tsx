@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Eye, EyeOff, Loader2, HardHat, Building2, Users } from 'lucide-react';
+import { Eye, EyeOff, Loader2, HardHat, Building2, Users } from 'lucide-react';
 import logoGIO from '@/assets/images/logoGIO.png';
 
 const loginSchema = z.object({
@@ -117,7 +117,11 @@ export function LoginPage() {
                 />
               </div>
               <div className="p-3 bg-gradient-to-br from-[#12b0a0] to-[#1e6076] rounded-2xl w-16 h-16 mx-auto flex items-center justify-center">
-                <Shield className="h-8 w-8 text-white" />
+                <img
+                  src={logoGIO}
+                  alt="GIO Logo"
+                  className="h-10 w-auto object-contain"
+                />
               </div>
               <div>
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">

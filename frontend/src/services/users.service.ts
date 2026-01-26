@@ -10,6 +10,13 @@ export interface User {
   updated_at: string;
 }
 
+export interface CreateUserData {
+  name: string;
+  email: string;
+  password: string;
+  role: 'admin' | 'avaliador';
+}
+
 export interface RecentEvaluation {
   id: string;
   type: 'obra' | 'alojamento';
@@ -59,6 +66,25 @@ class UsersService {
   async getProfileStats(): Promise<ProfileStats> {
     const response = await api.get('/users/profile/stats');
     return response.data;
+  }
+
+  async create(data: CreateUserData): Promise<User> {
+    const response = await api.post('/users', data);
+    return response.data;
+  }
+
+  async toggleActive(id: string): Promise<User> {
+    const response = await api.patch(`/users/${id}/toggle-active`);
+    return response.data;
+  }
+
+  async update(id: string, data: Partial<CreateUserData>): Promise<User> {
+    const response = await api.patch(`/users/${id}`, data);
+    return response.data;
+  }
+
+  async delete(id: string): Promise<void> {
+    await api.delete(`/users/${id}`);
   }
 }
 

@@ -21,6 +21,8 @@ import { AccidentDetailsPage } from './pages/AccidentDetailsPage'
 import { AccidentDashboardPage } from './pages/AccidentDashboardPage'
 import { CorrectiveActionsPage } from './pages/CorrectiveActionsPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { UsersPage } from './pages/UsersPage'
+import { UserFormPage } from './pages/UserFormPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Toaster } from './components/ui/toaster'
 
@@ -199,6 +201,31 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            {/* Rotas de Usuários (Admin) */}
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute role="admin">
+                  <UsersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users/new"
+              element={
+                <ProtectedRoute role="admin">
+                  <UserFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users/:id/edit"
+              element={
+                <ProtectedRoute role="admin">
+                  <UserFormPage />
                 </ProtectedRoute>
               }
             />

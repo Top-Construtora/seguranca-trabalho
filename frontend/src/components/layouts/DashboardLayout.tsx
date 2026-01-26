@@ -27,6 +27,7 @@ import {
   CheckCircle2,
   List,
   KeyRound,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -51,6 +52,7 @@ interface NavItem {
   href?: string;
   icon: React.ComponentType<{ className?: string }>;
   children?: NavItem[];
+  adminOnly?: boolean;
 }
 
 const navigation: NavItem[] = [
@@ -70,6 +72,7 @@ const navigation: NavItem[] = [
   },
   { name: 'Documentos', href: '/documents', icon: FolderOpen },
   { name: 'Relatórios', href: '/reports', icon: FileText },
+  { name: 'Usuários', href: '/users', icon: Users, adminOnly: true },
 ];
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -77,6 +80,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Filter navigation items based on user role
+  const filteredNavigation = navigation.filter(
+    item => !item.adminOnly || user?.role === 'admin'
+  );
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed');
@@ -112,12 +120,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Auto-expand menu if child is active
   useEffect(() => {
-    navigation.forEach(item => {
+    filteredNavigation.forEach(item => {
       if (item.children && isChildActive(item) && !expandedMenus.includes(item.name)) {
         setExpandedMenus(prev => [...prev, item.name]);
       }
     });
-  }, [location.pathname]);
+  }, [location.pathname, filteredNavigation]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -164,7 +172,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
           
           <nav className="flex-1 space-y-1 px-3 py-4">
-            {navigation.map((item) => {
+            {filteredNavigation.map((item) => {
               const hasChildren = item.children && item.children.length > 0;
               const isExpanded = expandedMenus.includes(item.name);
               const isActive = item.href && (location.pathname === item.href ||
@@ -284,7 +292,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </Button>
             )}
 
-            {navigation.map((item) => {
+            {filteredNavigation.map((item) => {
               const hasChildren = item.children && item.children.length > 0;
               const isExpanded = expandedMenus.includes(item.name);
               const isActive = item.href && (location.pathname === item.href ||

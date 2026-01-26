@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -182,5 +183,44 @@ export class UsersService {
       },
       recentEvaluations,
     };
+  }
+
+  async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.findOne(id);
+
+    // Verificar se email já existe em outro usuário
+    if (updateUserDto.email && updateUserDto.email !== user.email) {
+      const existingUser = await this.findByEmail(updateUserDto.email);
+      if (existingUser && existingUser.id !== id) {
+        throw new ConflictException('Email já está em uso por outro usuário');
+      }
+    }
+
+    const updateData: Partial<User> = {};
+
+    if (updateUserDto.name) {
+      updateData.name = updateUserDto.name;
+    }
+
+    if (updateUserDto.email) {
+      updateData.email = updateUserDto.email;
+    }
+
+    if (updateUserDto.role) {
+      updateData.role = updateUserDto.role;
+    }
+
+    if (updateUserDto.password) {
+      updateData.password_hash = await bcrypt.hash(updateUserDto.password, 10);
+      updateData.must_change_password = true;
+    }
+
+    await this.userRepository.update(id, updateData);
+    return this.findOne(id);
+  }
+
+  async remove(id: string): Promise<void> {
+    const user = await this.findOne(id);
+    await this.userRepository.delete(id);
   }
 }

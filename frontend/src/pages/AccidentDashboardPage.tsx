@@ -52,6 +52,7 @@ import {
   Line,
   Legend,
 } from 'recharts';
+import { ChartModal } from '@/components/charts/ChartModal';
 import { BodySilhouette } from '@/components/accidents/BodySilhouette';
 
 export function AccidentDashboardPage() {
@@ -223,36 +224,42 @@ export function AccidentDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Severity Pie Chart */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Acidentes por Severidade</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Acidentes por Severidade</h3>
+            <p className="text-xs text-muted-foreground lg:hidden mb-4">Toque para expandir</p>
             <div>
               {bySeverity.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={bySeverity.map((item) => ({
-                        name: SEVERITY_LABELS[item.severity as AccidentSeverity],
-                        value: Number(item.count),
-                        color: SEVERITY_COLORS[item.severity as AccidentSeverity],
-                      }))}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name} (${((percent as number) * 100).toFixed(0)}%)`
-                      }
-                      outerRadius={100}
-                      dataKey="value"
-                    >
-                      {bySeverity.map((item, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={SEVERITY_COLORS[item.severity as AccidentSeverity]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                <ChartModal
+                  title="Acidentes por Severidade"
+                  description="Distribuição de acidentes por nível de severidade"
+                                  >
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={bySeverity.map((item) => ({
+                          name: SEVERITY_LABELS[item.severity as AccidentSeverity],
+                          value: Number(item.count),
+                          color: SEVERITY_COLORS[item.severity as AccidentSeverity],
+                        }))}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) =>
+                          `${name} (${((percent as number) * 100).toFixed(0)}%)`
+                        }
+                        outerRadius={100}
+                        dataKey="value"
+                      >
+                        {bySeverity.map((item, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={SEVERITY_COLORS[item.severity as AccidentSeverity]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </ChartModal>
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-gray-400 dark:text-gray-500">
                   Nenhum dado disponível
@@ -263,23 +270,29 @@ export function AccidentDashboardPage() {
 
           {/* Days Away by Work */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Dias de Afastamento por Obra</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Dias de Afastamento por Obra</h3>
+            <p className="text-xs text-muted-foreground lg:hidden mb-4">Toque para expandir</p>
             <div>
               {byWork.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={byWork.slice(0, 5)} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis
-                      type="category"
-                      dataKey="work_name"
-                      width={120}
-                      tick={{ fontSize: 12 }}
-                    />
-                    <Tooltip />
-                    <Bar dataKey="total_days_away" fill="#1e6076" name="Dias" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <ChartModal
+                  title="Dias de Afastamento por Obra"
+                  description="Total de dias de afastamento por obra"
+                                  >
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={byWork.slice(0, 5)} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" />
+                      <YAxis
+                        type="category"
+                        dataKey="work_name"
+                        width={120}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <Tooltip />
+                      <Bar dataKey="total_days_away" fill="#1e6076" name="Dias" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartModal>
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-gray-400 dark:text-gray-500">
                   Nenhum dado disponível
@@ -293,7 +306,7 @@ export function AccidentDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Body Parts - Silhueta Humana ou Gráfico */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Partes do Corpo Mais Afetadas</h3>
               <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                 <button
@@ -320,31 +333,37 @@ export function AccidentDashboardPage() {
                 </button>
               </div>
             </div>
+            <p className="text-xs text-muted-foreground lg:hidden mb-4">Toque para expandir</p>
             <div>
               {byBodyPart.length > 0 ? (
-                bodyPartView === 'silhouette' ? (
-                  <BodySilhouette data={byBodyPart} className="h-[320px]" />
-                ) : (
-                  <ResponsiveContainer width="100%" height={350}>
-                    <BarChart data={byBodyPart.slice(0, 8)}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="body_part"
-                        tick={{ fontSize: 10 }}
-                        tickFormatter={(v) => BODY_PART_LABELS[v as keyof typeof BODY_PART_LABELS] || v}
-                        angle={-45}
-                        textAnchor="end"
-                        height={80}
-                      />
-                      <YAxis />
-                      <Tooltip
-                        formatter={(value) => [value, 'Ocorrências']}
-                        labelFormatter={(v) => BODY_PART_LABELS[v as keyof typeof BODY_PART_LABELS] || v}
-                      />
-                      <Bar dataKey="count" fill="#12b0a0" name="Ocorrências" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )
+                <ChartModal
+                  title="Partes do Corpo Mais Afetadas"
+                  description="Distribuição de acidentes por parte do corpo"
+                                  >
+                  {bodyPartView === 'silhouette' ? (
+                    <BodySilhouette data={byBodyPart} className="h-[320px]" />
+                  ) : (
+                    <ResponsiveContainer width="100%" height={350}>
+                      <BarChart data={byBodyPart.slice(0, 8)}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis
+                          dataKey="body_part"
+                          tick={{ fontSize: 10 }}
+                          tickFormatter={(v) => BODY_PART_LABELS[v as keyof typeof BODY_PART_LABELS] || v}
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis />
+                        <Tooltip
+                          formatter={(value) => [value, 'Ocorrências']}
+                          labelFormatter={(v) => BODY_PART_LABELS[v as keyof typeof BODY_PART_LABELS] || v}
+                        />
+                        <Bar dataKey="count" fill="#12b0a0" name="Ocorrências" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </ChartModal>
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-gray-400 dark:text-gray-500">
                   Nenhum dado disponível
@@ -355,44 +374,50 @@ export function AccidentDashboardPage() {
 
           {/* Monthly Trend */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Tendência Mensal</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Tendência Mensal</h3>
+            <p className="text-xs text-muted-foreground lg:hidden mb-4">Toque para expandir</p>
             <div>
               {monthlyTrend.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={monthlyTrend}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="month"
-                      tickFormatter={(v) => {
-                        const [year, month] = v.split('-');
-                        return `${month}/${year.slice(2)}`;
-                      }}
-                    />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip
-                      labelFormatter={(v) => {
-                        const [year, month] = v.split('-');
-                        return `${month}/${year}`;
-                      }}
-                    />
-                    <Legend />
-                    <Line
-                      yAxisId="left"
-                      type="monotone"
-                      dataKey="count"
-                      stroke="#1e6076"
-                      name="Acidentes"
-                    />
-                    <Line
-                      yAxisId="right"
-                      type="monotone"
-                      dataKey="days_away"
-                      stroke="#12b0a0"
-                      name="Dias Afastamento"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                <ChartModal
+                  title="Tendência Mensal"
+                  description="Evolução de acidentes e dias de afastamento ao longo do tempo"
+                                  >
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={monthlyTrend}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="month"
+                        tickFormatter={(v) => {
+                          const [year, month] = v.split('-');
+                          return `${month}/${year.slice(2)}`;
+                        }}
+                      />
+                      <YAxis yAxisId="left" />
+                      <YAxis yAxisId="right" orientation="right" />
+                      <Tooltip
+                        labelFormatter={(v) => {
+                          const [year, month] = v.split('-');
+                          return `${month}/${year}`;
+                        }}
+                      />
+                      <Legend />
+                      <Line
+                        yAxisId="left"
+                        type="monotone"
+                        dataKey="count"
+                        stroke="#1e6076"
+                        name="Acidentes"
+                      />
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="days_away"
+                        stroke="#12b0a0"
+                        name="Dias Afastamento"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartModal>
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-gray-400 dark:text-gray-500">
                   Nenhum dado disponível

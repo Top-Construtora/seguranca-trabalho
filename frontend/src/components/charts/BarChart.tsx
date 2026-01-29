@@ -19,20 +19,27 @@ interface BarChartProps {
 export function BarChart({ data, height = 300, showValues = true, isPercentage = false, isGrouped = false }: BarChartProps) {
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
   const [hoveredGroup, setHoveredGroup] = useState<{ group: number; bar: 'conforme' | 'nao_conforme' } | null>(null);
-  
-  const maxValue = isGrouped 
+
+  const maxValue = isGrouped
     ? Math.max(...data.flatMap(d => [d.conforme || 0, d.nao_conforme || 0]))
     : Math.max(...data.map(d => d.value || 0));
-  
-  const groupWidth = isGrouped ? `${Math.min(120, 400 / data.length)}px` : `${Math.min(80, 300 / data.length)}px`;
+
+  // Responsive bar widths - smaller on mobile
+  const minGroupWidth = isGrouped ? 70 : 50;
+  const groupWidth = isGrouped
+    ? `${Math.max(minGroupWidth, Math.min(120, 400 / data.length))}px`
+    : `${Math.max(minGroupWidth, Math.min(80, 300 / data.length))}px`;
   const barWidth = isGrouped ? '45%' : '100%';
 
+  // Calculate min width for scroll
+  const minChartWidth = data.length * (isGrouped ? minGroupWidth + 16 : minGroupWidth + 16) + 48;
+
   return (
-    <div className="w-full">
+    <div className="w-full overflow-x-auto">
       {/* Chart Container */}
-      <div 
-        className="relative flex items-end justify-center gap-4 p-4 bg-gray-50 rounded-lg"
-        style={{ height: `${height}px` }}
+      <div
+        className="relative flex items-end justify-center gap-2 sm:gap-4 p-4 bg-gray-50 rounded-lg"
+        style={{ height: `${height}px`, minWidth: `${minChartWidth}px` }}
       >
         {/* Y-axis labels */}
         <div className="absolute left-2 top-4 bottom-16 flex flex-col justify-between text-xs text-gray-500">
@@ -55,7 +62,7 @@ export function BarChart({ data, height = 300, showValues = true, isPercentage =
         </div>
 
         {/* Bars */}
-        <div className="flex items-end justify-center gap-4 h-full pb-12 pl-8 pr-4">
+        <div className="flex items-end justify-center gap-2 sm:gap-4 h-full pb-12 pl-8 pr-4">
           {data.map((item, index) => {
             if (isGrouped) {
               const conformeHeight = ((item.conforme || 0) / (isPercentage ? 100 : maxValue)) * (height - 80);
@@ -180,12 +187,13 @@ export function BarChart({ data, height = 300, showValues = true, isPercentage =
       </div>
 
       {/* X-axis labels */}
-      <div className="flex justify-center gap-4 mt-2 pl-8 pr-4">
+      <div className="flex justify-center gap-2 sm:gap-4 mt-2 pl-8 pr-4" style={{ minWidth: `${minChartWidth}px` }}>
         {data.map((item, index) => (
           <div
             key={index}
-            className="text-sm text-gray-700 text-center font-medium"
+            className="text-xs sm:text-sm text-gray-700 text-center font-medium truncate"
             style={{ width: isGrouped ? groupWidth : groupWidth }}
+            title={item.name}
           >
             {item.name}
           </div>
@@ -194,14 +202,14 @@ export function BarChart({ data, height = 300, showValues = true, isPercentage =
 
       {/* Legend for grouped charts */}
       {isGrouped && (
-        <div className="flex justify-center gap-6 mt-4">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-500 rounded"></div>
-            <span className="text-sm font-medium text-gray-700">Conforme</span>
+        <div className="flex justify-center gap-4 sm:gap-6 mt-4">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded"></div>
+            <span className="text-xs sm:text-sm font-medium text-gray-700">Conforme</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-red-500 rounded"></div>
-            <span className="text-sm font-medium text-gray-700">Não Conforme</span>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded"></div>
+            <span className="text-xs sm:text-sm font-medium text-gray-700">Não Conforme</span>
           </div>
         </div>
       )}

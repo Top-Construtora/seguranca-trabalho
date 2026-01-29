@@ -19,6 +19,7 @@ import {
   Legend,
 } from 'recharts';
 import { ArrowUp, ArrowDown, Minus, RefreshCw } from 'lucide-react';
+import { ChartModal } from '../charts/ChartModal';
 
 interface ComparisonData {
   current: {
@@ -213,39 +214,45 @@ export function ReportComparison({ data, onPeriodChange, onRefresh }: ReportComp
             <CardDescription>
               Desempenho atual vs anterior por categoria de avaliação
             </CardDescription>
+            <p className="text-xs text-muted-foreground lg:hidden">Toque para expandir</p>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <RadarChart data={radarData}>
-                <PolarGrid strokeDasharray="3 3" />
-                <PolarAngleAxis dataKey="category" className="text-xs" />
-                <PolarRadiusAxis domain={[0, 100]} />
-                <Radar
-                  name="Período Atual"
-                  dataKey="atual"
-                  stroke="#3b82f6"
-                  fill="#3b82f6"
-                  fillOpacity={0.3}
-                />
-                <Radar
-                  name="Período Anterior"
-                  dataKey="anterior"
-                  stroke="#94a3b8"
-                  fill="#94a3b8"
-                  fillOpacity={0.3}
-                />
-                <Radar
-                  name="Benchmark"
-                  dataKey="benchmark"
-                  stroke="#10b981"
-                  fill="#10b981"
-                  fillOpacity={0.1}
-                  strokeDasharray="5 5"
-                />
-                <Tooltip />
-                <Legend />
-              </RadarChart>
-            </ResponsiveContainer>
+            <ChartModal
+              title="Comparação por Categoria"
+              description="Desempenho atual vs anterior por categoria de avaliação"
+                          >
+              <ResponsiveContainer width="100%" height={300}>
+                <RadarChart data={radarData}>
+                  <PolarGrid strokeDasharray="3 3" />
+                  <PolarAngleAxis dataKey="category" className="text-xs" />
+                  <PolarRadiusAxis domain={[0, 100]} />
+                  <Radar
+                    name="Período Atual"
+                    dataKey="atual"
+                    stroke="#3b82f6"
+                    fill="#3b82f6"
+                    fillOpacity={0.3}
+                  />
+                  <Radar
+                    name="Período Anterior"
+                    dataKey="anterior"
+                    stroke="#94a3b8"
+                    fill="#94a3b8"
+                    fillOpacity={0.3}
+                  />
+                  <Radar
+                    name="Benchmark"
+                    dataKey="benchmark"
+                    stroke="#10b981"
+                    fill="#10b981"
+                    fillOpacity={0.1}
+                    strokeDasharray="5 5"
+                  />
+                  <Tooltip />
+                  <Legend />
+                </RadarChart>
+              </ResponsiveContainer>
+            </ChartModal>
           </CardContent>
         </Card>
 
@@ -256,42 +263,48 @@ export function ReportComparison({ data, onPeriodChange, onRefresh }: ReportComp
             <CardDescription>
               Comparação de tendências ao longo do tempo
             </CardDescription>
+            <p className="text-xs text-muted-foreground lg:hidden">Toque para expandir</p>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={data.trend}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" className="text-xs" />
-                <YAxis className="text-xs" />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="current"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  name="Período Atual"
-                  dot={{ fill: '#3b82f6' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="previous"
-                  stroke="#94a3b8"
-                  strokeWidth={2}
-                  name="Período Anterior"
-                  dot={{ fill: '#94a3b8' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="benchmark"
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  name="Meta"
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <ChartModal
+              title="Evolução Temporal"
+              description="Comparação de tendências ao longo do tempo"
+                          >
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={data.trend}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" className="text-xs" />
+                  <YAxis className="text-xs" />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="current"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    name="Período Atual"
+                    dot={{ fill: '#3b82f6' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="previous"
+                    stroke="#94a3b8"
+                    strokeWidth={2}
+                    name="Período Anterior"
+                    dot={{ fill: '#94a3b8' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="benchmark"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    name="Meta"
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartModal>
           </CardContent>
         </Card>
       </div>

@@ -109,13 +109,6 @@ export function LoginPage() {
         <div className="flex items-center justify-center">
           <Card className="w-full max-w-md shadow-2xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-0">
             <CardHeader className="space-y-4 text-center pb-8">
-              <div className="lg:hidden">
-                <img 
-                  src={logoGIO} 
-                  alt="GIO Logo" 
-                  className="h-12 w-auto object-contain mx-auto mb-4"
-                />
-              </div>
               <div className="p-3 bg-gradient-to-br from-[#12b0a0] to-[#1e6076] rounded-2xl w-16 h-16 mx-auto flex items-center justify-center">
                 <img
                   src={logoGIO}

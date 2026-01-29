@@ -41,6 +41,7 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
+import { ChartModal } from '@/components/charts/ChartModal';
 
 // Função para formatar valores monetários de forma compacta
 const formatCurrencyCompact = (value: number): string => {
@@ -858,82 +859,90 @@ export function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="relative pt-8 pb-6 bg-white dark:bg-gray-800">
+              <p className="text-xs text-muted-foreground lg:hidden mb-2 text-center">
+                Toque para expandir
+              </p>
               <div key={evaluationType}>
                 {lastEvaluationsData.conformityData.length > 0 ? (
-                  <>
-                    <div className="absolute top-2 right-4 z-10 flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#12b0a0' }}></div>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Conforme</span>
+                  <ChartModal
+                    title={`Taxa de Conformidade - ${evaluationType === 'obra' ? 'Obras' : 'Alojamentos'}`}
+                    description="Status de conformidade das últimas 5 avaliações"
+                                      >
+                    <div className="relative">
+                      <div className="absolute top-0 right-0 z-10 flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#12b0a0' }}></div>
+                          <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Conforme</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
+                          <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Não Conforme</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Não Conforme</span>
-                      </div>
+                      <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={lastEvaluationsData.conformityData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                      <defs>
+                        <linearGradient id="conformeGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#12b0a0" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#12b0a0" stopOpacity={0.6} />
+                        </linearGradient>
+                        <linearGradient id="naoConformeGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#ef4444" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#ef4444" stopOpacity={0.6} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} vertical={false} />
+                      <XAxis
+                        dataKey="name"
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        tick={{ fontSize: 11, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+                        axisLine={{ stroke: theme === 'dark' ? '#4b5563' : '#e5e7eb' }}
+                        stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 11, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+                        axisLine={{ stroke: theme === 'dark' ? '#4b5563' : '#e5e7eb' }}
+                        stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
+                        domain={conformityViewMode === 'percentage' ? [0, 100] : undefined}
+                        tickFormatter={conformityViewMode === 'percentage' ? (value) => `${value}%` : undefined}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: theme === 'dark' ? 'rgba(31, 41, 55, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+                          border: theme === 'dark' ? '1px solid #4b5563' : '1px solid #e5e7eb',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                        labelStyle={{
+                          color: theme === 'dark' ? '#9ca3af' : '#1e6076',
+                          fontWeight: 600
+                        }}
+                        itemStyle={{
+                          color: theme === 'dark' ? '#d1d5db' : '#374151'
+                        }}
+                        formatter={(value: any) => {
+                          const formattedValue = conformityViewMode === 'percentage' ? `${value}%` : value;
+                          return formattedValue;
+                        }}
+                      />
+                      <Bar
+                        dataKey="conforme"
+                        fill="url(#conformeGradient)"
+                        name="Conforme"
+                        radius={[8, 8, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="naoConforme"
+                        fill="url(#naoConformeGradient)"
+                        name="Não Conforme"
+                        radius={[8, 8, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
                     </div>
-                    <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={lastEvaluationsData.conformityData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
-                    <defs>
-                      <linearGradient id="conformeGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#12b0a0" stopOpacity={0.9} />
-                        <stop offset="100%" stopColor="#12b0a0" stopOpacity={0.6} />
-                      </linearGradient>
-                      <linearGradient id="naoConformeGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#ef4444" stopOpacity={0.9} />
-                        <stop offset="100%" stopColor="#ef4444" stopOpacity={0.6} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} vertical={false} />
-                    <XAxis
-                      dataKey="name"
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                      tick={{ fontSize: 11, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
-                      axisLine={{ stroke: theme === 'dark' ? '#4b5563' : '#e5e7eb' }}
-                      stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 11, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
-                      axisLine={{ stroke: theme === 'dark' ? '#4b5563' : '#e5e7eb' }}
-                      stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
-                      domain={conformityViewMode === 'percentage' ? [0, 100] : undefined}
-                      tickFormatter={conformityViewMode === 'percentage' ? (value) => `${value}%` : undefined}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: theme === 'dark' ? 'rgba(31, 41, 55, 0.98)' : 'rgba(255, 255, 255, 0.98)',
-                        border: theme === 'dark' ? '1px solid #4b5563' : '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                      }}
-                      labelStyle={{
-                        color: theme === 'dark' ? '#9ca3af' : '#1e6076',
-                        fontWeight: 600
-                      }}
-                      itemStyle={{
-                        color: theme === 'dark' ? '#d1d5db' : '#374151'
-                      }}
-                      formatter={(value: any) => {
-                        const formattedValue = conformityViewMode === 'percentage' ? `${value}%` : value;
-                        return formattedValue;
-                      }}
-                    />
-                    <Bar
-                      dataKey="conforme"
-                      fill="url(#conformeGradient)"
-                      name="Conforme"
-                      radius={[8, 8, 0, 0]}
-                    />
-                    <Bar
-                      dataKey="naoConforme"
-                      fill="url(#naoConformeGradient)"
-                      name="Não Conforme"
-                      radius={[8, 8, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-                </>
+                  </ChartModal>
               ) : (
                 <div className="flex flex-col items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
                   <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
@@ -985,91 +994,99 @@ export function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="relative pt-8 pb-6 bg-white dark:bg-gray-800">
+              <p className="text-xs text-muted-foreground lg:hidden mb-2 text-center">
+                Toque para expandir
+              </p>
               <div key={`penalty-${evaluationType}`}>
                 {lastEvaluationsData.penaltyData.length > 0 ? (
-                <>
-                  <div className="absolute top-2 right-4 z-10 flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Valor Mínimo</span>
+                <ChartModal
+                  title={`Multas Passíveis - ${evaluationType === 'obra' ? 'Obras' : 'Alojamentos'}`}
+                  description="Valores de multas das últimas 5 avaliações"
+                                  >
+                  <div className="relative">
+                    <div className="absolute top-0 right-0 z-10 flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Valor Mínimo</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#baa673' }}></div>
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Valor Máximo</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#baa673' }}></div>
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Valor Máximo</span>
-                    </div>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={lastEvaluationsData.penaltyData} margin={{ top: 20, right: 30, left: 50, bottom: 80 }}>
+                      <defs>
+                        <linearGradient id="minGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.6} />
+                        </linearGradient>
+                        <linearGradient id="maxGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#baa673" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#baa673" stopOpacity={0.6} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} vertical={false} />
+                      <XAxis
+                        dataKey="name"
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        tick={{ fontSize: 11, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+                        axisLine={{ stroke: theme === 'dark' ? '#4b5563' : '#e5e7eb' }}
+                        stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 11, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+                        axisLine={{ stroke: theme === 'dark' ? '#4b5563' : '#e5e7eb' }}
+                        stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
+                        tickFormatter={(value) =>
+                          new Intl.NumberFormat('pt-BR', {
+                            notation: 'compact',
+                            compactDisplay: 'short',
+                            style: 'currency',
+                            currency: 'BRL',
+                            minimumFractionDigits: 0,
+                          }).format(value)
+                        }
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: theme === 'dark' ? 'rgba(31, 41, 55, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+                          border: theme === 'dark' ? '1px solid #4b5563' : '1px solid #e5e7eb',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                        labelStyle={{
+                          color: theme === 'dark' ? '#9ca3af' : '#1e6076',
+                          fontWeight: 600
+                        }}
+                        itemStyle={{
+                          color: theme === 'dark' ? '#d1d5db' : '#374151'
+                        }}
+                        formatter={(value: any) =>
+                          new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                          }).format(value)
+                        }
+                      />
+                      <Bar
+                        dataKey="minValue"
+                        name="Valor Mínimo"
+                        fill="url(#minGradient)"
+                        radius={[8, 8, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="maxValue"
+                        name="Valor Máximo"
+                        fill="url(#maxGradient)"
+                        radius={[8, 8, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
                   </div>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={lastEvaluationsData.penaltyData} margin={{ top: 20, right: 30, left: 50, bottom: 80 }}>
-                    <defs>
-                      <linearGradient id="minGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.9} />
-                        <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.6} />
-                      </linearGradient>
-                      <linearGradient id="maxGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#baa673" stopOpacity={0.9} />
-                        <stop offset="100%" stopColor="#baa673" stopOpacity={0.6} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} vertical={false} />
-                    <XAxis
-                      dataKey="name"
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                      tick={{ fontSize: 11, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
-                      axisLine={{ stroke: theme === 'dark' ? '#4b5563' : '#e5e7eb' }}
-                      stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 11, fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
-                      axisLine={{ stroke: theme === 'dark' ? '#4b5563' : '#e5e7eb' }}
-                      stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
-                      tickFormatter={(value) =>
-                        new Intl.NumberFormat('pt-BR', {
-                          notation: 'compact',
-                          compactDisplay: 'short',
-                          style: 'currency',
-                          currency: 'BRL',
-                          minimumFractionDigits: 0,
-                        }).format(value)
-                      }
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: theme === 'dark' ? 'rgba(31, 41, 55, 0.98)' : 'rgba(255, 255, 255, 0.98)',
-                        border: theme === 'dark' ? '1px solid #4b5563' : '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                      }}
-                      labelStyle={{
-                        color: theme === 'dark' ? '#9ca3af' : '#1e6076',
-                        fontWeight: 600
-                      }}
-                      itemStyle={{
-                        color: theme === 'dark' ? '#d1d5db' : '#374151'
-                      }}
-                      formatter={(value: any) =>
-                        new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL',
-                        }).format(value)
-                      }
-                    />
-                    <Bar
-                      dataKey="minValue"
-                      name="Valor Mínimo"
-                      fill="url(#minGradient)"
-                      radius={[8, 8, 0, 0]}
-                    />
-                    <Bar
-                      dataKey="maxValue"
-                      name="Valor Máximo"
-                      fill="url(#maxGradient)"
-                      radius={[8, 8, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-                </>
+                </ChartModal>
               ) : (
                 <div className="flex flex-col items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
                   <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">

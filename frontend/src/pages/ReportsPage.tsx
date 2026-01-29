@@ -16,6 +16,7 @@ import { useUsers } from '../hooks/useUsers';
 import { reportsService, ReportFilters, EvaluationReport, SummaryReport, ConformityReport, LastEvaluationsConformityReport } from '../services/reports.service';
 import { Download, Calendar, BarChart3, HardHat, Home } from 'lucide-react';
 import { BarChart } from '../components/charts/BarChart';
+import { ChartModal } from '../components/charts/ChartModal';
 
 export function ReportsPage() {
   const { toast } = useToast();
@@ -271,15 +272,15 @@ export function ReportsPage() {
                   </div>
                 </div>
             
-                <div className="flex gap-2 mt-4">
-                  <Button onClick={loadReports} disabled={loading}>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <Button onClick={loadReports} disabled={loading} className="w-full sm:w-auto">
                     {loading ? 'Carregando...' : 'Gerar Relatório'}
                   </Button>
-                  <Button variant="outline" onClick={handleExportPDF} disabled={exportLoading}>
+                  <Button variant="outline" onClick={handleExportPDF} disabled={exportLoading} className="flex-1 sm:flex-none">
                     <Download className="h-4 w-4 mr-2" />
                     PDF
                   </Button>
-                  <Button variant="outline" onClick={handleExportExcel} disabled={exportLoading}>
+                  <Button variant="outline" onClick={handleExportExcel} disabled={exportLoading} className="flex-1 sm:flex-none">
                     <Download className="h-4 w-4 mr-2" />
                     Excel
                   </Button>
@@ -294,49 +295,65 @@ export function ReportsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
-                  Conformidade - Quantidade (3 Últimas Avaliações)
+                  Conformidade - Quantidade
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="hidden sm:block">
                   Comparação das últimas avaliações realizadas
                 </CardDescription>
+                <p className="text-xs text-muted-foreground lg:hidden mt-1">
+                  Toque para expandir
+                </p>
               </CardHeader>
               <CardContent>
-                <BarChart
-                  data={lastEvaluationsConformity.evaluations_data.map((evaluation) => ({
-                    name: `${evaluation.work_name} (${format(new Date(evaluation.date), 'dd/MM')})`,
-                    conforme: evaluation.conforme,
-                    nao_conforme: evaluation.nao_conforme,
-                  }))}
-                  height={350}
-                  showValues={true}
-                  isPercentage={false}
-                  isGrouped={true}
-                />
+                <ChartModal
+                  title="Conformidade - Quantidade (3 Últimas Avaliações)"
+                  description="Comparação das últimas avaliações realizadas"
+                                  >
+                  <BarChart
+                    data={lastEvaluationsConformity.evaluations_data.map((evaluation) => ({
+                      name: `${evaluation.work_name} (${format(new Date(evaluation.date), 'dd/MM')})`,
+                      conforme: evaluation.conforme,
+                      nao_conforme: evaluation.nao_conforme,
+                    }))}
+                    height={280}
+                    showValues={true}
+                    isPercentage={false}
+                    isGrouped={true}
+                  />
+                </ChartModal>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
-                  Conformidade - Porcentagem (3 Últimas Avaliações)
+                  Conformidade - Porcentagem
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="hidden sm:block">
                   Distribuição percentual por avaliação
                 </CardDescription>
+                <p className="text-xs text-muted-foreground lg:hidden mt-1">
+                  Toque para expandir
+                </p>
               </CardHeader>
               <CardContent>
-                <BarChart
-                  data={lastEvaluationsConformity.evaluations_data.map((evaluation) => ({
-                    name: `${evaluation.work_name} (${format(new Date(evaluation.date), 'dd/MM')})`,
-                    conforme: Number(evaluation.conforme_percentage.toFixed(1)),
-                    nao_conforme: Number(evaluation.nao_conforme_percentage.toFixed(1)),
-                  }))}
-                  height={350}
-                  showValues={true}
-                  isPercentage={true}
-                  isGrouped={true}
-                />
+                <ChartModal
+                  title="Conformidade - Porcentagem (3 Últimas Avaliações)"
+                  description="Distribuição percentual por avaliação"
+                                  >
+                  <BarChart
+                    data={lastEvaluationsConformity.evaluations_data.map((evaluation) => ({
+                      name: `${evaluation.work_name} (${format(new Date(evaluation.date), 'dd/MM')})`,
+                      conforme: Number(evaluation.conforme_percentage.toFixed(1)),
+                      nao_conforme: Number(evaluation.nao_conforme_percentage.toFixed(1)),
+                    }))}
+                    height={280}
+                    showValues={true}
+                    isPercentage={true}
+                    isGrouped={true}
+                  />
+                </ChartModal>
               </CardContent>
             </Card>
           </div>
@@ -351,45 +368,47 @@ export function ReportsPage() {
                 {evaluationsReport.total} avaliação(ões) encontrada(s)
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Obra</TableHead>
-                    {activeTab === 'alojamento' && <TableHead>Alojamento</TableHead>}
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Funcionários</TableHead>
-                    <TableHead>Penalidade</TableHead>
-                    <TableHead>Avaliador</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {evaluationsReport.evaluations.map((evaluation) => (
-                    <TableRow key={evaluation.id}>
-                      <TableCell>
-                        {format(new Date(evaluation.date), 'dd/MM/yyyy')}
-                      </TableCell>
-                      <TableCell>{evaluation.work?.name}</TableCell>
-                      {activeTab === 'alojamento' && <TableCell>{evaluation.accommodation?.name || '-'}</TableCell>}
-                      <TableCell>
-                        <Badge variant={evaluation.type === 'obra' ? 'default' : 'secondary'}>
-                          {evaluation.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{evaluation.employees_count}</TableCell>
-                      <TableCell>{evaluation.total_penalty || 0}</TableCell>
-                      <TableCell>{evaluation.user?.name}</TableCell>
-                      <TableCell>
-                        <Badge variant={evaluation.status === 'completed' ? 'default' : 'secondary'}>
-                          {evaluation.status === 'completed' ? 'Concluída' : 'Rascunho'}
-                        </Badge>
-                      </TableCell>
+            <CardContent className="p-0 sm:p-6">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="whitespace-nowrap">Data</TableHead>
+                      <TableHead className="whitespace-nowrap">Obra</TableHead>
+                      {activeTab === 'alojamento' && <TableHead className="whitespace-nowrap">Alojamento</TableHead>}
+                      <TableHead className="whitespace-nowrap">Tipo</TableHead>
+                      <TableHead className="whitespace-nowrap">Funcionários</TableHead>
+                      <TableHead className="whitespace-nowrap">Penalidade</TableHead>
+                      <TableHead className="whitespace-nowrap">Avaliador</TableHead>
+                      <TableHead className="whitespace-nowrap">Status</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {evaluationsReport.evaluations.map((evaluation) => (
+                      <TableRow key={evaluation.id}>
+                        <TableCell className="whitespace-nowrap">
+                          {format(new Date(evaluation.date), 'dd/MM/yyyy')}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">{evaluation.work?.name}</TableCell>
+                        {activeTab === 'alojamento' && <TableCell className="whitespace-nowrap">{evaluation.accommodation?.name || '-'}</TableCell>}
+                        <TableCell>
+                          <Badge variant={evaluation.type === 'obra' ? 'default' : 'secondary'}>
+                            {evaluation.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{evaluation.employees_count}</TableCell>
+                        <TableCell>{evaluation.total_penalty || 0}</TableCell>
+                        <TableCell className="whitespace-nowrap">{evaluation.user?.name}</TableCell>
+                        <TableCell>
+                          <Badge variant={evaluation.status === 'completed' ? 'default' : 'secondary'}>
+                            {evaluation.status === 'completed' ? 'Concluída' : 'Rascunho'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
             )}

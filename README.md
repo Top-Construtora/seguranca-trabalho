@@ -1,4 +1,4 @@
-# Sistema de Saude e Seguranca do Trabalho (SST)
+# Sistema de Saúde e Segurança do Trabalho (SST)
 
 ![React](https://img.shields.io/badge/React-18.2-61dafb?logo=react&logoColor=white)
 ![NestJS](https://img.shields.io/badge/NestJS-10-e0234e?logo=nestjs&logoColor=white)

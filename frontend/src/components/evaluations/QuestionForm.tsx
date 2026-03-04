@@ -9,6 +9,25 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, File, X, Loader2 } from 'lucide-react';
 import { filesService } from '@/services/files.service';
+import { ImageModal } from '@/components/ui/image-modal';
+
+function normalizeEvidenceUrl(url: string): string {
+  if (!url) return url;
+  try {
+    const parsed = new URL(url);
+    if (parsed.pathname.startsWith('/api/uploads/')) {
+      parsed.pathname = parsed.pathname.replace('/api/uploads/', '/uploads/');
+    }
+    if (parsed.hostname === 'localhost' && window.location.hostname !== 'localhost') {
+      parsed.hostname = window.location.hostname;
+      parsed.port = window.location.port;
+      parsed.protocol = window.location.protocol;
+    }
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
 
 interface QuestionFormProps {
   questions: Question[];
@@ -68,6 +87,7 @@ export function QuestionForm({ questions, answers, onAnswersChange, readOnly = f
   const [localAnswers, setLocalAnswers] = useState<Record<string, CreateAnswerDto>>({});
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
   const [deletingFiles, setDeletingFiles] = useState<Record<string, boolean>>({});
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     const answersMap: Record<string, CreateAnswerDto> = {};
@@ -349,13 +369,27 @@ export function QuestionForm({ questions, answers, onAnswersChange, readOnly = f
                                   <Label className="text-sm">Arquivos Anexados</Label>
                                   <div className="space-y-1">
                                     {answer.evidence_urls.map((fileUrl, index) => {
-                                      // Extract filename from URL
+                                      const normalizedUrl = normalizeEvidenceUrl(fileUrl);
                                       const fileName = fileUrl.split('/').pop() || `arquivo-${index + 1}`;
-                                      
+                                      const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
+
                                       return (
                                         <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
                                           <div className="flex items-center gap-2">
-                                            <File className="h-4 w-4 text-gray-500" />
+                                            {isImage ? (
+                                              <img
+                                                src={normalizedUrl}
+                                                alt={`Evidência ${index + 1}`}
+                                                className="h-10 w-10 object-cover rounded cursor-pointer border"
+                                                onClick={() => setSelectedImage(normalizedUrl)}
+                                                onError={(e) => {
+                                                  const target = e.target as HTMLImageElement;
+                                                  target.style.display = 'none';
+                                                  target.nextElementSibling?.classList.remove('hidden');
+                                                }}
+                                              />
+                                            ) : null}
+                                            {!isImage && <File className="h-4 w-4 text-gray-500" />}
                                             <span className="text-sm font-medium">{fileName}</span>
                                           </div>
                                           <div className="flex items-center gap-1">
@@ -363,7 +397,7 @@ export function QuestionForm({ questions, answers, onAnswersChange, readOnly = f
                                               type="button"
                                               variant="ghost"
                                               size="sm"
-                                              onClick={() => window.open(fileUrl, '_blank')}
+                                              onClick={() => isImage ? setSelectedImage(normalizedUrl) : window.open(normalizedUrl, '_blank')}
                                               className="text-blue-600 hover:text-blue-800 px-2 py-1"
                                             >
                                               Ver
@@ -403,6 +437,13 @@ export function QuestionForm({ questions, answers, onAnswersChange, readOnly = f
           </div>
         </div>
       ))}
+      {selectedImage && (
+        <ImageModal
+          isOpen={!!selectedImage}
+          onClose={() => setSelectedImage(null)}
+          imageUrl={selectedImage}
+        />
+      )}
     </div>
   );
 }

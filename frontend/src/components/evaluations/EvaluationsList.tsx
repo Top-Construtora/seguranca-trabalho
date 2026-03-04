@@ -172,6 +172,10 @@ export function EvaluationsList({
                       )}
                       {evaluation.status === EvaluationStatus.COMPLETED && (
                         <>
+                          <DropdownMenuItem onClick={() => onEdit(evaluation)}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
                           {onGenerateReport && (
                             <DropdownMenuItem onClick={() => onGenerateReport(evaluation)}>
                               <FileText className="mr-2 h-4 w-4" />
@@ -323,6 +327,10 @@ export function EvaluationsList({
                         )}
                         {evaluation.status === EvaluationStatus.COMPLETED && (
                           <>
+                            <DropdownMenuItem onClick={() => onEdit(evaluation)}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
                             {onGenerateReport && (
                               <DropdownMenuItem onClick={() => onGenerateReport(evaluation)}>
                                 <FileText className="mr-2 h-4 w-4" />

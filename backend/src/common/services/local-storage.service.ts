@@ -88,6 +88,7 @@ export class LocalStorageService {
 
   getPublicUrl(bucket: string, filePath: string): string {
     // Return a URL that will be served by the static file middleware
-    return `${this.baseUrl}/api/uploads/${bucket}/${filePath}`;
+    // Static assets are served at /uploads/ (not /api/uploads/)
+    return `${this.baseUrl}/uploads/${bucket}/${filePath}`;
   }
 }

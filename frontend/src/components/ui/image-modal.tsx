@@ -1,32 +1,45 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { X } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface ImageModalProps {
   isOpen: boolean;
   onClose: () => void;
   imageUrl: string;
-  title?: string;
 }
 
-export function ImageModal({ isOpen, onClose, imageUrl, title = 'Visualizar Imagem' }: ImageModalProps) {
+export function ImageModal({ isOpen, onClose, imageUrl }: ImageModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
-        <div className="relative w-full flex items-center justify-center">
-          <img
-            src={imageUrl}
-            alt={title}
-            className="max-w-full max-h-[70vh] object-contain"
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition-colors"
+      >
+        <X className="h-6 w-6" />
+      </button>
+      <img
+        src={imageUrl}
+        alt="Evidência"
+        className="max-h-[90vh] max-w-[90vw] object-contain"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
   );
 }

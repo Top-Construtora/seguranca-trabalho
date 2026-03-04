@@ -8,6 +8,8 @@ import { AnswerValue } from '../evaluations/entities/answer.entity';
 import { ReportFilters, EvaluationReportResponse, SummaryReportResponse, ConformityReportResponse, LastEvaluationsConformityReportResponse, EvaluationConformityData } from './dto/report-filters.dto';
 import * as PDFDocument from 'pdfkit';
 import * as ExcelJS from 'exceljs';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class ReportsService {
@@ -353,163 +355,301 @@ export class ReportsService {
     return Buffer.from(await workbook.xlsx.writeBuffer());
   }
 
+  private async fetchImageBuffer(url: string): Promise<Buffer | null> {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+      if (!response.ok) return null;
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    } catch {
+      return null;
+    }
+  }
+
+  private getLogoPath(): string | null {
+    // Try multiple locations for the logo
+    const paths = [
+      path.join(__dirname, '..', '..', 'assets', 'logo.png'),
+      path.join(process.cwd(), 'src', 'assets', 'logo.png'),
+      path.join(process.cwd(), 'dist', 'assets', 'logo.png'),
+    ];
+    for (const p of paths) {
+      if (fs.existsSync(p)) return p;
+    }
+    return null;
+  }
+
   async generateEvaluationPDFReport(evaluationId: string): Promise<Buffer> {
     const evaluation = await this.evaluationRepository.findOne({
       where: { id: evaluationId },
-      relations: [
-        'work',
-        'accommodation',
-        'user',
-        'answers',
-        'answers.question'
-      ],
+      relations: ['work', 'accommodation', 'user', 'answers', 'answers.question'],
     });
 
     if (!evaluation) {
       throw new Error('Avaliação não encontrada');
     }
 
+    // Pre-fetch all evidence images
+    const evidenceImages = new Map<string, Buffer>();
+    for (const answer of evaluation.answers) {
+      if (answer.evidence_urls?.length > 0) {
+        await Promise.all(answer.evidence_urls.map(async (url) => {
+          const buffer = await this.fetchImageBuffer(url);
+          if (buffer) evidenceImages.set(url, buffer);
+        }));
+      }
+    }
+
+    const logoPath = this.getLogoPath();
+
+    // Colors — matches the app sidebar (#1e2938)
+    const PRIMARY = '#1e2938';
+    const ACCENT = '#b89b5e';
+    const GREEN = '#16a34a';
+    const RED = '#dc2626';
+    const GRAY = '#6b7280';
+    const LIGHT_BG = '#f8f9fa';
+    const BORDER = '#e5e7eb';
+    const CARD_BG = '#ffffff';
+
     return new Promise((resolve, reject) => {
-      const doc = new PDFDocument({ margin: 50 });
+      const doc = new PDFDocument({ margin: 50, size: 'A4' });
       const buffers: Buffer[] = [];
+      const LEFT = doc.page.margins.left;
+      const PAGE_W = doc.page.width - LEFT - doc.page.margins.right;
+      const CONTENT_BOTTOM = doc.page.height - 50;
 
       doc.on('data', buffers.push.bind(buffers));
-      doc.on('end', () => {
-        const pdfBuffer = Buffer.concat(buffers);
-        resolve(pdfBuffer);
-      });
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
 
-      // Header
-      doc.fontSize(20).text('RELATÓRIO DE AVALIAÇÃO', { align: 'center' });
-      doc.fontSize(16).text(`${evaluation.type === 'obra' ? 'SEGURANÇA EM OBRA' : 'SEGURANÇA EM ALOJAMENTO'}`, { align: 'center' });
-      doc.moveDown();
+      // ── Helper: ensure space or new page ──
+      const ensureSpace = (needed: number) => {
+        if (doc.y + needed > CONTENT_BOTTOM) {
+          doc.addPage();
+        }
+      };
 
-      // Informações da Avaliação
-      doc.fontSize(14).text('INFORMAÇÕES DA AVALIAÇÃO', { underline: true });
-      doc.fontSize(12)
-        .text(`Obra/Local: ${evaluation.work?.name || 'N/A'}`)
-        .text(`Número: ${evaluation.work?.number || 'N/A'}`)
-        .text(`Data da Avaliação: ${new Date(evaluation.date).toLocaleDateString('pt-BR')}`)
-        .text(`Número de Funcionários: ${evaluation.employees_count}`)
-        .text(`Avaliador: ${evaluation.user?.name || 'N/A'}`)
-        .text(`Email: ${evaluation.user?.email || 'N/A'}`)
-        .text(`Tipo: ${evaluation.type === 'obra' ? 'Obra' : 'Alojamento'}`)
-        .text(`Status: ${evaluation.status === 'completed' ? 'Concluída' : 'Rascunho'}`);
+      // ══════════════════════════════════════════
+      // PAGE 1 — HEADER
+      // ══════════════════════════════════════════
 
-      doc.moveDown();
+      // Header band with primary color
+      doc.rect(0, 0, doc.page.width, 100).fill(PRIMARY);
 
+      // Logo
+      if (logoPath) {
+        try {
+          doc.image(logoPath, LEFT, 15, { height: 70 });
+        } catch { /* skip if logo fails */ }
+      }
+
+      // Gold accent line
+      doc.rect(0, 100, doc.page.width, 3).fill(ACCENT);
+
+      // Title section
+      doc.y = 118;
+      doc.fillColor(PRIMARY).fontSize(18).text('RELATÓRIO DE AVALIAÇÃO', LEFT, doc.y, { align: 'center', width: PAGE_W });
+      doc.fillColor(ACCENT).fontSize(11).text(
+        evaluation.type === 'obra' ? 'Segurança em Obra' : 'Segurança em Alojamento',
+        { align: 'center', width: PAGE_W }
+      );
+      doc.moveDown(0.8);
+
+      // ── INFO SECTION ──
+      const infoY = doc.y;
+      doc.rect(LEFT, infoY, PAGE_W, 100).fill(LIGHT_BG).strokeColor(BORDER).lineWidth(0.5).stroke();
+
+      const colW = PAGE_W / 2;
+      const infoItems = [
+        { label: 'Obra/Local', value: evaluation.work?.name || 'N/A' },
+        { label: 'Número', value: evaluation.work?.number || 'N/A' },
+        { label: 'Data da Avaliação', value: new Date(evaluation.date).toLocaleDateString('pt-BR') },
+        { label: 'Funcionários', value: String(evaluation.employees_count) },
+        { label: 'Avaliador', value: evaluation.user?.name || 'N/A' },
+        { label: 'Tipo', value: evaluation.type === 'obra' ? 'Obra' : 'Alojamento' },
+      ];
+
+      let iy = infoY + 10;
+      infoItems.forEach((item, i) => {
+        const col = i % 2;
+        const x = LEFT + 12 + col * colW;
+        doc.fillColor(GRAY).fontSize(7).text(item.label.toUpperCase(), x, iy);
+        doc.fillColor(PRIMARY).fontSize(10).text(item.value, x, iy + 10, { width: colW - 24 });
+        if (col === 1) iy += 30;
+      });
+      if (infoItems.length % 2 !== 0) iy += 30;
+
+      doc.y = infoY + 108;
+
+      // ── RESULTS SECTION ──
       if (evaluation.status === 'completed') {
-        // Resultados
-        doc.fontSize(14).text('RESULTADOS', { underline: true });
+        doc.moveDown(0.5);
 
         const conformeCount = evaluation.answers.filter(a => a.answer === AnswerValue.SIM).length;
         const naoConformeCount = evaluation.answers.filter(a => a.answer === AnswerValue.NAO).length;
         const naCount = evaluation.answers.filter(a => a.answer === AnswerValue.NA).length;
-        const totalQuestions = evaluation.answers.length;
 
-        doc.fontSize(12)
-          .text(`Conformes: ${conformeCount}`)
-          .text(`Não Conformes: ${naoConformeCount}`)
-          .text(`N/A: ${naCount}`)
-          .text(`Total de Questões: ${totalQuestions}`);
+        doc.fillColor(PRIMARY).fontSize(13).text('Resumo dos Resultados', LEFT, doc.y);
+        doc.moveDown(0.5);
 
+        const boxW = (PAGE_W - 30) / 4;
+        const boxH = 50;
+        const boxY = doc.y;
+        const boxes = [
+          { label: 'Conformes', value: String(conformeCount), color: GREEN, bg: '#f0fdf4' },
+          { label: 'Não Conformes', value: String(naoConformeCount), color: RED, bg: '#fef2f2' },
+          { label: 'N/A', value: String(naCount), color: GRAY, bg: '#f9fafb' },
+          { label: 'Total', value: String(evaluation.answers.length), color: PRIMARY, bg: '#eef1f5' },
+        ];
+
+        boxes.forEach((box, i) => {
+          const bx = LEFT + i * (boxW + 10);
+          doc.rect(bx, boxY, boxW, boxH).fill(box.bg);
+          doc.rect(bx, boxY, boxW, 3).fill(box.color);
+          doc.fillColor(box.color).fontSize(18).text(box.value, bx, boxY + 10, { width: boxW, align: 'center' });
+          doc.fillColor(GRAY).fontSize(7).text(box.label.toUpperCase(), bx, boxY + 32, { width: boxW, align: 'center' });
+        });
+
+        doc.y = boxY + boxH + 10;
+
+        // Penalty box
         if (evaluation.total_penalty !== null) {
-          doc.text(`Multa Total: R$ ${Number(evaluation.total_penalty).toLocaleString('pt-BR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}`);
+          const penY = doc.y;
+          doc.rect(LEFT, penY, PAGE_W, 35).fill('#fef2f2').strokeColor('#fecaca').lineWidth(0.5).stroke();
+          doc.fillColor(GRAY).fontSize(8).text('MULTA TOTAL ESTIMADA', LEFT + 12, penY + 6);
+          doc.fillColor(RED).fontSize(14).text(
+            `R$ ${Number(evaluation.total_penalty).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            LEFT + 12, penY + 18
+          );
+          doc.y = penY + 42;
         }
-
-        doc.moveDown();
       }
 
-      // Questões e Respostas
-      doc.fontSize(14).text('DETALHAMENTO DAS QUESTÕES', { underline: true });
-      doc.moveDown();
+      // ══════════════════════════════════════════
+      // QUESTIONS SECTION
+      // ══════════════════════════════════════════
+      doc.moveDown(0.8);
+      doc.fillColor(PRIMARY).fontSize(13).text('Detalhamento das Questões', LEFT, doc.y);
+      doc.moveDown(0.5);
 
       evaluation.answers.forEach((answer, index) => {
-        if (doc.y > 680) {
-          doc.addPage();
-        }
-
-        // Adicionar linha separadora sutil
-        if (index > 0) {
-          doc.fillColor('#CCCCCC')
-            .fontSize(8)
-            .text('___________________________________________________________________');
-          doc.moveDown(0.3);
-        }
-
-        // Número da questão e texto principal
-        doc.fillColor('black')
-          .fontSize(12)
-          .text(`QUESTÃO ${index + 1}`, { underline: true });
-
-        doc.fillColor('black')
-          .fontSize(11)
-          .text(`${answer.question.text}`, {
-            align: 'justify',
-            lineGap: 2
-          });
-
-        doc.moveDown(0.3);
-
-        // Informações da questão em uma linha
-        doc.fillColor('#666666')
-          .fontSize(9)
-          .text(`Peso da questão: ${answer.question.weight} pontos`);
-
-        // Status da resposta destacado
-        const responseText = answer.answer === 'sim' ? 'CONFORME' : answer.answer === 'nao' ? 'NÃO CONFORME' : 'NÃO SE APLICA';
-        const responseColor = answer.answer === 'sim' ? '#228B22' : answer.answer === 'nao' ? '#DC143C' : '#808080';
-
-        doc.fillColor(responseColor)
-          .fontSize(10)
-          .text(`Status: ${responseText}`, {
-            align: 'left'
-          });
-
-        // Observação, se houver
+        // Estimate needed space: question text + weight + badge + padding
+        doc.fontSize(9);
+        const questionTextHeight = doc.heightOfString(`${index + 1}. ${answer.question.text}`, { width: PAGE_W - 30 });
+        let cardInnerH = questionTextHeight + 28; // text + weight/badge row + padding
         if (answer.observation) {
-          doc.moveDown(0.3);
-          doc.fillColor('black')
-            .fontSize(9)
-            .text('Observação:', { underline: true });
-
-          doc.fillColor('#333333')
-            .fontSize(9)
-            .text(`${answer.observation}`, {
-              align: 'justify',
-              indent: 20,
-              lineGap: 1
-            });
+          doc.fontSize(8);
+          const obsHeight = doc.heightOfString(answer.observation, { width: PAGE_W - 38 });
+          cardInnerH += obsHeight + 22;
+        }
+        if (answer.evidence_urls?.length > 0) {
+          const available = answer.evidence_urls.filter(u => evidenceImages.has(u));
+          if (available.length > 0) {
+            const rows = Math.ceil(available.length / 3);
+            cardInnerH += rows * 114 + 16;
+          }
         }
 
-        doc.moveDown(0.8);
+        const cardPadding = 10;
+        const cardH = cardInnerH + cardPadding * 2;
+        ensureSpace(cardH + 8);
+
+        const cardY = doc.y;
+        const barColor = answer.answer === 'sim' ? GREEN : answer.answer === 'nao' ? RED : GRAY;
+
+        // Card background
+        doc.rect(LEFT, cardY, PAGE_W, cardH).fill(CARD_BG).strokeColor(BORDER).lineWidth(0.5).stroke();
+
+        // Left color bar (thick)
+        doc.rect(LEFT, cardY, 4, cardH).fill(barColor);
+
+        // Content inside card
+        const textX = LEFT + 14;
+        const textW = PAGE_W - 24;
+        let curY = cardY + cardPadding;
+
+        // Question number + text
+        doc.fillColor(PRIMARY).fontSize(9).text(`${index + 1}. ${answer.question.text}`, textX, curY, { width: textW });
+        curY = doc.y + 5;
+
+        // Weight label
+        doc.fillColor(GRAY).fontSize(7).text(`Peso ${answer.question.weight}`, textX, curY);
+
+        // Status badge (right-aligned on same line)
+        const statusText = answer.answer === 'sim' ? 'CONFORME' : answer.answer === 'nao' ? 'NÃO CONFORME' : 'N/A';
+        doc.fontSize(7);
+        const badgeW = doc.widthOfString(statusText) + 12;
+        const badgeX = LEFT + PAGE_W - badgeW - 10;
+        const badgeY = curY - 2;
+
+        doc.roundedRect(badgeX, badgeY, badgeW, 14, 3).fill(barColor);
+        doc.fillColor('white').fontSize(7).text(statusText, badgeX + 6, badgeY + 3);
+
+        curY += 16;
+
+        // Observation
+        if (answer.observation) {
+          doc.moveTo(textX, curY).lineTo(textX + textW, curY).strokeColor(BORDER).lineWidth(0.3).stroke();
+          curY += 4;
+          doc.fillColor(GRAY).fontSize(7).text('Observação:', textX, curY);
+          curY += 10;
+          doc.fillColor('#374151').fontSize(8).text(answer.observation, textX + 2, curY, { width: textW - 4 });
+          curY = doc.y + 4;
+        }
+
+        // Evidence images
+        if (answer.evidence_urls?.length > 0) {
+          const available = answer.evidence_urls.filter(u => evidenceImages.has(u));
+          if (available.length > 0) {
+            doc.fillColor(GRAY).fontSize(7).text('Evidências:', textX, curY + 2);
+            curY += 14;
+
+            const imgW = Math.min(150, (textW - 20) / 3);
+            const imgH = 110;
+            let xPos = textX;
+
+            available.forEach((url, imgIdx) => {
+              if (imgIdx > 0 && imgIdx % 3 === 0) {
+                xPos = textX;
+                curY += imgH + 6;
+              }
+
+              try {
+                const buf = evidenceImages.get(url);
+                if (buf) {
+                  doc.rect(xPos - 1, curY - 1, imgW + 2, imgH + 2).strokeColor(BORDER).lineWidth(0.5).stroke();
+                  doc.image(buf, xPos, curY, { fit: [imgW, imgH] });
+                  xPos += imgW + 8;
+                }
+              } catch { /* skip */ }
+            });
+
+            curY += imgH + 4;
+          }
+        }
+
+        doc.y = cardY + cardH + 8; // gap between cards
       });
 
+      // ── GENERAL NOTES ──
       if (evaluation.notes) {
-        if (doc.y > 650) {
-          doc.addPage();
-        }
-        doc.fillColor('black')
-          .fontSize(14)
-          .text('OBSERVAÇÕES GERAIS', { underline: true });
+        ensureSpace(80);
+        const notesY = doc.y;
+        doc.rect(LEFT, notesY, PAGE_W, 3).fill(ACCENT);
 
-        doc.fillColor('#333333')
-          .fontSize(11)
-          .text(evaluation.notes, {
-            align: 'justify',
-            lineGap: 2
-          });
+        doc.fillColor(PRIMARY).fontSize(13).text('Observações Gerais', LEFT, notesY + 10);
+        doc.moveDown(0.3);
+
+        doc.moveTo(LEFT, doc.y).lineTo(LEFT + PAGE_W, doc.y).strokeColor(BORDER).lineWidth(0.5).stroke();
+        doc.y += 6;
+        doc.fillColor('#374151').fontSize(9).text(evaluation.notes, LEFT + 4, doc.y, {
+          width: PAGE_W - 8,
+          align: 'justify',
+          lineGap: 3,
+        });
+        doc.moveDown(1);
       }
-
-      // Footer
-      doc.fillColor('#666666')
-        .fontSize(10)
-        .text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`,
-              50, doc.page.height - 50, { align: 'center' });
 
       doc.end();
     });

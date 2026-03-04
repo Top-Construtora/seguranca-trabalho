@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Edit, FileDown, Calendar, Users, MapPin, CheckCircle, XCircle, AlertTriangle, Eye, Clock, FileText } from 'lucide-react';
+import { ArrowLeft, Edit, FileDown, Calendar, Users, MapPin, CheckCircle, XCircle, AlertTriangle, Eye, Clock, FileText, ImageOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -13,11 +13,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ActionPlanTab } from '@/components/evaluations/ActionPlanTab';
 import { formatDate } from '@/utils/date';
 import { cn } from '@/lib/utils';
+import { ImageModal } from '@/components/ui/image-modal';
+
+function normalizeEvidenceUrl(url: string): string {
+  // Fix local storage URLs that incorrectly include /api/ prefix
+  return url.replace('/api/uploads/', '/uploads/');
+}
 
 export function EvaluationViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('details');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const { data: evaluation, isLoading: evaluationLoading } = useEvaluation(id!);
   const { data: questions = [], isLoading: questionsLoading } = useQuestions(
@@ -367,19 +374,34 @@ export function EvaluationViewPage() {
                                 Evidências ({answer.evidence_urls.length}):
                               </p>
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                {answer.evidence_urls.map((url, index) => (
-                                  <div key={index} className="group relative">
-                                    <img
-                                      src={url}
-                                      alt={`Evidência ${index + 1}`}
-                                      className="rounded-lg border object-cover h-20 w-full cursor-pointer transition-transform group-hover:scale-105"
-                                      onClick={() => window.open(url, '_blank')}
-                                    />
-                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-lg transition-colors flex items-center justify-center">
-                                      <Eye className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                {answer.evidence_urls.map((url, index) => {
+                                  const normalizedUrl = normalizeEvidenceUrl(url);
+                                  return (
+                                    <div key={index} className="group relative">
+                                      <img
+                                        src={normalizedUrl}
+                                        alt={`Evidência ${index + 1}`}
+                                        className="rounded-lg border object-cover h-20 w-full cursor-pointer transition-transform group-hover:scale-105"
+                                        onClick={() => setSelectedImage(normalizedUrl)}
+                                        onError={(e) => {
+                                          const target = e.currentTarget;
+                                          target.style.display = 'none';
+                                          const fallback = target.parentElement?.querySelector('.evidence-fallback') as HTMLElement;
+                                          if (fallback) fallback.style.display = 'flex';
+                                        }}
+                                      />
+                                      <div
+                                        className="evidence-fallback hidden flex-col items-center justify-center gap-1 h-20 w-full rounded-lg border border-dashed bg-muted/50 text-muted-foreground text-xs text-center p-2"
+                                      >
+                                        <ImageOff className="h-5 w-5" />
+                                        <span>Imagem indisponível</span>
+                                      </div>
+                                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-lg transition-colors flex items-center justify-center">
+                                        <Eye className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                      </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             </div>
                           )}
@@ -407,6 +429,12 @@ export function EvaluationViewPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <ImageModal
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        imageUrl={selectedImage || ''}
+      />
     </DashboardLayout>
   );
 }

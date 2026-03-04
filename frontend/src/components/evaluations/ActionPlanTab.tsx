@@ -25,7 +25,8 @@ import {
   Clock,
   AlertTriangle,
   Eye,
-  XCircle
+  XCircle,
+  ImageOff
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -33,6 +34,7 @@ import { cn } from '@/lib/utils';
 import { useActionPlansByEvaluation, useCreateActionPlan, useUpdateActionPlan, useDeleteActionPlan } from '@/hooks/useActionPlans';
 import type { CreateActionPlanDto, UpdateActionPlanDto } from '@/hooks/useActionPlans';
 import { toast } from 'sonner';
+import { ImageModal } from '@/components/ui/image-modal';
 
 interface ActionPlanTabProps {
   evaluationId: string;
@@ -50,6 +52,10 @@ interface ActionPlanTabProps {
   }>;
 }
 
+function normalizeEvidenceUrl(url: string): string {
+  return url.replace('/api/uploads/', '/uploads/');
+}
+
 export function ActionPlanTab({ evaluationId, nonConformAnswers }: ActionPlanTabProps) {
   const [selectedAnswerId, setSelectedAnswerId] = useState<string>('');
   const [actionDescription, setActionDescription] = useState('');
@@ -57,6 +63,7 @@ export function ActionPlanTab({ evaluationId, nonConformAnswers }: ActionPlanTab
   const [notes, setNotes] = useState('');
   const [editingPlan, setEditingPlan] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const { data: actionPlans = [], isLoading } = useActionPlansByEvaluation(evaluationId);
   const createMutation = useCreateActionPlan();
@@ -337,19 +344,34 @@ export function ActionPlanTab({ evaluationId, nonConformAnswers }: ActionPlanTab
                           Evidências ({answer.evidence_urls.length}):
                         </p>
                         <div className="grid grid-cols-4 gap-2">
-                          {answer.evidence_urls.map((url, index) => (
-                            <div key={index} className="group relative">
-                              <img
-                                src={url}
-                                alt={`Evidência ${index + 1}`}
-                                className="rounded border object-cover h-16 w-full cursor-pointer transition-transform group-hover:scale-105"
-                                onClick={() => window.open(url, '_blank')}
-                              />
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded transition-colors flex items-center justify-center">
-                                <Eye className="h-3 w-3 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          {answer.evidence_urls.map((url, index) => {
+                            const normalizedUrl = normalizeEvidenceUrl(url);
+                            return (
+                              <div key={index} className="group relative">
+                                <img
+                                  src={normalizedUrl}
+                                  alt={`Evidência ${index + 1}`}
+                                  className="rounded border object-cover h-16 w-full cursor-pointer transition-transform group-hover:scale-105"
+                                  onClick={() => setSelectedImage(normalizedUrl)}
+                                  onError={(e) => {
+                                    const target = e.currentTarget;
+                                    target.style.display = 'none';
+                                    const fallback = target.parentElement?.querySelector('.evidence-fallback') as HTMLElement;
+                                    if (fallback) fallback.style.display = 'flex';
+                                  }}
+                                />
+                                <div
+                                  className="evidence-fallback hidden flex-col items-center justify-center gap-1 h-16 w-full rounded border border-dashed bg-muted/50 text-muted-foreground text-xs text-center p-1"
+                                >
+                                  <ImageOff className="h-4 w-4" />
+                                  <span>Indisponível</span>
+                                </div>
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded transition-colors flex items-center justify-center">
+                                  <Eye className="h-3 w-3 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -440,6 +462,12 @@ export function ActionPlanTab({ evaluationId, nonConformAnswers }: ActionPlanTab
           </Card>
         )}
       </div>
+
+      <ImageModal
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        imageUrl={selectedImage || ''}
+      />
     </div>
   );
 }

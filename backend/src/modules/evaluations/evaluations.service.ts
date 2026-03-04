@@ -163,10 +163,6 @@ export class EvaluationsService {
   ): Promise<Evaluation> {
     const evaluation = await this.findOne(id, userId, userRole);
 
-    if (evaluation.status === EvaluationStatus.COMPLETED) {
-      throw new BadRequestException('Não é possível editar respostas de uma avaliação finalizada');
-    }
-
     // Usar transação para garantir consistência
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -185,6 +181,19 @@ export class EvaluationsService {
       );
 
       await queryRunner.manager.save(answers);
+
+      // Se a avaliação já está finalizada, recalcular a multa
+      if (evaluation.status === EvaluationStatus.COMPLETED) {
+        const updatedEvaluation = await queryRunner.manager.findOne(Evaluation, {
+          where: { id },
+          relations: ['answers', 'answers.question'],
+        });
+        if (updatedEvaluation) {
+          const penalty = await this.calculatePenalty(updatedEvaluation);
+          await queryRunner.manager.update(Evaluation, id, { total_penalty: penalty });
+        }
+      }
+
       await queryRunner.commitTransaction();
 
       return this.findOne(id, userId, userRole);

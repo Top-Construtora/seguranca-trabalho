@@ -12,7 +12,7 @@ import {
   useCompleteEvaluation 
 } from '@/hooks/useEvaluations';
 import { useQuestions } from '@/hooks/useQuestions';
-import { CreateAnswerDto } from '@/services/evaluations.service';
+import { CreateAnswerDto, EvaluationStatus } from '@/services/evaluations.service';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
@@ -140,14 +140,16 @@ export function EvaluationEditPage() {
             <div>
               <h1 className="text-2xl font-bold">Editar Avaliação</h1>
               <p className="text-muted-foreground">
-                Continue preenchendo as respostas da avaliação
+                {evaluation.status === EvaluationStatus.COMPLETED
+                  ? 'Edite as respostas e evidências da avaliação'
+                  : 'Continue preenchendo as respostas da avaliação'}
               </p>
             </div>
           </div>
-          
+
           <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant={evaluation.status === EvaluationStatus.COMPLETED ? 'default' : 'outline'}
               onClick={handleSave}
               disabled={isSaving || updateAnswers.isPending}
             >
@@ -156,15 +158,17 @@ export function EvaluationEditPage() {
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
-              Salvar Rascunho
+              {evaluation.status === EvaluationStatus.COMPLETED ? 'Salvar' : 'Salvar Rascunho'}
             </Button>
-            <Button
-              onClick={() => setShowCompleteDialog(true)}
-              disabled={answeredCount < questions.length}
-            >
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Finalizar Avaliação
-            </Button>
+            {evaluation.status !== EvaluationStatus.COMPLETED && (
+              <Button
+                onClick={() => setShowCompleteDialog(true)}
+                disabled={answeredCount < questions.length}
+              >
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Finalizar Avaliação
+              </Button>
+            )}
           </div>
         </div>
 
@@ -220,7 +224,7 @@ export function EvaluationEditPage() {
 
         <div className="flex justify-end gap-2 pt-6 border-t">
           <Button
-            variant="outline"
+            variant={evaluation.status === EvaluationStatus.COMPLETED ? 'default' : 'outline'}
             onClick={handleSave}
             disabled={isSaving || updateAnswers.isPending}
           >
@@ -229,15 +233,17 @@ export function EvaluationEditPage() {
             ) : (
               <Save className="mr-2 h-4 w-4" />
             )}
-            Salvar Rascunho
+            {evaluation.status === EvaluationStatus.COMPLETED ? 'Salvar' : 'Salvar Rascunho'}
           </Button>
-          <Button
-            onClick={() => setShowCompleteDialog(true)}
-            disabled={answeredCount < questions.length}
-          >
-            <CheckCircle className="mr-2 h-4 w-4" />
-            Finalizar Avaliação
-          </Button>
+          {evaluation.status !== EvaluationStatus.COMPLETED && (
+            <Button
+              onClick={() => setShowCompleteDialog(true)}
+              disabled={answeredCount < questions.length}
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Finalizar Avaliação
+            </Button>
+          )}
         </div>
       </div>
 

@@ -686,7 +686,6 @@ export function ActionPlansPage() {
             setSelectedImage(null);
           }}
           imageUrl={selectedImage}
-          title="Visualizar Anexo"
         />
       )}
     </DashboardLayout>

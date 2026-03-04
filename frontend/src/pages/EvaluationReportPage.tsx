@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileDown, Printer } from 'lucide-react';
+import { ArrowLeft, FileDown, Printer, ImageOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -15,12 +15,22 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { reportsService } from '@/services/reports.service';
 import { formatCurrency } from '@/lib/currency';
+import { ImageModal } from '@/components/ui/image-modal';
+
+function normalizeEvidenceUrl(url: string): string {
+  // Fix local storage URLs that incorrectly include /api/ prefix
+  if (url.includes('/api/uploads/')) {
+    return url.replace('/api/uploads/', '/uploads/');
+  }
+  return url;
+}
 
 export function EvaluationReportPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const { data: evaluation, isLoading: evaluationLoading } = useEvaluation(id!);
   const { data: questions = [], isLoading: questionsLoading } = useQuestions(
@@ -287,14 +297,31 @@ export function EvaluationReportPage() {
                         <div className="mt-2">
                           <p className="text-sm font-medium mb-2">Evidências:</p>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                            {answer.evidence_urls.map((url, idx) => (
-                              <img
-                                key={idx}
-                                src={url}
-                                alt={`Evidência ${idx + 1}`}
-                                className="rounded border object-cover h-16 w-full"
-                              />
-                            ))}
+                            {answer.evidence_urls.map((url, idx) => {
+                              const normalizedUrl = normalizeEvidenceUrl(url);
+                              return (
+                                <div key={idx} className="relative">
+                                  <img
+                                    src={normalizedUrl}
+                                    alt={`Evidência ${idx + 1}`}
+                                    className="rounded border object-cover h-24 w-full cursor-pointer hover:opacity-80 transition-opacity"
+                                    onClick={() => setSelectedImage(normalizedUrl)}
+                                    onError={(e) => {
+                                      const target = e.currentTarget;
+                                      target.style.display = 'none';
+                                      const fallback = target.nextElementSibling as HTMLElement;
+                                      if (fallback) fallback.style.display = 'flex';
+                                    }}
+                                  />
+                                  <div
+                                    className="hidden flex-col items-center justify-center gap-1 h-24 w-full rounded border border-dashed bg-muted/50 text-muted-foreground text-xs text-center p-2"
+                                  >
+                                    <ImageOff className="h-5 w-5" />
+                                    <span>Imagem indisponível</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -317,6 +344,12 @@ export function EvaluationReportPage() {
           )}
         </div>
       </div>
+
+      <ImageModal
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        imageUrl={selectedImage || ''}
+      />
     </DashboardLayout>
   );
 }

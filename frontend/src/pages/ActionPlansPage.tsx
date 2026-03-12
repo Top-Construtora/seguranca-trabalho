@@ -12,8 +12,7 @@ import { useAccommodations } from '@/hooks/useAccommodations';
 import { useEvaluations, useEvaluation } from '@/hooks/useEvaluations';
 import { actionPlanFilesService } from '@/services/actionPlanFiles.service';
 import { ClipboardList, CheckCircle, Building2, Home, MapPin, Save, AlertCircle, Upload, File, X, Trash2, Eye, FileText, Image, Target, Filter, Calendar, AlertTriangle } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { formatDate } from '@/utils/date';
 import { toast } from 'sonner';
 import { ImageModal } from '@/components/ui/image-modal';
 
@@ -348,7 +347,7 @@ export function ActionPlansPage() {
                           <div className="flex items-center gap-3">
                             <Calendar className="h-3 w-3 text-gray-400" />
                             <span className="font-medium">
-                              {format(new Date(evaluation.created_at), 'dd/MM/yyyy')}
+                              {formatDate(evaluation.created_at)}
                             </span>
                             <Badge
                               className={`text-xs ${
@@ -553,7 +552,7 @@ export function ActionPlansPage() {
                                             </div>
                                             {plan.target_date && (
                                               <p className="text-xs text-gray-600">
-                                                Prazo: {format(new Date(plan.target_date), 'dd/MM/yyyy', { locale: ptBR })}
+                                                Prazo: {formatDate(plan.target_date)}
                                               </p>
                                             )}
                                             {plan.attachment_urls && plan.attachment_urls.length > 0 && (
@@ -582,7 +581,7 @@ export function ActionPlansPage() {
                                               </div>
                                             )}
                                             <p className="text-xs text-gray-500">
-                                              Criado em: {format(new Date(plan.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                                              Criado em: {formatDate(plan.created_at, 'dd/MM/yyyy HH:mm')}
                                             </p>
                                           </div>
                                         </div>

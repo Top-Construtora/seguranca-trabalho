@@ -24,7 +24,7 @@ import {
   AccidentCorrectiveAction,
   CorrectiveActionStatus,
 } from '@/types/accident.types';
-import { formatDate } from '@/utils/date';
+import { formatDate, todayBR } from '@/utils/date';
 import { useAuth } from '@/contexts/AuthContext';
 import { EvidenceUploadModal } from '@/components/accidents/EvidenceUploadModal';
 import { CorrectiveActionModal } from '@/components/accidents/CorrectiveActionModal';
@@ -98,7 +98,7 @@ export function AccidentDetailsPage() {
       data: {
         status: newStatus,
         ...(newStatus === CorrectiveActionStatus.CONCLUIDA && {
-          completion_date: new Date().toISOString().split('T')[0],
+          completion_date: todayBR(),
         }),
       },
     });

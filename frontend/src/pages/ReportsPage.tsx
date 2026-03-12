@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { format, subDays } from 'date-fns';
+import { formatDate, todayBR, subDaysBR } from '@/utils/date';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -32,8 +32,8 @@ export function ReportsPage() {
   
   const [activeTab, setActiveTab] = useState('obra');
   const [filters, setFilters] = useState<ReportFilters>({
-    startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
-    endDate: format(new Date(), 'yyyy-MM-dd'),
+    startDate: subDaysBR(30),
+    endDate: todayBR(),
     workId: '',
     type: 'obra',
     accommodationId: '',
@@ -311,7 +311,7 @@ export function ReportsPage() {
                                   >
                   <BarChart
                     data={lastEvaluationsConformity.evaluations_data.map((evaluation) => ({
-                      name: `${evaluation.work_name} (${format(new Date(evaluation.date), 'dd/MM')})`,
+                      name: `${evaluation.work_name} (${formatDate(evaluation.date, 'dd/MM')})`,
                       conforme: evaluation.conforme,
                       nao_conforme: evaluation.nao_conforme,
                     }))}
@@ -344,7 +344,7 @@ export function ReportsPage() {
                                   >
                   <BarChart
                     data={lastEvaluationsConformity.evaluations_data.map((evaluation) => ({
-                      name: `${evaluation.work_name} (${format(new Date(evaluation.date), 'dd/MM')})`,
+                      name: `${evaluation.work_name} (${formatDate(evaluation.date, 'dd/MM')})`,
                       conforme: Number(evaluation.conforme_percentage.toFixed(1)),
                       nao_conforme: Number(evaluation.nao_conforme_percentage.toFixed(1)),
                     }))}
@@ -387,7 +387,7 @@ export function ReportsPage() {
                     {evaluationsReport.evaluations.map((evaluation) => (
                       <TableRow key={evaluation.id}>
                         <TableCell className="whitespace-nowrap">
-                          {format(new Date(evaluation.date), 'dd/MM/yyyy')}
+                          {formatDate(evaluation.date)}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">{evaluation.work?.name}</TableCell>
                         {activeTab === 'alojamento' && <TableCell className="whitespace-nowrap">{evaluation.accommodation?.name || '-'}</TableCell>}

@@ -8,9 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { useEvaluation } from '@/hooks/useEvaluations';
 import { useQuestions } from '@/hooks/useQuestions';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatDate } from '@/utils/date';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { formatDate, formatNow } from '@/utils/date';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { reportsService } from '@/services/reports.service';
@@ -140,7 +138,7 @@ export function EvaluationReportPage() {
               {evaluation.type === 'obra' ? 'SEGURANÇA EM OBRA' : 'SEGURANÇA EM ALOJAMENTO'}
             </h2>
             <p className="text-sm text-gray-600 mt-2">
-              Gerado em {format(new Date(), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+              Gerado em {formatNow("dd 'de' MMMM 'de' yyyy 'às' HH:mm")}
             </p>
           </div>
         </div>

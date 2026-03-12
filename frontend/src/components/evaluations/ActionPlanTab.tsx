@@ -28,8 +28,7 @@ import {
   XCircle,
   ImageOff
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { formatDate } from '@/utils/date';
 import { cn } from '@/lib/utils';
 import { useActionPlansByEvaluation, useCreateActionPlan, useUpdateActionPlan, useDeleteActionPlan } from '@/hooks/useActionPlans';
 import type { CreateActionPlanDto, UpdateActionPlanDto } from '@/hooks/useActionPlans';
@@ -433,11 +432,11 @@ export function ActionPlanTab({ evaluationId, nonConformAnswers }: ActionPlanTab
                             {plan.target_date && (
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                Prazo: {format(new Date(plan.target_date), "dd/MM/yyyy", { locale: ptBR })}
+                                Prazo: {formatDate(plan.target_date)}
                               </span>
                             )}
                             <span>
-                              Criado em {format(new Date(plan.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                              Criado em {formatDate(plan.created_at)}
                             </span>
                           </div>
                         </div>

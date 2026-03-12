@@ -23,7 +23,7 @@ import {
 import { CreateEvaluationDto } from '@/services/evaluations.service';
 import { QuestionType } from '@/services/questions.service';
 import { useWorks } from '@/hooks/useWorks';
-import { format } from 'date-fns';
+import { todayBR } from '@/utils/date';
 import { Plus, X, Home, Building2, Calendar, Users, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -75,14 +75,14 @@ export function EvaluationForm({ onSubmit, onCancel, isLoading, evaluationType =
     defaultValues: evaluationType === 'obra' ? {
       work_id: '',
       type: QuestionType.OBRA,
-      date: format(new Date(), 'yyyy-MM-dd'),
+      date: todayBR(),
       employees_count: 1,
       notes: '',
     } : {
       accommodation_name: '',
       work_ids: [{ work_id: '' }],
       type: QuestionType.ALOJAMENTO,
-      date: format(new Date(), 'yyyy-MM-dd'),
+      date: todayBR(),
       employees_count: 1,
       notes: '',
     },
@@ -324,7 +324,7 @@ export function EvaluationForm({ onSubmit, onCancel, isLoading, evaluationType =
                     <Input
                       type="date"
                       {...field}
-                      max={format(new Date(), 'yyyy-MM-dd')}
+                      max={todayBR()}
                       className={cn(
                         field.value && "border-green-500"
                       )}

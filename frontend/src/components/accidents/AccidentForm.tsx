@@ -79,7 +79,7 @@ export function AccidentForm({
       title: accident?.title || '',
       description: accident?.description || '',
       accident_date: accident?.accident_date
-        ? new Date(accident.accident_date).toISOString().slice(0, 16)
+        ? accident.accident_date.includes('T') ? accident.accident_date.slice(0, 16) : accident.accident_date
         : '',
       work_id: accident?.work_id || '',
       severity: accident?.severity || undefined,

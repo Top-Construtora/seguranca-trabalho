@@ -37,7 +37,7 @@ import {
   CORRECTIVE_ACTION_STATUS_LABELS,
   AccidentCorrectiveAction,
 } from '@/types/accident.types';
-import { formatDate } from '@/utils/date';
+import { formatDate, todayBR } from '@/utils/date';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -77,7 +77,7 @@ export function CorrectiveActionsPage() {
         status: newStatus,
         completion_date:
           newStatus === CorrectiveActionStatus.CONCLUIDA
-            ? new Date().toISOString()
+            ? todayBR()
             : undefined,
       },
     });

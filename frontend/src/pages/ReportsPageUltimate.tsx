@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format, subDays, parseISO } from 'date-fns';
+import { formatDate, todayBR, subDaysBR } from '@/utils/date';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
 import { useToast } from '../hooks/use-toast';
 import { useWorks } from '../hooks/useWorks';
@@ -66,7 +66,7 @@ function processDataForPenaltyChart(penalties: any[], evaluations: any[]) {
     });
 
     const workName = evaluation.work?.name || evaluation.accommodation?.name || 'Avalia\u00e7\u00e3o';
-    const date = format(parseISO(evaluation.date), 'dd/MM/yy');
+    const date = formatDate(evaluation.date, 'dd/MM/yy');
 
     return {
       name: `${workName} (${date})`,
@@ -94,8 +94,8 @@ export function ReportsPageUltimate() {
   const [penaltyData, setPenaltyData] = useState<any[]>([]);
 
   const [filters, setFilters] = useState<ReportFilters>({
-    startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
-    endDate: format(new Date(), 'yyyy-MM-dd'),
+    startDate: subDaysBR(30),
+    endDate: todayBR(),
     workId: '',
     type: 'obra',
     accommodationId: '',
@@ -237,7 +237,7 @@ export function ReportsPageUltimate() {
 
     const headers = ['Data', 'Obra', 'Tipo', 'Pontuação', 'Conformidade', 'Avaliador', 'Status'];
     const rows = evaluationsReport.evaluations.map((e: any) => [
-      format(parseISO(e.date), 'dd/MM/yyyy'),
+      formatDate(e.date),
       e.work?.name || '',
       e.type || '',
       e.final_score?.toFixed(1) || '0',
@@ -347,7 +347,7 @@ export function ReportsPageUltimate() {
 
 
         return {
-          name: format(parseISO(evaluation.date), 'dd/MM/yy'),
+          name: formatDate(evaluation.date, 'dd/MM/yy'),
           conforme,
           naoConforme,
           total: conforme + naoConforme,
@@ -647,7 +647,7 @@ export function ReportsPageUltimate() {
                             return (
                               <tr key={evaluation.id} className="border-b hover:bg-gray-50">
                                 <td className="py-3 px-2">
-                                  {format(parseISO(evaluation.date), 'dd/MM/yyyy')}
+                                  {formatDate(evaluation.date)}
                                 </td>
                                 <td className="py-3 px-2">{reportType === 'obra' ? evaluation.work?.name : (evaluation.accommodation?.name || '-')}</td>
                                 <td className="py-3 px-2">{conformityPercentage.toFixed(1)}%</td>
@@ -672,7 +672,7 @@ export function ReportsPageUltimate() {
                         return (
                           <tr key={evaluation.id} className="border-b hover:bg-gray-50">
                             <td className="py-3 px-2">
-                              {format(parseISO(evaluation.date), 'dd/MM/yyyy')}
+                              {formatDate(evaluation.date)}
                             </td>
                             <td className="py-3 px-2">{reportType === 'obra' ? evaluation.work?.name : (evaluation.accommodation?.name || '-')}</td>
                             <td className="py-3 px-2">{conformityPercentage.toFixed(1)}%</td>

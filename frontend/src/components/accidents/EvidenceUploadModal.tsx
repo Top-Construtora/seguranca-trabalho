@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { formatNow } from '@/utils/date';
 import {
   Dialog,
   DialogContent,
@@ -134,7 +135,7 @@ export function EvidenceUploadModal({
         await addEvidence.mutateAsync({
           accidentId,
           data: {
-            file_name: `Nota de texto - ${new Date().toLocaleDateString('pt-BR')}`,
+            file_name: `Nota de texto - ${formatNow('dd/MM/yyyy')}`,
             file_url: '', // No URL for text
             file_type: EvidenceFileType.DOCUMENT,
             file_size: textContent.length,

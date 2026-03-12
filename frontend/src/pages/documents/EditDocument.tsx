@@ -27,7 +27,7 @@ import documentsService from '@/services/documents.service';
 import { worksService, Work } from '@/services/works.service';
 import { ArrowLeft } from 'lucide-react';
 import type { UpdateDocumentDTO } from '@/types/document';
-import { format } from 'date-fns';
+import { formatDate } from '@/utils/date';
 
 const formSchema = z.object({
   workId: z.string().min(1, 'Obra é obrigatória'),
@@ -82,8 +82,8 @@ export default function EditDocument() {
       const data = await documentsService.getById(id!);
 
       // Format dates for input fields
-      const issueDate = data.issueDate ? format(new Date(data.issueDate), 'yyyy-MM-dd') : '';
-      const expiryDate = data.expiryDate ? format(new Date(data.expiryDate), 'yyyy-MM-dd') : '';
+      const issueDate = data.issueDate ? formatDate(data.issueDate, 'yyyy-MM-dd') : '';
+      const expiryDate = data.expiryDate ? formatDate(data.expiryDate, 'yyyy-MM-dd') : '';
 
       form.reset({
         workId: data.workId,

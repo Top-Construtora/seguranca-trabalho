@@ -8,6 +8,20 @@ import { AnswerValue } from '../evaluations/entities/answer.entity';
 import { ReportFilters, EvaluationReportResponse, SummaryReportResponse, ConformityReportResponse, LastEvaluationsConformityReportResponse, EvaluationConformityData } from './dto/report-filters.dto';
 import * as PDFDocument from 'pdfkit';
 import * as ExcelJS from 'exceljs';
+
+/**
+ * Formata uma data string yyyy-MM-dd para dd/MM/yyyy (sem conversão de timezone)
+ */
+function formatDateBR(dateStr: string | Date): string {
+  if (!dateStr) return '-';
+  const str = typeof dateStr === 'object' ? dateStr.toISOString().split('T')[0] : String(dateStr);
+  // Se já está no formato yyyy-MM-dd, converte direto
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return `${match[3]}/${match[2]}/${match[1]}`;
+  }
+  return str;
+}
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -60,7 +74,7 @@ export class ReportsService {
     return {
       evaluations: evaluations.map(evaluation => ({
         id: evaluation.id,
-        date: new Date(evaluation.date).toISOString(),
+        date: String(evaluation.date),
         type: evaluation.type,
         employees_count: evaluation.employees_count,
         total_penalty: evaluation.total_penalty,
@@ -239,7 +253,7 @@ export class ReportsService {
 
       return {
         evaluation_id: evaluation.id,
-        date: new Date(evaluation.date).toISOString().split('T')[0],
+        date: String(evaluation.date),
         work_name: evaluation.work?.name || 'Obra não encontrada',
         conforme,
         nao_conforme,
@@ -297,7 +311,7 @@ export class ReportsService {
         doc.fontSize(14).text(`Avaliação ${index + 1}`, { underline: true });
         doc.fontSize(12)
           .text(`Obra: ${evaluation.work?.name || 'N/A'}`)
-          .text(`Data: ${new Date(evaluation.date).toLocaleDateString('pt-BR')}`)
+          .text(`Data: ${formatDateBR(evaluation.date)}`)
           .text(`Tipo: ${evaluation.type}`)
           .text(`Funcionários: ${evaluation.employees_count}`)
           .text(`Penalidade Total: ${evaluation.total_penalty || 0}`)
@@ -333,7 +347,7 @@ export class ReportsService {
     // Data
     reportData.evaluations.forEach((evaluation) => {
       worksheet.addRow({
-        date: new Date(evaluation.date).toLocaleDateString('pt-BR'),
+        date: formatDateBR(evaluation.date),
         work: evaluation.work?.name || 'N/A',
         type: evaluation.type,
         employees: evaluation.employees_count,
@@ -464,7 +478,7 @@ export class ReportsService {
       const infoItems = [
         { label: 'Obra/Local', value: evaluation.work?.name || 'N/A' },
         { label: 'Número', value: evaluation.work?.number || 'N/A' },
-        { label: 'Data da Avaliação', value: new Date(evaluation.date).toLocaleDateString('pt-BR') },
+        { label: 'Data da Avaliação', value: formatDateBR(evaluation.date) },
         { label: 'Funcionários', value: String(evaluation.employees_count) },
         { label: 'Avaliador', value: evaluation.user?.name || 'N/A' },
         { label: 'Tipo', value: evaluation.type === 'obra' ? 'Obra' : 'Alojamento' },

@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -534,7 +534,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Page content */}
         <main className="flex-1 lg:rounded-tl-3xl bg-gray-50 dark:bg-gray-800 overflow-hidden min-h-[calc(100vh-4rem)]">
           <div className="p-4 sm:p-6 lg:p-8 h-full">
-            {children}
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-full min-h-[50vh]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+              </div>
+            }>
+              {children}
+            </Suspense>
           </div>
         </main>
       </div>

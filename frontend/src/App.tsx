@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
@@ -38,21 +38,12 @@ const queryClient = new QueryClient({
   },
 })
 
-function PageLoader() {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-    </div>
-  )
-}
-
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <Router>
           <AuthProvider>
-            <Suspense fallback={<PageLoader />}>
             <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route
@@ -243,7 +234,6 @@ export function App() {
             />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
-          </Suspense>
           <Toaster />
         </AuthProvider>
       </Router>

@@ -257,17 +257,26 @@ export class EvaluationsService {
       weightGroups.set(weight, (weightGroups.get(weight) || 0) + 1);
     }
 
+    if (weightGroups.size === 0) {
+      return { total: 0, min: 0, max: 0 };
+    }
+
+    // Carregar todas as penalties aplicáveis em uma única query
+    const allPenalties = await this.penaltyTableRepository
+      .createQueryBuilder('penalty')
+      .where('penalty.weight IN (:...weights)', { weights: Array.from(weightGroups.keys()) })
+      .andWhere('penalty.employees_min <= :employees', { employees: evaluation.employees_count })
+      .andWhere('penalty.employees_max >= :employees', { employees: evaluation.employees_count })
+      .getMany();
+
+    // Indexar por peso para lookup O(1)
+    const penaltyByWeight = new Map(allPenalties.map(p => [p.weight, p]));
+
     // Calcular penalidade para cada grupo de peso
     for (const [weight, count] of weightGroups) {
-      const penalty = await this.penaltyTableRepository
-        .createQueryBuilder('penalty')
-        .where('penalty.weight = :weight', { weight })
-        .andWhere('penalty.employees_min <= :employees', { employees: evaluation.employees_count })
-        .andWhere('penalty.employees_max >= :employees', { employees: evaluation.employees_count })
-        .getOne();
+      const penalty = penaltyByWeight.get(weight);
 
       if (penalty) {
-        // Calcular valores mínimo, médio e máximo
         minPenalty += Number(penalty.min_value) * count;
         maxPenalty += Number(penalty.max_value) * count;
         const avgPenalty = (Number(penalty.min_value) + Number(penalty.max_value)) / 2;
@@ -293,36 +302,81 @@ export class EvaluationsService {
   }
 
   async getStatistics(userId: string, userRole: UserRole) {
-    const query = this.evaluationRepository.createQueryBuilder('evaluation');
+    const userFilter = userRole !== UserRole.ADMIN
+      ? 'WHERE evaluation.user_id = $1'
+      : '';
+    const params = userRole !== UserRole.ADMIN ? [userId] : [];
 
-    if (userRole !== UserRole.ADMIN) {
-      query.where('evaluation.user_id = :userId', { userId });
+    const result = await this.evaluationRepository.query(`
+      SELECT
+        COUNT(*)::int AS total,
+        COALESCE(SUM(CASE WHEN status = 'completed' THEN total_penalty ELSE 0 END), 0) AS "totalPenalties",
+        json_agg(DISTINCT jsonb_build_object('status', status, 'count', sub_status.cnt)) FILTER (WHERE sub_status.cnt IS NOT NULL) AS "byStatus",
+        json_agg(DISTINCT jsonb_build_object('type', type, 'count', sub_type.cnt)) FILTER (WHERE sub_type.cnt IS NOT NULL) AS "byType"
+      FROM evaluation
+      LEFT JOIN LATERAL (
+        SELECT status AS s, COUNT(*)::int AS cnt
+        FROM evaluation e2
+        ${userFilter ? userFilter.replace('evaluation', 'e2') : ''}
+        GROUP BY status
+      ) sub_status ON sub_status.s = evaluation.status
+      LEFT JOIN LATERAL (
+        SELECT type AS t, COUNT(*)::int AS cnt
+        FROM evaluation e3
+        ${userFilter ? userFilter.replace('evaluation', 'e3') : ''}
+        GROUP BY type
+      ) sub_type ON sub_type.t = evaluation.type
+      ${userFilter}
+    `, params);
+
+    // Fallback: se a query complexa falhar, usar approach simples
+    if (!result?.[0]?.total && result?.[0]?.total !== 0) {
+      return this.getStatisticsSimple(userId, userRole);
     }
 
-    const total = await query.getCount();
-    
-    const byStatus = await query
-      .select('evaluation.status', 'status')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('evaluation.status')
-      .getRawMany();
+    const row = result[0];
+    return {
+      total: row.total || 0,
+      byStatus: row.byStatus || [],
+      byType: row.byType || [],
+      totalPenalties: row.totalPenalties || 0,
+    };
+  }
 
-    const byType = await query
-      .select('evaluation.type', 'type')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('evaluation.type')
-      .getRawMany();
+  private async getStatisticsSimple(userId: string, userRole: UserRole) {
+    const whereClause = userRole !== UserRole.ADMIN
+      ? { user_id: userId }
+      : {};
 
-    const totalPenalties = await query
-      .select('SUM(evaluation.total_penalty)', 'total')
-      .where('evaluation.status = :status', { status: EvaluationStatus.COMPLETED })
-      .getRawOne();
+    const [byStatus, byType, penaltyResult] = await Promise.all([
+      this.evaluationRepository
+        .createQueryBuilder('evaluation')
+        .select('evaluation.status', 'status')
+        .addSelect('COUNT(*)', 'count')
+        .where(userRole !== UserRole.ADMIN ? 'evaluation.user_id = :userId' : '1=1', { userId })
+        .groupBy('evaluation.status')
+        .getRawMany(),
+      this.evaluationRepository
+        .createQueryBuilder('evaluation')
+        .select('evaluation.type', 'type')
+        .addSelect('COUNT(*)', 'count')
+        .where(userRole !== UserRole.ADMIN ? 'evaluation.user_id = :userId' : '1=1', { userId })
+        .groupBy('evaluation.type')
+        .getRawMany(),
+      this.evaluationRepository
+        .createQueryBuilder('evaluation')
+        .select('COUNT(*)', 'total_count')
+        .addSelect('SUM(CASE WHEN evaluation.status = :status THEN evaluation.total_penalty ELSE 0 END)', 'total')
+        .setParameter('status', EvaluationStatus.COMPLETED)
+        .where(userRole !== UserRole.ADMIN ? 'evaluation.user_id = :userId' : '1=1', { userId })
+        .getRawOne(),
+    ]);
 
     return {
-      total,
+      total: parseInt(penaltyResult?.total_count || '0'),
       byStatus,
       byType,
-      totalPenalties: totalPenalties?.total || 0,
+      totalPenalties: penaltyResult?.total || 0,
     };
   }
 

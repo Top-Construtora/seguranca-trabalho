@@ -108,3 +108,27 @@ CREATE TABLE public.accommodation_works (
   CONSTRAINT accommodation_works_work_id_fkey FOREIGN KEY (work_id) REFERENCES public.works(id) ON DELETE CASCADE,
   CONSTRAINT accommodation_works_unique UNIQUE (accommodation_id, work_id)
 );
+
+-- Performance indexes
+CREATE INDEX IF NOT EXISTS idx_evaluations_work_id ON public.evaluations(work_id);
+CREATE INDEX IF NOT EXISTS idx_evaluations_user_id ON public.evaluations(user_id);
+CREATE INDEX IF NOT EXISTS idx_evaluations_accommodation_id ON public.evaluations(accommodation_id);
+CREATE INDEX IF NOT EXISTS idx_evaluations_status ON public.evaluations(status);
+CREATE INDEX IF NOT EXISTS idx_evaluations_type ON public.evaluations(type);
+CREATE INDEX IF NOT EXISTS idx_evaluations_date ON public.evaluations(date);
+CREATE INDEX IF NOT EXISTS idx_evaluations_created_at ON public.evaluations(created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_answers_evaluation_id ON public.answers(evaluation_id);
+CREATE INDEX IF NOT EXISTS idx_answers_question_id ON public.answers(question_id);
+
+CREATE INDEX IF NOT EXISTS idx_questions_type_active ON public.questions(type, is_active);
+
+CREATE INDEX IF NOT EXISTS idx_penalty_table_weight ON public.penalty_table(weight, employees_min, employees_max);
+
+CREATE INDEX IF NOT EXISTS idx_works_is_active ON public.works(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_logs_user_id ON public.logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON public.logs(timestamp DESC);
+
+CREATE INDEX IF NOT EXISTS idx_accommodation_works_work_id ON public.accommodation_works(work_id);
+CREATE INDEX IF NOT EXISTS idx_accommodation_works_accommodation_id ON public.accommodation_works(accommodation_id);

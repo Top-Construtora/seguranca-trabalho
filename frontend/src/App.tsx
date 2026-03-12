@@ -1,33 +1,30 @@
-import { lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { LoginPage } from './pages/LoginPage'
+import { DashboardPage } from './pages/DashboardPage'
+import { WorksPage } from './pages/WorksPage'
+import { EvaluationsPage } from './pages/EvaluationsPage'
+import { EvaluationEditPage } from './pages/EvaluationEditPage'
+import { EvaluationReportPage } from './pages/EvaluationReportPage'
+import { EvaluationRedirect } from './components/EvaluationRedirect'
+import { ActionPlansPage } from './pages/ActionPlansPage'
+import { RankingPage } from './pages/RankingPage'
+import { ReportsPageUltimate as ReportsPage } from './pages/ReportsPageUltimate'
+import ListDocuments from './pages/documents/ListDocuments'
+import CreateDocument from './pages/documents/CreateDocument'
+import EditDocument from './pages/documents/EditDocument'
+import { AccidentsPage } from './pages/AccidentsPage'
+import { AccidentFormPage } from './pages/AccidentFormPage'
+import { AccidentDetailsPage } from './pages/AccidentDetailsPage'
+import { AccidentDashboardPage } from './pages/AccidentDashboardPage'
+import { CorrectiveActionsPage } from './pages/CorrectiveActionsPage'
+import { ProfilePage } from './pages/ProfilePage'
+import { UsersPage } from './pages/UsersPage'
+import { UserFormPage } from './pages/UserFormPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Toaster } from './components/ui/toaster'
-
-// Lazy load de todas as páginas protegidas
-const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })))
-const WorksPage = lazy(() => import('./pages/WorksPage').then(m => ({ default: m.WorksPage })))
-const EvaluationsPage = lazy(() => import('./pages/EvaluationsPage').then(m => ({ default: m.EvaluationsPage })))
-const EvaluationEditPage = lazy(() => import('./pages/EvaluationEditPage').then(m => ({ default: m.EvaluationEditPage })))
-const EvaluationReportPage = lazy(() => import('./pages/EvaluationReportPage').then(m => ({ default: m.EvaluationReportPage })))
-const EvaluationRedirect = lazy(() => import('./components/EvaluationRedirect').then(m => ({ default: m.EvaluationRedirect })))
-const ActionPlansPage = lazy(() => import('./pages/ActionPlansPage').then(m => ({ default: m.ActionPlansPage })))
-const RankingPage = lazy(() => import('./pages/RankingPage').then(m => ({ default: m.RankingPage })))
-const ReportsPage = lazy(() => import('./pages/ReportsPageUltimate').then(m => ({ default: m.ReportsPageUltimate })))
-const ListDocuments = lazy(() => import('./pages/documents/ListDocuments'))
-const CreateDocument = lazy(() => import('./pages/documents/CreateDocument'))
-const EditDocument = lazy(() => import('./pages/documents/EditDocument'))
-const AccidentsPage = lazy(() => import('./pages/AccidentsPage').then(m => ({ default: m.AccidentsPage })))
-const AccidentFormPage = lazy(() => import('./pages/AccidentFormPage').then(m => ({ default: m.AccidentFormPage })))
-const AccidentDetailsPage = lazy(() => import('./pages/AccidentDetailsPage').then(m => ({ default: m.AccidentDetailsPage })))
-const AccidentDashboardPage = lazy(() => import('./pages/AccidentDashboardPage').then(m => ({ default: m.AccidentDashboardPage })))
-const CorrectiveActionsPage = lazy(() => import('./pages/CorrectiveActionsPage').then(m => ({ default: m.CorrectiveActionsPage })))
-const ProfilePage = lazy(() => import('./pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
-const UsersPage = lazy(() => import('./pages/UsersPage').then(m => ({ default: m.UsersPage })))
-const UserFormPage = lazy(() => import('./pages/UserFormPage').then(m => ({ default: m.UserFormPage })))
 
 const queryClient = new QueryClient({
   defaultOptions: {

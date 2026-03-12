@@ -145,3 +145,10 @@ export function useEvaluationStatistics() {
     queryFn: () => evaluationsService.getStatistics(),
   });
 }
+
+export function useDashboardData() {
+  return useQuery({
+    queryKey: ['dashboard-data'],
+    queryFn: () => evaluationsService.getDashboardData(),
+  });
+}

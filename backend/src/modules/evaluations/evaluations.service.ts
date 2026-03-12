@@ -388,4 +388,39 @@ export class EvaluationsService {
       },
     });
   }
+
+  async getDashboardData(userId: string, userRole: UserRole) {
+    // Executar todas as queries em paralelo
+    const [statistics, completedEvaluations, penaltyTable, draftCount] = await Promise.all([
+      this.getStatisticsSimple(userId, userRole),
+      // Apenas avaliações completadas com answers (para gráficos e métricas)
+      this.evaluationRepository
+        .createQueryBuilder('evaluation')
+        .leftJoinAndSelect('evaluation.work', 'work')
+        .leftJoinAndSelect('evaluation.accommodation', 'accommodation')
+        .leftJoinAndSelect('evaluation.answers', 'answer')
+        .leftJoinAndSelect('answer.question', 'question')
+        .where('evaluation.status = :status', { status: EvaluationStatus.COMPLETED })
+        .orderBy('evaluation.created_at', 'DESC')
+        .getMany(),
+      this.penaltyTableRepository.find({
+        order: { weight: 'ASC', employees_min: 'ASC' },
+      }),
+      // Contagem de rascunhos (não precisa dos dados completos)
+      this.evaluationRepository.count({
+        where: userRole !== UserRole.ADMIN
+          ? { status: EvaluationStatus.DRAFT, user_id: userId }
+          : { status: EvaluationStatus.DRAFT },
+      }),
+    ]);
+
+    return {
+      statistics: {
+        ...statistics,
+        draftCount,
+      },
+      evaluations: completedEvaluations,
+      penaltyTable,
+    };
+  }
 }

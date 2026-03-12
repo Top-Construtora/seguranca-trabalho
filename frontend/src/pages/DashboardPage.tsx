@@ -2,9 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useEvaluationStatistics, useEvaluations } from '@/hooks/useEvaluations';
-import { useQuery } from '@tanstack/react-query';
-import { reportsService } from '@/services/reports.service';
+import { useDashboardData } from '@/hooks/useEvaluations';
 import { useWorks } from '@/hooks/useWorks';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -60,13 +58,10 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const { user, loading: userLoading, refreshUser } = useAuth();
   const { theme } = useTheme();
-  const { isLoading: statsLoading } = useEvaluationStatistics();
+  const { data: dashboardData, isLoading: dashboardLoading } = useDashboardData();
   const { data: works = [], isLoading: worksLoading } = useWorks();
-  const { data: evaluations = [], isLoading: evaluationsLoading } = useEvaluations();
-  const { data: penaltyTable = [], isLoading: penaltyLoading } = useQuery({
-    queryKey: ['penalty-table'],
-    queryFn: () => reportsService.getPenaltyTable(),
-  });
+  const evaluations = dashboardData?.evaluations ?? [];
+  const penaltyTable = dashboardData?.penaltyTable ?? [];
   const [expiringDocuments, setExpiringDocuments] = useState<Document[]>([]);
 
   // Estado para controlar modo de visualização do gráfico de conformidade
@@ -254,9 +249,8 @@ export function DashboardPage() {
     // Obras ativas
     const activeWorks = works.filter(work => work.is_active);
 
-    // Contagem de avaliações
-    const draftEvaluations = evaluations.filter(e => e.status === 'draft');
-    const completedEvaluations = evaluations.filter(e => e.status === 'completed');
+    // Contagem de avaliações (evaluations já contém apenas completadas)
+    const completedEvaluations = evaluations;
 
     // Calcular taxa de conformidade por obra (apenas avaliações finalizadas)
     const workConformityRates = new Map<string, { workId: string, workName: string, workNumber: string, conformityRate: number, totalEvaluations: number }>();
@@ -345,7 +339,7 @@ export function DashboardPage() {
 
     return {
       activeWorks: activeWorks.length,
-      draftCount: draftEvaluations.length,
+      draftCount: dashboardData?.statistics?.draftCount ?? 0,
       completedCount: completedEvaluations.length,
       topWorks,
       bottomWorks,
@@ -353,9 +347,9 @@ export function DashboardPage() {
       totalMaxPenalty,
       averageConformity
     };
-  }, [works, evaluations, penaltyTable]);
+  }, [works, evaluations, penaltyTable, dashboardData]);
 
-  if (statsLoading || worksLoading || userLoading || evaluationsLoading || penaltyLoading) {
+  if (dashboardLoading || worksLoading || userLoading) {
     return (
       <DashboardLayout>
         <div className="space-y-6">

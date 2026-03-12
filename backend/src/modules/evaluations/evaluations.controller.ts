@@ -51,6 +51,13 @@ export class EvaluationsController {
     return this.evaluationsService.getStatistics(req.user.id, req.user.role);
   }
 
+  @Get('dashboard-data')
+  @ApiOperation({ summary: 'Dados consolidados para o dashboard' })
+  @ApiResponse({ status: 200, description: 'Dados do dashboard' })
+  getDashboardData(@Request() req) {
+    return this.evaluationsService.getDashboardData(req.user.id, req.user.role);
+  }
+
   @Get('penalty-table')
   @ApiOperation({ summary: 'Obter tabela de penalidades' })
   @ApiResponse({ status: 200, description: 'Tabela de penalidades' })

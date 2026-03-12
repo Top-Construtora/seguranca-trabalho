@@ -132,6 +132,15 @@ class EvaluationsService {
     const response = await api.get('/evaluations/statistics');
     return response.data;
   }
+
+  async getDashboardData(): Promise<{
+    statistics: EvaluationStatistics & { draftCount: number };
+    evaluations: Evaluation[];
+    penaltyTable: any[];
+  }> {
+    const response = await api.get('/evaluations/dashboard-data');
+    return response.data;
+  }
 }
 
 export const evaluationsService = new EvaluationsService();

@@ -43,23 +43,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (token) {
         api.defaults.headers.authorization = `Bearer ${token}`;
 
-        // Se temos um usuário salvo, use-o imediatamente como fallback
+        // Usar dados do sessionStorage diretamente (já validados pelo JWT)
         if (savedUser) {
           try {
             setUser(JSON.parse(savedUser));
           } catch (error) {
             console.error('Erro ao parsear usuário salvo:', error);
+            sessionStorage.removeItem('@SST:token');
+            sessionStorage.removeItem('@SST:user');
           }
-        }
-
-        try {
-          const response = await api.get('/auth/me');
-          setUser(response.data);
-          // Atualizar sessionStorage com dados mais recentes
-          sessionStorage.setItem('@SST:user', JSON.stringify(response.data));
-        } catch {
-          // Se falhar ao buscar dados atualizados, manter usuário do sessionStorage se existir
-          if (!savedUser) {
+        } else {
+          // Só buscar do servidor se não temos dados salvos
+          try {
+            const response = await api.get('/auth/me');
+            setUser(response.data);
+            sessionStorage.setItem('@SST:user', JSON.stringify(response.data));
+          } catch {
             sessionStorage.removeItem('@SST:token');
             sessionStorage.removeItem('@SST:user');
             setUser(null);

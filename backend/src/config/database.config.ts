@@ -14,6 +14,12 @@ export const databaseConfig = (): TypeOrmModuleOptions => {
         rejectUnauthorized: false,
       } : false,
       connectTimeoutMS: 60000,
+      extra: {
+        max: 10, // máximo de conexões no pool
+        min: 2, // mínimo de conexões mantidas abertas
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
+      },
     };
   }
 
@@ -30,6 +36,12 @@ export const databaseConfig = (): TypeOrmModuleOptions => {
     logging: process.env.NODE_ENV === 'development',
     ssl: process.env.DB_HOST === 'localhost' ? false : {
       rejectUnauthorized: false,
+    },
+    extra: {
+      max: 10,
+      min: 2,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
     },
   };
 };
